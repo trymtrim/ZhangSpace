@@ -1,0 +1,195 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "ZhangSpace (Debug)",
+			"request": "launch",
+			"preLaunchTask": "ZhangSpace Win64 Debug Build",
+			"program": "D:\\GameLab5\\ZhangSpace\\Binaries\\Win64\\ZhangSpace-Win64-Debug.exe",
+			"args": [
+			],
+			"cwd": "C:\\Game_Development\\UnrealEngine-4.20",
+			"stopAtEntry": false,
+			"externalConsole": true,
+			"type": "cppvsdbg",
+			"visualizerFile": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Extras\\VisualStudioDebugging\\UE4.natvis"
+		},
+		{
+			"name": "ZhangSpace (DebugGame)",
+			"request": "launch",
+			"preLaunchTask": "ZhangSpace Win64 DebugGame Build",
+			"program": "D:\\GameLab5\\ZhangSpace\\Binaries\\Win64\\ZhangSpace-Win64-DebugGame.exe",
+			"args": [
+			],
+			"cwd": "C:\\Game_Development\\UnrealEngine-4.20",
+			"stopAtEntry": false,
+			"externalConsole": true,
+			"type": "cppvsdbg",
+			"visualizerFile": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Extras\\VisualStudioDebugging\\UE4.natvis"
+		},
+		{
+			"name": "ZhangSpace (Development)",
+			"request": "launch",
+			"preLaunchTask": "ZhangSpace Win64 Development Build",
+			"program": "D:\\GameLab5\\ZhangSpace\\Binaries\\Win64\\ZhangSpace.exe",
+			"args": [
+			],
+			"cwd": "C:\\Game_Development\\UnrealEngine-4.20",
+			"stopAtEntry": false,
+			"externalConsole": true,
+			"type": "cppvsdbg",
+			"visualizerFile": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Extras\\VisualStudioDebugging\\UE4.natvis"
+		},
+		{
+			"name": "ZhangSpace (Shipping)",
+			"request": "launch",
+			"preLaunchTask": "ZhangSpace Win64 Shipping Build",
+			"program": "D:\\GameLab5\\ZhangSpace\\Binaries\\Win64\\ZhangSpace-Win64-Shipping.exe",
+			"args": [
+			],
+			"cwd": "C:\\Game_Development\\UnrealEngine-4.20",
+			"stopAtEntry": false,
+			"externalConsole": true,
+			"type": "cppvsdbg",
+			"visualizerFile": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Extras\\VisualStudioDebugging\\UE4.natvis"
+		},
+		{
+			"name": "ZhangSpace (Test)",
+			"request": "launch",
+			"preLaunchTask": "ZhangSpace Win64 Test Build",
+			"program": "D:\\GameLab5\\ZhangSpace\\Binaries\\Win64\\ZhangSpace-Win64-Test.exe",
+			"args": [
+			],
+			"cwd": "C:\\Game_Development\\UnrealEngine-4.20",
+			"stopAtEntry": false,
+			"externalConsole": true,
+			"type": "cppvsdbg",
+			"visualizerFile": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Extras\\VisualStudioDebugging\\UE4.natvis"
+		},
+		{
+			"name": "ZhangSpaceEditor (Debug)",
+			"request": "launch",
+			"preLaunchTask": "ZhangSpaceEditor Win64 Debug Build",
+			"program": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Binaries\\Win64\\UE4Editor-Win64-Debug.exe",
+			"args": [
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-debug"
+			],
+			"cwd": "C:\\Game_Development\\UnrealEngine-4.20",
+			"stopAtEntry": false,
+			"externalConsole": true,
+			"type": "cppvsdbg",
+			"visualizerFile": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Extras\\VisualStudioDebugging\\UE4.natvis"
+		},
+		{
+			"name": "ZhangSpaceEditor (DebugGame)",
+			"request": "launch",
+			"preLaunchTask": "ZhangSpaceEditor Win64 DebugGame Build",
+			"program": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Binaries\\Win64\\UE4Editor.exe",
+			"args": [
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-debug"
+			],
+			"cwd": "C:\\Game_Development\\UnrealEngine-4.20",
+			"stopAtEntry": false,
+			"externalConsole": true,
+			"type": "cppvsdbg",
+			"visualizerFile": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Extras\\VisualStudioDebugging\\UE4.natvis"
+		},
+		{
+			"name": "ZhangSpaceEditor (Development)",
+			"request": "launch",
+			"preLaunchTask": "ZhangSpaceEditor Win64 Development Build",
+			"program": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Binaries\\Win64\\UE4Editor.exe",
+			"args": [
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject"
+			],
+			"cwd": "C:\\Game_Development\\UnrealEngine-4.20",
+			"stopAtEntry": false,
+			"externalConsole": true,
+			"type": "cppvsdbg",
+			"visualizerFile": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Extras\\VisualStudioDebugging\\UE4.natvis"
+		},
+		{
+			"name": "ZhangSpaceServer (Debug)",
+			"request": "launch",
+			"preLaunchTask": "ZhangSpaceServer Win64 Debug Build",
+			"program": "D:\\GameLab5\\ZhangSpace\\Binaries\\Win64\\ZhangSpaceServer-Win64-Debug.exe",
+			"args": [
+			],
+			"cwd": "C:\\Game_Development\\UnrealEngine-4.20",
+			"stopAtEntry": false,
+			"externalConsole": true,
+			"type": "cppvsdbg",
+			"visualizerFile": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Extras\\VisualStudioDebugging\\UE4.natvis"
+		},
+		{
+			"name": "ZhangSpaceServer (DebugGame)",
+			"request": "launch",
+			"preLaunchTask": "ZhangSpaceServer Win64 DebugGame Build",
+			"program": "D:\\GameLab5\\ZhangSpace\\Binaries\\Win64\\ZhangSpaceServer-Win64-DebugGame.exe",
+			"args": [
+			],
+			"cwd": "C:\\Game_Development\\UnrealEngine-4.20",
+			"stopAtEntry": false,
+			"externalConsole": true,
+			"type": "cppvsdbg",
+			"visualizerFile": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Extras\\VisualStudioDebugging\\UE4.natvis"
+		},
+		{
+			"name": "ZhangSpaceServer (Development)",
+			"request": "launch",
+			"preLaunchTask": "ZhangSpaceServer Win64 Development Build",
+			"program": "D:\\GameLab5\\ZhangSpace\\Binaries\\Win64\\ZhangSpaceServer.exe",
+			"args": [
+			],
+			"cwd": "C:\\Game_Development\\UnrealEngine-4.20",
+			"stopAtEntry": false,
+			"externalConsole": true,
+			"type": "cppvsdbg",
+			"visualizerFile": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Extras\\VisualStudioDebugging\\UE4.natvis"
+		},
+		{
+			"name": "ZhangSpaceServer (Shipping)",
+			"request": "launch",
+			"preLaunchTask": "ZhangSpaceServer Win64 Shipping Build",
+			"program": "D:\\GameLab5\\ZhangSpace\\Binaries\\Win64\\ZhangSpaceServer-Win64-Shipping.exe",
+			"args": [
+			],
+			"cwd": "C:\\Game_Development\\UnrealEngine-4.20",
+			"stopAtEntry": false,
+			"externalConsole": true,
+			"type": "cppvsdbg",
+			"visualizerFile": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Extras\\VisualStudioDebugging\\UE4.natvis"
+		},
+		{
+			"name": "ZhangSpaceServer (Test)",
+			"request": "launch",
+			"preLaunchTask": "ZhangSpaceServer Win64 Test Build",
+			"program": "D:\\GameLab5\\ZhangSpace\\Binaries\\Win64\\ZhangSpaceServer-Win64-Test.exe",
+			"args": [
+			],
+			"cwd": "C:\\Game_Development\\UnrealEngine-4.20",
+			"stopAtEntry": false,
+			"externalConsole": true,
+			"type": "cppvsdbg",
+			"visualizerFile": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Extras\\VisualStudioDebugging\\UE4.natvis"
+		},
+		{
+			"name": "Generate Project Files",
+			"type": "clr",
+			"request": "launch",
+			"program": "C:\\Game_Development\\UnrealEngine-4.20\\Engine\\Binaries\\DotNET\\UnrealBuildTool.exe",
+			"console": "externalTerminal",
+			"args": [
+				"-projectfiles",
+				"-vscode",
+				"-project=\"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject\"",
+				"-game",
+				"-engine"
+			],
+			"internalConsoleOptions": "openOnSessionStart",
+			"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+		}
+	]
+}

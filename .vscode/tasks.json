@@ -1,0 +1,1247 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "ZhangSpace Win32 Debug Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win32",
+				"Debug",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win32 Debug Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win32",
+				"Debug",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpace Win32 Debug Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win32 Debug Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpace",
+				"Win32",
+				"Debug",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win32 DebugGame Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win32",
+				"DebugGame",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win32 DebugGame Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win32",
+				"DebugGame",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpace Win32 DebugGame Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win32 DebugGame Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpace",
+				"Win32",
+				"DebugGame",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win32 Development Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win32",
+				"Development",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win32 Development Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win32",
+				"Development",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpace Win32 Development Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win32 Development Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpace",
+				"Win32",
+				"Development",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win32 Shipping Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win32",
+				"Shipping",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win32 Shipping Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win32",
+				"Shipping",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpace Win32 Shipping Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win32 Shipping Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpace",
+				"Win32",
+				"Shipping",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win32 Test Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win32",
+				"Test",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win32 Test Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win32",
+				"Test",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpace Win32 Test Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win32 Test Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpace",
+				"Win32",
+				"Test",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win64 Debug Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win64",
+				"Debug",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win64 Debug Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win64",
+				"Debug",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpace Win64 Debug Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win64 Debug Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpace",
+				"Win64",
+				"Debug",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win64 DebugGame Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win64",
+				"DebugGame",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win64 DebugGame Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win64",
+				"DebugGame",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpace Win64 DebugGame Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win64 DebugGame Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpace",
+				"Win64",
+				"DebugGame",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win64 Development Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win64",
+				"Development",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win64 Development Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win64",
+				"Development",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpace Win64 Development Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win64 Development Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpace",
+				"Win64",
+				"Development",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win64 Shipping Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win64",
+				"Shipping",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win64 Shipping Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win64",
+				"Shipping",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpace Win64 Shipping Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win64 Shipping Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpace",
+				"Win64",
+				"Shipping",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win64 Test Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win64",
+				"Test",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win64 Test Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpace",
+				"Win64",
+				"Test",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpace Win64 Test Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpace Win64 Test Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpace",
+				"Win64",
+				"Test",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceEditor Win64 Debug Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceEditor",
+				"Win64",
+				"Debug",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceEditor Win64 Debug Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceEditor",
+				"Win64",
+				"Debug",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpaceEditor Win64 Debug Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceEditor Win64 Debug Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpaceEditor",
+				"Win64",
+				"Debug",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceEditor Win64 DebugGame Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceEditor",
+				"Win64",
+				"DebugGame",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceEditor Win64 DebugGame Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceEditor",
+				"Win64",
+				"DebugGame",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpaceEditor Win64 DebugGame Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceEditor Win64 DebugGame Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpaceEditor",
+				"Win64",
+				"DebugGame",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceEditor Win64 Development Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceEditor",
+				"Win64",
+				"Development",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceEditor Win64 Development Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceEditor",
+				"Win64",
+				"Development",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpaceEditor Win64 Development Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceEditor Win64 Development Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpaceEditor",
+				"Win64",
+				"Development",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win32 Debug Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win32",
+				"Debug",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win32 Debug Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win32",
+				"Debug",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpaceServer Win32 Debug Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win32 Debug Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win32",
+				"Debug",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win32 DebugGame Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win32",
+				"DebugGame",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win32 DebugGame Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win32",
+				"DebugGame",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpaceServer Win32 DebugGame Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win32 DebugGame Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win32",
+				"DebugGame",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win32 Development Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win32",
+				"Development",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win32 Development Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win32",
+				"Development",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpaceServer Win32 Development Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win32 Development Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win32",
+				"Development",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win32 Shipping Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win32",
+				"Shipping",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win32 Shipping Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win32",
+				"Shipping",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpaceServer Win32 Shipping Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win32 Shipping Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win32",
+				"Shipping",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win32 Test Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win32",
+				"Test",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win32 Test Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win32",
+				"Test",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpaceServer Win32 Test Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win32 Test Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win32",
+				"Test",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win64 Debug Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win64",
+				"Debug",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win64 Debug Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win64",
+				"Debug",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpaceServer Win64 Debug Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win64 Debug Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win64",
+				"Debug",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win64 DebugGame Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win64",
+				"DebugGame",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win64 DebugGame Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win64",
+				"DebugGame",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpaceServer Win64 DebugGame Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win64 DebugGame Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win64",
+				"DebugGame",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win64 Development Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win64",
+				"Development",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win64 Development Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win64",
+				"Development",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpaceServer Win64 Development Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win64 Development Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win64",
+				"Development",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win64 Shipping Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win64",
+				"Shipping",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win64 Shipping Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win64",
+				"Shipping",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpaceServer Win64 Shipping Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win64 Shipping Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win64",
+				"Shipping",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win64 Test Build",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win64",
+				"Test",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win64 Test Rebuild",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Build.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win64",
+				"Test",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"dependsOn": [
+				"ZhangSpaceServer Win64 Test Clean"
+			],
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		},
+		{
+			"label": "ZhangSpaceServer Win64 Test Clean",
+			"group": "build",
+			"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+			"args": [
+				"ZhangSpaceServer",
+				"Win64",
+				"Test",
+				"D:\\GameLab5\\ZhangSpace\\ZhangSpace.uproject",
+				"-waitmutex"
+			],
+			"problemMatcher": "$msCompile",
+			"type": "shell",
+			"options": {
+				"cwd": "C:\\Game_Development\\UnrealEngine-4.20"
+			}
+		}
+	]
+}

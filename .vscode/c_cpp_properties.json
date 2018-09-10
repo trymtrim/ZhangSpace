@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "UnrealEngine",
+            "includePath": [
+                "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Tools\\MSVC\\14.14.26428\\INCLUDE",
+                "C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.6.1\\include\\um",
+                "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17134.0\\ucrt",
+                "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17134.0\\shared",
+                "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17134.0\\um",
+                "C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17134.0\\winrt"
+            ],
+            "intelliSenseMode": "msvc-x64",
+            "defines": [
+                "_DEBUG",
+                "UNICODE"
+            ]
+        }
+    ],
+    "version": 4
+}
