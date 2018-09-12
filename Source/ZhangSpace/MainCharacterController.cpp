@@ -1,6 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Team Monkey Business 2018.
 
 #include "MainCharacterController.h"
+#include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/CameraComponent.h"
+#include "UnrealNetwork.h"
 
 AMainCharacterController::AMainCharacterController ()
 {
@@ -34,6 +38,85 @@ void AMainCharacterController::MoveRight (float value)
     AddMovementInput (direction, value);
 }
 
+void AMainCharacterController::Shoot_Implementation ()
+{
+	if (_dead)
+		return;
+
+	//Line trace from camera to check if there is something in the crosshair's sight
+    FCollisionQueryParams traceParams = FCollisionQueryParams (FName (TEXT ("RV_Trace")), true, this);
+    traceParams.bTraceComplex = true;
+    traceParams.bReturnPhysicalMaterial = false;
+
+    FHitResult hit (ForceInit);
+	
+	//Get camera component
+	TArray <UCameraComponent*> cameraComps;
+	GetComponents <UCameraComponent> (cameraComps);
+	UCameraComponent* cameraComponent = cameraComps [0];
+
+	FVector cameraPosition = cameraComponent->GetComponentLocation ();
+
+	//Declare start and end position of the line trace based on camera position and rotation
+	FVector start = cameraPosition;
+	FVector end = cameraPosition + (cameraComponent->GetForwardVector () * 10000.0f);
+
+	//Declare spawn parameters
+	FActorSpawnParameters spawnParams;
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 100.0f;
+	FRotator spawnRotation;
+
+	//Check if line trace hits anything
+    if (GetWorld ()->LineTraceSingleByChannel (hit, start, end, ECC_Visibility, traceParams))
+    {
+		//If line trace hits a projectile, spawn bullet with rotation towards the end of the line trace
+		if (hit.GetActor ()->ActorHasTag ("Projectile"))
+			spawnRotation = (end - GetActorLocation ()).Rotation ();
+		else //Otherwise, spawn bullet with rotation towards what it hits
+			spawnRotation = (hit.ImpactPoint - GetActorLocation ()).Rotation ();
+    }
+    else //If line trace doesn't hit anything, spawn bullet with rotation towards the end of the line trace
+        spawnRotation = (end - GetActorLocation ()).Rotation ();
+
+	AProjectile* projectile = GetWorld ()->SpawnActor <AProjectile> (_projectileBP, spawnPosition, spawnRotation, spawnParams);
+	projectile->SetDamage (25.0f);
+}
+
+bool AMainCharacterController::Shoot_Validate ()
+{
+    return true;
+}
+
+float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if (_dead)
+		return 0.0f;
+
+	_currentHealth -= Damage;
+
+	//If health is below zero, die
+	if (_currentHealth <= 0.0f)
+	{
+		_currentHealth = 0.0f;
+		bCanBeDamaged = false;
+		_dead = true;
+	}
+
+	//Debug
+	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Health: " + FString::FromInt ((int) _currentHealth));
+
+	return Super::TakeDamage (Damage, DamageEvent, EventInstigator, DamageCauser);
+}
+
+void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps (OutLifetimeProps);
+
+	DOREPLIFETIME (AMainCharacterController, _maxHealth);
+	DOREPLIFETIME (AMainCharacterController, _currentHealth);
+	DOREPLIFETIME (AMainCharacterController, _dead);
+}
+
 //Called to bind functionality to input
 void AMainCharacterController::SetupPlayerInputComponent (UInputComponent* PlayerInputComponent)
 {
@@ -42,4 +125,7 @@ void AMainCharacterController::SetupPlayerInputComponent (UInputComponent* Playe
 	//Set up movement bindings
     PlayerInputComponent->BindAxis ("MoveForward", this, &AMainCharacterController::MoveForward);
     PlayerInputComponent->BindAxis ("MoveRight", this, &AMainCharacterController::MoveRight);
+
+	//Set up action bindings
+    PlayerInputComponent->BindAction ("Shoot", IE_Pressed, this, &AMainCharacterController::Shoot);
 }
