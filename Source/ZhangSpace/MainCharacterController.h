@@ -36,6 +36,7 @@ public:
 	UPROPERTY (BlueprintReadOnly) float defensePowerPercentage;
 	UPROPERTY (BlueprintReadOnly) float mobilityPowerPercentage;
 	UPROPERTY (BlueprintReadOnly) float shieldCooldownPercentage;
+	UPROPERTY (BlueprintReadOnly) FString healthText;
 
 protected:
 	//Called when the game starts or when spawned

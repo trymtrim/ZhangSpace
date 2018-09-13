@@ -152,8 +152,7 @@ void AMainCharacterController::UpdateStatsUI ()
 	defensePowerPercentage = (float) _defensePower / (float) _maxStatPower;
 	mobilityPowerPercentage = (float) _mobilityPower / (float) _maxStatPower;
 	shieldCooldownPercentage = ((float) _maxShieldCooldown - (float) _currentShieldCooldown) / (float) _maxShieldCooldown;
-
-	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, FString::SanitizeFloat (healthPercentage));
+	healthText = FString::FromInt (_currentHealth) + "/" + FString::FromInt (_maxHealth);
 }
 
 void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProperty>& OutLifetimeProps) const
