@@ -68,6 +68,8 @@ private:
 
 	int _maxStatPower = 100;
 
+	float _shootCost = 2.5f;
+
 	UPROPERTY (EditAnywhere)
 	TSubclassOf <AProjectile> _projectileBP;
 };

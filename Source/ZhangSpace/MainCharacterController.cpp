@@ -48,7 +48,7 @@ void AMainCharacterController::MoveRight (float value)
 
 void AMainCharacterController::Shoot_Implementation ()
 {
-	if (_dead)
+	if (_power < _shootCost || _dead)
 		return;
 
 	//Line trace from camera to check if there is something in the crosshair's sight
@@ -71,7 +71,7 @@ void AMainCharacterController::Shoot_Implementation ()
 
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 100.0f;
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 150.0f;
 	FRotator spawnRotation;
 
 	//Check if line trace hits anything
@@ -87,10 +87,12 @@ void AMainCharacterController::Shoot_Implementation ()
         spawnRotation = (end - GetActorLocation ()).Rotation ();
 
 	AProjectile* projectile = GetWorld ()->SpawnActor <AProjectile> (_projectileBP, spawnPosition, spawnRotation, spawnParams);
-	projectile->SetDamage (_attackPower);
+
+	if (projectile->IsValidLowLevel () && projectile != nullptr)
+		projectile->SetDamage (_attackPower);
 
 	//Spend power
-	_power -= 2.5f;
+	_power -= _shootCost;
 }
 
 bool AMainCharacterController::Shoot_Validate ()
@@ -139,7 +141,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 	}
 
 	//Debug
-	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Health: " + FString::FromInt (_currentHealth));
+	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Health: " + FString::FromInt (_currentHealth));
 
 	return Super::TakeDamage (Damage, DamageEvent, EventInstigator, DamageCauser);
 }
