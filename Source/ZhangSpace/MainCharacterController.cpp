@@ -22,6 +22,14 @@ void AMainCharacterController::BeginPlay ()
 void AMainCharacterController::Tick (float DeltaTime)
 {
 	Super::Tick (DeltaTime);
+
+	//Update cooldowns server side
+	if (GetWorld ()->IsServer ())
+		UpdateStats (DeltaTime);
+
+	//Update stats for the client's UI
+	if (!GetWorld ()->IsServer ())
+		UpdateStatsUI ();
 }
 
 void AMainCharacterController::MoveForward (float value)
@@ -79,12 +87,41 @@ void AMainCharacterController::Shoot_Implementation ()
         spawnRotation = (end - GetActorLocation ()).Rotation ();
 
 	AProjectile* projectile = GetWorld ()->SpawnActor <AProjectile> (_projectileBP, spawnPosition, spawnRotation, spawnParams);
-	projectile->SetDamage (25.0f);
+	projectile->SetDamage (_attackPower);
+
+	//Spend power
+	_power -= 2.5f;
 }
 
 bool AMainCharacterController::Shoot_Validate ()
 {
     return true;
+}
+
+void AMainCharacterController::Shield_Implementation ()
+{
+	_currentShieldCooldown = _maxShieldCooldown;
+}
+
+bool AMainCharacterController::Shield_Validate ()
+{
+	return true;
+}
+
+void AMainCharacterController::UpdateStats (float deltaTime)
+{
+	//Shield cooldown
+	if (_currentShieldCooldown > 0.0f)
+		_currentShieldCooldown -= deltaTime;
+
+	//Gradually regain power
+	if (_power < _maxPower)
+	{
+		_power += deltaTime;
+
+		if (_power > _maxPower)
+			_power = _maxPower;
+	}
 }
 
 float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -95,17 +132,28 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 	_currentHealth -= Damage;
 
 	//If health is below zero, die
-	if (_currentHealth <= 0.0f)
+	if (_currentHealth <= 0)
 	{
-		_currentHealth = 0.0f;
-		bCanBeDamaged = false;
+		_currentHealth = 0;
 		_dead = true;
 	}
 
 	//Debug
-	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Health: " + FString::FromInt ((int) _currentHealth));
+	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Health: " + FString::FromInt (_currentHealth));
 
 	return Super::TakeDamage (Damage, DamageEvent, EventInstigator, DamageCauser);
+}
+
+void AMainCharacterController::UpdateStatsUI ()
+{
+	healthPercentage = (float) _currentHealth / (float) _maxHealth;
+	powerPercentage = _power / _maxPower;
+	attackPowerPercentage = (float) _attackPower / (float) _maxStatPower;
+	defensePowerPercentage = (float) _defensePower / (float) _maxStatPower;
+	mobilityPowerPercentage = (float) _mobilityPower / (float) _maxStatPower;
+	shieldCooldownPercentage = ((float) _maxShieldCooldown - (float) _currentShieldCooldown) / (float) _maxShieldCooldown;
+
+	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, FString::SanitizeFloat (healthPercentage));
 }
 
 void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProperty>& OutLifetimeProps) const
@@ -114,6 +162,13 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 
 	DOREPLIFETIME (AMainCharacterController, _maxHealth);
 	DOREPLIFETIME (AMainCharacterController, _currentHealth);
+	DOREPLIFETIME (AMainCharacterController, _maxPower);
+	DOREPLIFETIME (AMainCharacterController, _power);
+	DOREPLIFETIME (AMainCharacterController, _attackPower);
+	DOREPLIFETIME (AMainCharacterController, _defensePower);
+	DOREPLIFETIME (AMainCharacterController, _mobilityPower);
+	DOREPLIFETIME (AMainCharacterController, _maxShieldCooldown);
+	DOREPLIFETIME (AMainCharacterController, _currentShieldCooldown);
 	DOREPLIFETIME (AMainCharacterController, _dead);
 }
 
@@ -128,4 +183,5 @@ void AMainCharacterController::SetupPlayerInputComponent (UInputComponent* Playe
 
 	//Set up action bindings
     PlayerInputComponent->BindAction ("Shoot", IE_Pressed, this, &AMainCharacterController::Shoot);
+	PlayerInputComponent->BindAction ("Shield", IE_Pressed, this, &AMainCharacterController::Shield);
 }
