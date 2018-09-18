@@ -13,9 +13,6 @@ AShrinkingCircle::AShrinkingCircle ()
 void AShrinkingCircle::BeginPlay ()
 {
 	Super::BeginPlay ();
-
-	if (GetWorld ()->IsServer () && Role == ROLE_Authority)
-		SetActorLocation (_objectToSurround->GetActorLocation ());
 }
 
 //Called every frame
@@ -30,5 +27,9 @@ void AShrinkingCircle::Tick (float DeltaTime)
 			_delayTimer += DeltaTime;
 		else if (GetActorScale3D ().X > _endRadius)
 			SetActorScale3D (GetActorScale3D () - FVector (_shrinkSpeed) * DeltaTime);
+
+		//If circle is not at the position of the object it should surround, move it there
+		if (GetActorLocation () != _objectToSurround->GetActorLocation ())
+			SetActorLocation (_objectToSurround->GetActorLocation ());
 	}
 }
