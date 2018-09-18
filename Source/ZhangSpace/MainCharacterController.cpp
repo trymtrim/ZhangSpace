@@ -22,7 +22,12 @@ void AMainCharacterController::BeginPlay ()
 	{
 		TArray <UStaticMeshComponent*> meshComps;
 		GetComponents <UStaticMeshComponent> (meshComps);
-		UStaticMeshComponent* meshComponent = meshComps [1];
+		UStaticMeshComponent* meshComponent;
+
+		if (GetWorld ()->WorldType == EWorldType::Game)
+			meshComponent = meshComps [0];
+		else
+			meshComponent = meshComps [1];
 
 		meshComponent->SetStaticMesh (_cockpitMesh);
 	}
@@ -112,7 +117,20 @@ bool AMainCharacterController::Shoot_Validate ()
 
 void AMainCharacterController::Shield_Implementation ()
 {
+	if (_currentShieldCooldown > 0.0f || _dead)
+		return;
+
+	//Reset shield cooldown
 	_currentShieldCooldown = _maxShieldCooldown;
+
+	//Declare spawn parameters
+	FActorSpawnParameters spawnParams;
+	FVector spawnPosition = GetActorLocation ();
+	FRotator spawnRotation = FRotator (0.0f, 0.0f, 0.0f);
+
+	//Spawn shield
+	AShield* shield = GetWorld ()->SpawnActor <AShield> (_shieldBP, spawnPosition, spawnRotation, spawnParams);
+	shield->SetShieldOwner (this);
 }
 
 bool AMainCharacterController::Shield_Validate ()

@@ -7,6 +7,7 @@
 #include "Projectile.h"
 #include "Components/StaticMeshComponent.h"
 #include "ShrinkingCircle.h"
+#include "Shield.h"
 #include "MainCharacterController.generated.h"
 
 UCLASS()
@@ -55,11 +56,7 @@ private:
 	void Shield ();
 
 	void UpdateStats (float deltaTime);
-
 	void UpdateStatsUI ();
-
-	UPROPERTY ()
-	AShrinkingCircle* _shrinkingCircle;
 
 	//Player stats
 	UPROPERTY (Replicated) int _maxHealth = 100;
@@ -77,7 +74,9 @@ private:
 	float _shootCost = 2.5f;
 
 	UPROPERTY (EditAnywhere)
+	UStaticMesh* _cockpitMesh;
+	UPROPERTY (EditAnywhere)
 	TSubclassOf <AProjectile> _projectileBP;
 	UPROPERTY (EditAnywhere)
-	UStaticMesh* _cockpitMesh;
+	TSubclassOf <AShield> _shieldBP;
 };

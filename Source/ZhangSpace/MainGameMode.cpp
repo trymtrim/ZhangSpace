@@ -18,3 +18,9 @@ AMainGameMode::AMainGameMode ()
 	//Set default game state class
 	GameStateClass = AMainGameState::StaticClass ();
 }
+
+/*AActor* AMainGameMode::ChoosePlayerStart_Implementation (AController* Player)
+{
+	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, Player->GetName ());
+	return nullptr;
+}*/

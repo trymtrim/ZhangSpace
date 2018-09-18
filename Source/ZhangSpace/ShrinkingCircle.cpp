@@ -31,5 +31,9 @@ void AShrinkingCircle::Tick (float DeltaTime)
 		//If circle is not at the position of the object it should surround, move it there
 		if (GetActorLocation () != _objectToSurround->GetActorLocation ())
 			SetActorLocation (_objectToSurround->GetActorLocation ());
+
+		//If circle is smaller than end radius, correct its size
+		if (GetActorScale3D ().X < _endRadius)
+			SetActorScale3D (FVector (_endRadius, _endRadius, _endRadius));
 	}
 }

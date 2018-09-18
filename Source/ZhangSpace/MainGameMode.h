@@ -13,4 +13,6 @@ class ZHANGSPACE_API AMainGameMode : public AGameMode
 	
 public:
 	AMainGameMode ();
+
+	//virtual AActor* ChoosePlayerStart_Implementation (AController* Player) override;
 };
