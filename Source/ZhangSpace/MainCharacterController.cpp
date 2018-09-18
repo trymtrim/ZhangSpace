@@ -16,6 +16,16 @@ AMainCharacterController::AMainCharacterController ()
 void AMainCharacterController::BeginPlay ()
 {
 	Super::BeginPlay ();
+
+	//Change mesh on client-side
+	if (!GetWorld ()->IsServer () && IsLocallyControlled ())
+	{
+		TArray <UStaticMeshComponent*> meshComps;
+		GetComponents <UStaticMeshComponent> (meshComps);
+		UStaticMeshComponent* meshComponent = meshComps [1];
+
+		meshComponent->SetStaticMesh (_cockpitMesh);
+	}
 }
 
 //Called every frame
@@ -24,11 +34,11 @@ void AMainCharacterController::Tick (float DeltaTime)
 	Super::Tick (DeltaTime);
 
 	//Update cooldowns server side
-	if (GetWorld ()->IsServer ())
+	if (GetWorld ()->IsServer () && Role == ROLE_Authority)
 		UpdateStats (DeltaTime);
 
 	//Update stats for the client's UI
-	if (!GetWorld ()->IsServer ())
+	if (!GetWorld ()->IsServer () && IsLocallyControlled ())
 		UpdateStatsUI ();
 }
 
@@ -71,7 +81,7 @@ void AMainCharacterController::Shoot_Implementation ()
 
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 150.0f;
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 400.0f;
 	FRotator spawnRotation;
 
 	//Check if line trace hits anything

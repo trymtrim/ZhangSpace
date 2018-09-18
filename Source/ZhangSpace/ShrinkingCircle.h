@@ -4,34 +4,33 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Projectile.generated.h"
+#include "ShrinkingCircle.generated.h"
 
 UCLASS()
-class ZHANGSPACE_API AProjectile : public AActor
+class ZHANGSPACE_API AShrinkingCircle : public AActor
 {
 	GENERATED_BODY ()
 	
 public:	
 	//Sets default values for this actor's properties
-	AProjectile ();
+	AShrinkingCircle ();
 
 	//Called every frame
 	virtual void Tick (float DeltaTime) override;
-
-	void SetDamage (float projectileDamage);
 
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay () override;
 
-	UPROPERTY (BlueprintReadOnly)
-	float damage = 0.0f;
-
 private:
-	void ServerUpdate (float deltaTime);
-
-	float _destroyTimer = 0.0f;
-
+	float _delayTimer = 0.0f;
+	
 	UPROPERTY (EditAnywhere)
-	float _speed;
+	AActor* _objectToSurround;
+	UPROPERTY (EditAnywhere)
+	float _shrinkSpeed;
+	UPROPERTY (EditAnywhere)
+	float _delayTime;
+	UPROPERTY (EditAnywhere)
+	float _endRadius;
 };

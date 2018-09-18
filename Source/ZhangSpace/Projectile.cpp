@@ -27,8 +27,8 @@ void AProjectile::Tick (float DeltaTime)
 
 void AProjectile::ServerUpdate (float deltaTime)
 {
-	//Move projectile forwards
-	SetActorLocation (GetActorLocation () + GetActorForwardVector () * 125.0f);
+	//Move projectile forwards (_speed = m/s)
+	SetActorLocation (GetActorLocation () + GetActorForwardVector () * _speed * 100.0f * deltaTime);
 
 	//Destroy projectile after a little while
 	_destroyTimer += deltaTime;

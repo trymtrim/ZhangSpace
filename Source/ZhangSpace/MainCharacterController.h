@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Projectile.h"
+#include "Components/StaticMeshComponent.h"
+#include "ShrinkingCircle.h"
 #include "MainCharacterController.generated.h"
 
 UCLASS()
@@ -28,6 +30,8 @@ public:
     //Handles input for moving right and left
     UFUNCTION ()
     void MoveRight (float value);
+
+	void ChangeMesh ();
 
 	//Variables for the spaceship UI
 	UPROPERTY (BlueprintReadOnly) float healthPercentage;
@@ -54,6 +58,9 @@ private:
 
 	void UpdateStatsUI ();
 
+	UPROPERTY ()
+	AShrinkingCircle* _shrinkingCircle;
+
 	//Player stats
 	UPROPERTY (Replicated) int _maxHealth = 100;
 	UPROPERTY (Replicated) int _currentHealth = 100;
@@ -67,9 +74,10 @@ private:
 	UPROPERTY (Replicated) bool _dead = false;
 
 	int _maxStatPower = 100;
-
 	float _shootCost = 2.5f;
 
 	UPROPERTY (EditAnywhere)
 	TSubclassOf <AProjectile> _projectileBP;
+	UPROPERTY (EditAnywhere)
+	UStaticMesh* _cockpitMesh;
 };
