@@ -49,16 +49,20 @@ void AMainCharacterController::Tick (float DeltaTime)
 
 void AMainCharacterController::MoveForward (float value)
 {
-    //Find out which way is forward and record that the player wants to move that way
-    FVector direction = FRotationMatrix (Controller->GetControlRotation ()).GetScaledAxis (EAxis::X);
-    AddMovementInput (direction, value);
+	if (value != 0.0f)
+	{
+		//Add movement in that direction
+		AddMovementInput (GetActorForwardVector (), value);
+	}
 }
 
 void AMainCharacterController::MoveRight (float value)
 {
-    //Find out which way is right and record that the player wants to move that way
-    FVector direction = FRotationMatrix (Controller->GetControlRotation ()).GetScaledAxis (EAxis::Y);
-    AddMovementInput (direction, value);
+	if (value != 0.0f)
+	{
+		//Add movement in that direction
+		AddMovementInput (GetActorRightVector (), value);
+	}
 }
 
 void AMainCharacterController::Shoot_Implementation ()
@@ -86,7 +90,7 @@ void AMainCharacterController::Shoot_Implementation ()
 
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 400.0f;
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 200.0f;
 	FRotator spawnRotation;
 
 	//Check if line trace hits anything
