@@ -90,7 +90,7 @@ void AMainCharacterController::Shoot_Implementation ()
 
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 200.0f;
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 300.0f;
 	FRotator spawnRotation;
 
 	//Check if line trace hits anything
@@ -105,8 +105,10 @@ void AMainCharacterController::Shoot_Implementation ()
     else //If line trace doesn't hit anything, spawn bullet with rotation towards the end of the line trace
         spawnRotation = (end - GetActorLocation ()).Rotation ();
 
+	//Spawn projectile
 	AProjectile* projectile = GetWorld ()->SpawnActor <AProjectile> (_projectileBP, spawnPosition, spawnRotation, spawnParams);
 
+	//Set projectile damage
 	if (projectile->IsValidLowLevel () && projectile != nullptr)
 		projectile->SetDamage (_attackPower);
 

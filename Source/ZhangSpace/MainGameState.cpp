@@ -53,6 +53,7 @@ void AMainGameState::DamagePlayersOutsideOfCircle ()
 	for (FConstPlayerControllerIterator Iterator = GetWorld ()->GetPlayerControllerIterator (); Iterator; ++Iterator)
 	{
 		AMainPlayerController* playerController = Cast <AMainPlayerController> (*Iterator);
+
 		if (playerController)
 		{
 			if (FVector::Distance (_shrinkingCircle->GetActorLocation (), playerController->GetCharacter ()->GetActorLocation ()) > _shrinkingCircle->GetActorScale3D ().X * 50.0f)
