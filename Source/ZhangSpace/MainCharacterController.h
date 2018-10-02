@@ -32,6 +32,18 @@ public:
     UFUNCTION ()
     void MoveRight (float value);
 
+	/*//Handles the roll feature of the spacecraft
+	UFUNCTION ()
+	void Roll (float value);
+
+	//Handles the pitching feature of the spacecraft
+	UFUNCTION()
+	void Pitch(float value);
+
+	//Handles the yaw feature of the spacecraft
+	UFUNCTION()
+	void Yaw (float value);*/
+
 	void ChangeMesh ();
 
 	//Variables for the spaceship UI
@@ -79,4 +91,6 @@ private:
 	TSubclassOf <AProjectile> _projectileBP;
 	UPROPERTY (EditAnywhere)
 	TSubclassOf <AShield> _shieldBP;
+	UPROPERTY(EditAnywhere)
+	float _turnSpeed = 20.0f;
 };
