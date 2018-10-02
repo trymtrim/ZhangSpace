@@ -32,7 +32,10 @@ void AMainCharacterController::Tick (float DeltaTime)
 
 	//Update cooldowns server side
 	if (GetWorld ()->IsServer () && Role == ROLE_Authority)
+	{
+		UpdateShooting (DeltaTime);
 		UpdateStats (DeltaTime);
+	}
 
 	//Update stats for the client's UI
 	if (!GetWorld ()->IsServer () && IsLocallyControlled ())
@@ -151,7 +154,38 @@ bool AMainCharacterController::UseAbility_Validate (int abilityIndex)
 	return true;
 }
 
-void AMainCharacterController::Shoot_Implementation ()
+void AMainCharacterController::StartShooting_Implementation ()
+{
+	_shooting = true;
+}
+
+bool AMainCharacterController::StartShooting_Validate ()
+{
+	return true;
+}
+
+void AMainCharacterController::StopShooting_Implementation ()
+{
+	_shooting = false;
+}
+
+bool AMainCharacterController::StopShooting_Validate ()
+{
+	return true;
+}
+
+void AMainCharacterController::UpdateShooting (float deltaTime)
+{
+	if (_currentShootingCooldown > 0.0f)
+		_currentShootingCooldown -= deltaTime;
+	else if (_shooting)
+	{
+		_currentShootingCooldown = _maxShootingCooldown;
+		Shoot ();
+	}
+}
+
+void AMainCharacterController::Shoot ()
 {
 	if (_power < _shootCost || _dead)
 		return;
@@ -196,15 +230,10 @@ void AMainCharacterController::Shoot_Implementation ()
 
 	//Set projectile damage
 	if (projectile->IsValidLowLevel () && projectile != nullptr)
-		projectile->SetDamage (_attackPower);
+		projectile->SetDamage (_attackPower * 10);
 
 	//Spend power
 	_power -= _shootCost;
-}
-
-bool AMainCharacterController::Shoot_Validate ()
-{
-    return true;
 }
 
 void AMainCharacterController::Shield ()
@@ -268,7 +297,6 @@ void AMainCharacterController::UpdateStatsUI ()
 	attackPowerPercentage = (float) _attackPower / (float) _maxStatPower;
 	defensePowerPercentage = (float) _defensePower / (float) _maxStatPower;
 	mobilityPowerPercentage = (float) _mobilityPower / (float) _maxStatPower;
-	shieldCooldownPercentage = ((float) _maxShieldCooldown - (float) _currentShieldCooldown) / (float) _maxShieldCooldown;
 	experiencePercentage = (float) _experience / (float) _experienceToNextLevel;
 	healthText = FString::FromInt (_currentHealth) + "/" + FString::FromInt (_maxHealth);
 	availableStats = _availableStats;
@@ -276,6 +304,8 @@ void AMainCharacterController::UpdateStatsUI ()
 	attackUpgradeAvailable = _attackUpgradeAvailable;
 	defenseUpgradeAvailable = _defenseUpgradeAvailable;
 	mobilityUpgradeAvailable = _mobilityUpgradeAvailable;
+
+	shieldCooldownPercentage = (float) _currentShieldCooldown / (float) _maxShieldCooldown;
 }
 
 void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProperty>& OutLifetimeProps) const
@@ -307,8 +337,9 @@ void AMainCharacterController::SetupPlayerInputComponent (UInputComponent* Playe
 {
 	Super::SetupPlayerInputComponent (PlayerInputComponent);
 
-	//Set up action bindings
-    PlayerInputComponent->BindAction ("Shoot", IE_Pressed, this, &AMainCharacterController::Shoot);
+	//Set up shoot bindings
+    PlayerInputComponent->BindAction ("Shoot", IE_Pressed, this, &AMainCharacterController::StartShooting);
+	PlayerInputComponent->BindAction ("Shoot", IE_Released, this, &AMainCharacterController::StopShooting);
 
 	//Set up "add stat" bindings
 	PlayerInputComponent->BindAction ("AddAttackStat", IE_Pressed, this, &AMainCharacterController::AddStat <1>);

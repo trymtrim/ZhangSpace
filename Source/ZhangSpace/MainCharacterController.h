@@ -52,10 +52,14 @@ protected:
 
 private:
 	UFUNCTION (Server, Reliable, WithValidation)
-	void Shoot ();
+	void StartShooting ();
+	UFUNCTION (Server, Reliable, WithValidation)
+	void StopShooting ();
 	UFUNCTION (Server, Reliable, WithValidation)
 	void UseAbility (int abilityIndex);
 
+	void UpdateShooting (float deltaTime);
+	void Shoot ();
 	void UseAbilityInput (int abilityIndex);
 
 	template <int index>
@@ -99,6 +103,10 @@ private:
 
 	UPROPERTY (Replicated) float _maxShieldCooldown = 10.0f;
 	UPROPERTY (Replicated) float _currentShieldCooldown = 0.0f;
+
+	bool _shooting = false;
+	float _maxShootingCooldown = 0.25f;
+	float _currentShootingCooldown = 0.0f;
 
 	int _level = 1;
 	int _maxStatPower = 10;
