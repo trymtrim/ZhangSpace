@@ -20,16 +20,8 @@ void AMainCharacterController::BeginPlay ()
 	//Change mesh on client-side
 	if (!GetWorld ()->IsServer () && IsLocallyControlled ())
 	{
-		TArray <UStaticMeshComponent*> meshComps;
-		GetComponents <UStaticMeshComponent> (meshComps);
-		UStaticMeshComponent* meshComponent;
-
-		if (GetWorld ()->WorldType == EWorldType::Game)
-			meshComponent = meshComps [0];
-		else
-			meshComponent = meshComps [1];
-
-		meshComponent->SetStaticMesh (_cockpitMesh);
+		ChangeMesh ();
+		AddAbility (1);
 	}
 }
 
@@ -47,22 +39,116 @@ void AMainCharacterController::Tick (float DeltaTime)
 		UpdateStatsUI ();
 }
 
-void AMainCharacterController::MoveForward (float value)
+void AMainCharacterController::ChangeMesh ()
 {
-	if (value != 0.0f)
+	TArray <UStaticMeshComponent*> meshComps;
+	GetComponents <UStaticMeshComponent> (meshComps);
+	UStaticMeshComponent* meshComponent;
+
+	if (GetWorld ()->WorldType == EWorldType::Game)
+		meshComponent = meshComps [0];
+	else
+		meshComponent = meshComps [1];
+
+	meshComponent->SetStaticMesh (_cockpitMesh);
+}
+
+void AMainCharacterController::AddExperience (int experience)
+{
+	//Add the gained experience to the player
+	_experience += experience;
+
+	//If experience is higher than needed level-up experience, level up
+	if (_experience >= _experienceToNextLevel)
 	{
-		//Add movement in that direction
-		AddMovementInput (GetActorForwardVector (), value);
+		_level++;
+
+		_experience = _experience - _experienceToNextLevel;
+
+		//Set new experience cap
+		_experienceToNextLevel = 80 + (_level * 20);
+
+		AddAvailableStats ();
 	}
 }
 
-void AMainCharacterController::MoveRight (float value)
+void AMainCharacterController::AddAbility (int abilityIndex)
 {
-	if (value != 0.0f)
+	_abilities.Add (abilityIndex);
+
+	if (abilityIndex <= 3)
+		_attackUpgradeAvailable = false;
+	else if (abilityIndex > 3 && abilityIndex <= 6)
+		_defenseUpgradeAvailable = false;
+	else if (abilityIndex > 6 && abilityIndex <= 9)
+		_mobilityUpgradeAvailable = false;
+}
+
+void AMainCharacterController::AddAvailableStats ()
+{
+	//Add two stat points to the player's available stats
+	_availableStats += 2;
+}
+
+void AMainCharacterController::AddStat_Implementation (int statIndex)
+{
+	if (_availableStats == 0)
+		return;
+
+	_availableStats--;
+
+	switch (statIndex)
 	{
-		//Add movement in that direction
-		AddMovementInput (GetActorRightVector (), value);
+	case 1: //Attack
+		_attackPower++;
+
+		if (_attackPower == 3 || _attackPower == 7 || _attackPower == 10)
+			_attackUpgradeAvailable = true;
+		break;
+	case 2: //Defense
+		_defensePower++;
+
+		if (_defensePower == 3 || _defensePower == 7 || _defensePower == 10)
+			_defenseUpgradeAvailable;
+		break;
+	case 3: //Mobility
+		_mobilityPower++;
+
+		if (_mobilityPower == 3 || _mobilityPower == 7 || _mobilityPower == 10)
+			_mobilityUpgradeAvailable = true;
+		break;
 	}
+}
+
+bool AMainCharacterController::AddStat_Validate (int statIndex)
+{
+	return true;
+}
+
+void AMainCharacterController::UseAbilityInput (int abilityIndex)
+{
+	//TODO: Use the ability that is assigned to this slot if the player has the ability
+
+	//For now
+	int actualAbilityIndex = abilityIndex;
+
+	if (_abilities.Contains (actualAbilityIndex))
+		UseAbility (actualAbilityIndex);
+}
+
+void AMainCharacterController::UseAbility_Implementation (int abilityIndex)
+{
+	switch (abilityIndex)
+	{
+	case 1:
+		Shield ();
+		break;
+	}
+}
+
+bool AMainCharacterController::UseAbility_Validate (int abilityIndex)
+{
+	return true;
 }
 
 void AMainCharacterController::Shoot_Implementation ()
@@ -90,7 +176,7 @@ void AMainCharacterController::Shoot_Implementation ()
 
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 300.0f;
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 350.0f;
 	FRotator spawnRotation;
 
 	//Check if line trace hits anything
@@ -121,7 +207,7 @@ bool AMainCharacterController::Shoot_Validate ()
     return true;
 }
 
-void AMainCharacterController::Shield_Implementation ()
+void AMainCharacterController::Shield ()
 {
 	if (_currentShieldCooldown > 0.0f || _dead)
 		return;
@@ -137,11 +223,6 @@ void AMainCharacterController::Shield_Implementation ()
 	//Spawn shield
 	AShield* shield = GetWorld ()->SpawnActor <AShield> (_shieldBP, spawnPosition, spawnRotation, spawnParams);
 	shield->SetShieldOwner (this);
-}
-
-bool AMainCharacterController::Shield_Validate ()
-{
-	return true;
 }
 
 void AMainCharacterController::UpdateStats (float deltaTime)
@@ -188,7 +269,13 @@ void AMainCharacterController::UpdateStatsUI ()
 	defensePowerPercentage = (float) _defensePower / (float) _maxStatPower;
 	mobilityPowerPercentage = (float) _mobilityPower / (float) _maxStatPower;
 	shieldCooldownPercentage = ((float) _maxShieldCooldown - (float) _currentShieldCooldown) / (float) _maxShieldCooldown;
+	experiencePercentage = (float) _experience / (float) _experienceToNextLevel;
 	healthText = FString::FromInt (_currentHealth) + "/" + FString::FromInt (_maxHealth);
+	availableStats = _availableStats;
+
+	attackUpgradeAvailable = _attackUpgradeAvailable;
+	defenseUpgradeAvailable = _defenseUpgradeAvailable;
+	mobilityUpgradeAvailable = _mobilityUpgradeAvailable;
 }
 
 void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProperty>& OutLifetimeProps) const
@@ -202,9 +289,17 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 	DOREPLIFETIME (AMainCharacterController, _attackPower);
 	DOREPLIFETIME (AMainCharacterController, _defensePower);
 	DOREPLIFETIME (AMainCharacterController, _mobilityPower);
+	DOREPLIFETIME (AMainCharacterController, _dead);
+	DOREPLIFETIME (AMainCharacterController, _experience);
+	DOREPLIFETIME (AMainCharacterController, _experienceToNextLevel);
+	DOREPLIFETIME (AMainCharacterController, _availableStats);
+
+	DOREPLIFETIME (AMainCharacterController, _attackUpgradeAvailable);
+	DOREPLIFETIME (AMainCharacterController, _defenseUpgradeAvailable);
+	DOREPLIFETIME (AMainCharacterController, _mobilityUpgradeAvailable);
+
 	DOREPLIFETIME (AMainCharacterController, _maxShieldCooldown);
 	DOREPLIFETIME (AMainCharacterController, _currentShieldCooldown);
-	DOREPLIFETIME (AMainCharacterController, _dead);
 }
 
 //Called to bind functionality to input
@@ -212,15 +307,14 @@ void AMainCharacterController::SetupPlayerInputComponent (UInputComponent* Playe
 {
 	Super::SetupPlayerInputComponent (PlayerInputComponent);
 
-	//Set up movement bindings
-    PlayerInputComponent->BindAxis ("MoveForward", this, &AMainCharacterController::MoveForward);
-    PlayerInputComponent->BindAxis ("MoveRight", this, &AMainCharacterController::MoveRight);
-
-	//Set up "look" bindings.
-	PlayerInputComponent->BindAxis("Yaw", this, &AMainCharacterController::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("Pitch", this, &AMainCharacterController::AddControllerPitchInput);
-
 	//Set up action bindings
     PlayerInputComponent->BindAction ("Shoot", IE_Pressed, this, &AMainCharacterController::Shoot);
-	PlayerInputComponent->BindAction ("Shield", IE_Pressed, this, &AMainCharacterController::Shield);
+
+	//Set up "add stat" bindings
+	PlayerInputComponent->BindAction ("AddAttackStat", IE_Pressed, this, &AMainCharacterController::AddStat <1>);
+	PlayerInputComponent->BindAction ("AddDefenseStat", IE_Pressed, this, &AMainCharacterController::AddStat <2>);
+	PlayerInputComponent->BindAction ("AddMobilityStat", IE_Pressed, this, &AMainCharacterController::AddStat <3>);
+
+	//Set up ability bindings
+	PlayerInputComponent->BindAction ("Ability1", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <1>);
 }

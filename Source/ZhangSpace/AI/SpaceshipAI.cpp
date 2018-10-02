@@ -71,7 +71,7 @@ void ASpaceshipAI::UpdateAttackState (float deltaTime)
 		//If the player target is in sight, shoot
 		FRotator lookAt = UKismetMathLibrary::FindLookAtRotation (GetActorLocation (), _target->GetActorLocation ());
 		
-		if (lookAt.Yaw > 170 && lookAt.Yaw < 190 && lookAt.Pitch > -5 && lookAt.Pitch < 5 && lookAt.Roll > -5 && lookAt.Roll < 5)
+		if (lookAt.Yaw > 170 && lookAt.Yaw < 190 && lookAt.Pitch > -15 && lookAt.Pitch < 15 && lookAt.Roll > -15 && lookAt.Roll < 15)
 			Shoot ();
 	}
 
@@ -115,7 +115,7 @@ void ASpaceshipAI::Shoot ()
 {
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 300.0f;
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 350.0f;
 	FRotator spawnRotation = GetActorRotation ();
 
 	//Spawn projectile
