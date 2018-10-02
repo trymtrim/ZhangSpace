@@ -63,56 +63,7 @@ void AMainCharacterController::MoveRight (float value)
 		//Add movement in that direction
 		AddMovementInput (GetActorRightVector (), value);
 	}
-	
 }
-/*
-/// <param name="value">Changes the roll value in LocalRotation</param>  
-void AMainCharacterController::Roll (float value) 
-{
-	//Debug
-	GEngine->AddOnScreenDebugMessage(-1, .01f, FColor::Yellow, "Roll Input Value = " + FString::SanitizeFloat(value, 2));
-
-	if (value != .0f) 
-	{
-		//Add new rotation value to current value
-		FRotator newRotation = FRotator(.0f, .0f, value);
-		FQuat quaternionRotation = FQuat(newRotation);	//Make a quaternion based of FRotator 
-		AddActorLocalRotation(quaternionRotation, false, 0, ETeleportType::None);	//Rotate around local axis with quat
-	}
-}
-
-void AMainCharacterController::Pitch (float value) 
-{
-	//Debug
-	GEngine->AddOnScreenDebugMessage(-1, .01f, FColor::Yellow, "Pitch Input Value = " + FString::SanitizeFloat(value, 2));
-
-	if (value != .0f)
-	{
-		//Add new rotation value to current value
-		FRotator newRotation = FRotator(value * _turnSpeed * GetWorld()->DeltaTimeSeconds, .0f, .0f);
-		FQuat quaternionRotation = FQuat(newRotation);	//Make a quaternion based of FRotator 
-		AddActorLocalRotation(quaternionRotation, false, 0, ETeleportType::None);	//Rotate around local axis with quat
-
-		//AddControllerPitchInput(value);
-		
-	}
-}
-
-void AMainCharacterController::Yaw (float value)
-{
-	//Debug
-	GEngine->AddOnScreenDebugMessage(-1, .01f, FColor::Yellow, "Yaw Input Value = " + FString::SanitizeFloat(value, 2));
-
-	if (value != .0f)
-	{
-		//Add new rotation value to current value
-		FRotator newRotation = FRotator(.0f, value * _turnSpeed * GetWorld()->DeltaTimeSeconds, .0f);
-		FQuat quaternionRotation = FQuat(newRotation);	//Make a quaternion based of FRotator 
-		AddActorLocalRotation(quaternionRotation, false, 0, ETeleportType::None);	//Rotate around local axis with quat
-		//AddControllerYawInput(value);
-		
-	}
-}*/
 
 void AMainCharacterController::Shoot_Implementation ()
 {
@@ -264,14 +215,10 @@ void AMainCharacterController::SetupPlayerInputComponent (UInputComponent* Playe
 	//Set up movement bindings
     PlayerInputComponent->BindAxis ("MoveForward", this, &AMainCharacterController::MoveForward);
     PlayerInputComponent->BindAxis ("MoveRight", this, &AMainCharacterController::MoveRight);
-	/*PlayerInputComponent->BindAxis ("Roll", this, &AMainCharacterController::Roll);
 
-	//Set up "look" bindings
-	//PlayerInputComponent->BindAxis("Yaw", this, &AMainCharacterController::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("Yaw", this, &AMainCharacterController::Yaw);
-	//PlayerInputComponent->BindAxis("Pitch", this, &AMainCharacterController::AddControllerPitchInput);
-	PlayerInputComponent->BindAxis("Pitch", this, &AMainCharacterController::Pitch);*/
-
+	//Set up "look" bindings.
+	PlayerInputComponent->BindAxis("Yaw", this, &AMainCharacterController::AddControllerYawInput);
+	PlayerInputComponent->BindAxis("Pitch", this, &AMainCharacterController::AddControllerPitchInput);
 
 	//Set up action bindings
     PlayerInputComponent->BindAction ("Shoot", IE_Pressed, this, &AMainCharacterController::Shoot);
