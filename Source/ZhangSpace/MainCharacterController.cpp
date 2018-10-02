@@ -216,6 +216,10 @@ void AMainCharacterController::SetupPlayerInputComponent (UInputComponent* Playe
     PlayerInputComponent->BindAxis ("MoveForward", this, &AMainCharacterController::MoveForward);
     PlayerInputComponent->BindAxis ("MoveRight", this, &AMainCharacterController::MoveRight);
 
+	//Set up "look" bindings.
+	PlayerInputComponent->BindAxis("Yaw", this, &AMainCharacterController::AddControllerYawInput);
+	PlayerInputComponent->BindAxis("Pitch", this, &AMainCharacterController::AddControllerPitchInput);
+
 	//Set up action bindings
     PlayerInputComponent->BindAction ("Shoot", IE_Pressed, this, &AMainCharacterController::Shoot);
 	PlayerInputComponent->BindAction ("Shield", IE_Pressed, this, &AMainCharacterController::Shield);
