@@ -16,7 +16,7 @@ class ZHANGSPACE_API AMainCharacterController : public ACharacter
 	GENERATED_BODY ()
 
 public:
-	AMainCharacterController ();
+	AMainCharacterController ();	//Cuntstroker...
 
 	//Called every frame
 	virtual void Tick (float DeltaTime) override;
@@ -35,6 +35,7 @@ public:
 	UFUNCTION (BlueprintCallable)
 	void CloseAbilityMenu ();
 
+
 	//Variables for the spaceship UI
 	UPROPERTY (BlueprintReadOnly) float healthPercentage;
 	UPROPERTY (BlueprintReadOnly) float powerPercentage;
@@ -49,6 +50,8 @@ public:
 	UPROPERTY (BlueprintReadOnly) bool mobilityUpgradeAvailable = false;
 
 	UPROPERTY (BlueprintReadOnly) float shieldCooldownPercentage;
+
+	UPROPERTY(Replicated) FRotator _playerDeltaRotation = FRotator(.0f, .0f, .0f);
 
 protected:
 	//Called when the game starts or when spawned
