@@ -28,6 +28,12 @@ public:
 	void AddExperience (int experience);
 	UFUNCTION (BlueprintCallable)
 	void AddAbility (int abilityIndex);
+	UFUNCTION (BlueprintImplementableEvent, Category = "Ability Menu")
+	void OpenAbilityMenuBP ();
+	UFUNCTION (BlueprintImplementableEvent, Category = "Ability Menu")
+	void CloseAbilityMenuBP ();
+	UFUNCTION (BlueprintCallable)
+	void CloseAbilityMenu ();
 
 	//Variables for the spaceship UI
 	UPROPERTY (BlueprintReadOnly) float healthPercentage;
@@ -59,6 +65,7 @@ private:
 	void UseAbility (int abilityIndex);
 
 	void UpdateShooting (float deltaTime);
+	void StartShootingInput ();
 	void Shoot ();
 	void UseAbilityInput (int abilityIndex);
 
@@ -75,6 +82,10 @@ private:
 	void AddAvailableStats ();
 	void UpdateStats (float deltaTime);
 	void UpdateStatsUI ();
+	void EnableMouseCursor ();
+	void DisableMouseCursor ();
+	void MouseClick ();
+	void ToggleAbilityMenu ();
 
 	UFUNCTION (Server, Reliable, WithValidation)
 	void AddStat (int statIndex);
@@ -96,9 +107,9 @@ private:
 	UPROPERTY (Replicated) int _experience = 0;
 	UPROPERTY (Replicated) int _experienceToNextLevel = 100;
 	UPROPERTY (Replicated) int _availableStats = 0;
-	UPROPERTY (Replicated) bool _attackUpgradeAvailable = false;
-	UPROPERTY (Replicated) bool _defenseUpgradeAvailable = false;
-	UPROPERTY (Replicated) bool _mobilityUpgradeAvailable = false;
+	UPROPERTY (Replicated) int _attackUpgradesAvailable = 0;
+	UPROPERTY (Replicated) int _defenseUpgradesAvailable = 0;
+	UPROPERTY (Replicated) int _mobilityUpgradesAvailable = 0;
 	UPROPERTY (Replicated) bool _dead = false;
 
 	UPROPERTY (Replicated) float _maxShieldCooldown = 10.0f;
@@ -113,6 +124,9 @@ private:
 	float _shootCost = 2.5f;
 
 	TArray <int> _abilities;
+
+	bool _showCursor = false;
+	bool _inAbilityMenu = false;
 
 	UPROPERTY (EditAnywhere)
 	UStaticMesh* _cockpitMesh;

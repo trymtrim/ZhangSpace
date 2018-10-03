@@ -21,8 +21,10 @@ void AMainCharacterController::BeginPlay ()
 	if (!GetWorld ()->IsServer () && IsLocallyControlled ())
 	{
 		ChangeMesh ();
-		AddAbility (1);
 	}
+
+	if (GetWorld ()->IsServer ())
+		AddAbility (1);
 }
 
 //Called every frame
@@ -77,14 +79,17 @@ void AMainCharacterController::AddExperience (int experience)
 
 void AMainCharacterController::AddAbility (int abilityIndex)
 {
+	if (_attackUpgradesAvailable == 0 && _defenseUpgradesAvailable == 0 && _mobilityUpgradesAvailable == 0)
+		return;
+
 	_abilities.Add (abilityIndex);
 
 	if (abilityIndex <= 3)
-		_attackUpgradeAvailable = false;
+		_attackUpgradesAvailable--;
 	else if (abilityIndex > 3 && abilityIndex <= 6)
-		_defenseUpgradeAvailable = false;
+		_defenseUpgradesAvailable--;
 	else if (abilityIndex > 6 && abilityIndex <= 9)
-		_mobilityUpgradeAvailable = false;
+		_mobilityUpgradesAvailable--;
 }
 
 void AMainCharacterController::AddAvailableStats ()
@@ -106,19 +111,19 @@ void AMainCharacterController::AddStat_Implementation (int statIndex)
 		_attackPower++;
 
 		if (_attackPower == 3 || _attackPower == 7 || _attackPower == 10)
-			_attackUpgradeAvailable = true;
+			_attackUpgradesAvailable++;
 		break;
 	case 2: //Defense
 		_defensePower++;
 
 		if (_defensePower == 3 || _defensePower == 7 || _defensePower == 10)
-			_defenseUpgradeAvailable;
+			_defenseUpgradesAvailable++;
 		break;
 	case 3: //Mobility
 		_mobilityPower++;
 
 		if (_mobilityPower == 3 || _mobilityPower == 7 || _mobilityPower == 10)
-			_mobilityUpgradeAvailable = true;
+			_mobilityUpgradesAvailable++;
 		break;
 	}
 }
@@ -130,17 +135,22 @@ bool AMainCharacterController::AddStat_Validate (int statIndex)
 
 void AMainCharacterController::UseAbilityInput (int abilityIndex)
 {
+	if (_dead || _showCursor)
+		return;
+
 	//TODO: Use the ability that is assigned to this slot if the player has the ability
 
 	//For now
 	int actualAbilityIndex = abilityIndex;
 
-	if (_abilities.Contains (actualAbilityIndex))
-		UseAbility (actualAbilityIndex);
+	UseAbility (actualAbilityIndex);
 }
 
 void AMainCharacterController::UseAbility_Implementation (int abilityIndex)
 {
+	if (!_abilities.Contains (abilityIndex))
+		return;
+
 	switch (abilityIndex)
 	{
 	case 1:
@@ -152,6 +162,14 @@ void AMainCharacterController::UseAbility_Implementation (int abilityIndex)
 bool AMainCharacterController::UseAbility_Validate (int abilityIndex)
 {
 	return true;
+}
+
+void AMainCharacterController::StartShootingInput ()
+{
+	if (_showCursor)
+		return;
+
+	StartShooting ();
 }
 
 void AMainCharacterController::StartShooting_Implementation ()
@@ -210,7 +228,7 @@ void AMainCharacterController::Shoot ()
 
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 350.0f;
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 350.0f - FVector (0.0f, 0.0f, 40.0f);
 	FRotator spawnRotation;
 
 	//Check if line trace hits anything
@@ -238,7 +256,7 @@ void AMainCharacterController::Shoot ()
 
 void AMainCharacterController::Shield ()
 {
-	if (_currentShieldCooldown > 0.0f || _dead)
+	if (_currentShieldCooldown > 0.0f)
 		return;
 
 	//Reset shield cooldown
@@ -301,11 +319,92 @@ void AMainCharacterController::UpdateStatsUI ()
 	healthText = FString::FromInt (_currentHealth) + "/" + FString::FromInt (_maxHealth);
 	availableStats = _availableStats;
 
-	attackUpgradeAvailable = _attackUpgradeAvailable;
-	defenseUpgradeAvailable = _defenseUpgradeAvailable;
-	mobilityUpgradeAvailable = _mobilityUpgradeAvailable;
+	if (_attackUpgradesAvailable > 0)
+		attackUpgradeAvailable = true;
+	else
+		attackUpgradeAvailable = false;
+
+	if (_defenseUpgradesAvailable > 0)
+		defenseUpgradeAvailable = true;
+	else
+		defenseUpgradeAvailable = false;
+
+	if (_mobilityUpgradesAvailable > 0)
+		mobilityUpgradeAvailable = true;
+	else
+		mobilityUpgradeAvailable = false;
 
 	shieldCooldownPercentage = (float) _currentShieldCooldown / (float) _maxShieldCooldown;
+}
+
+void AMainCharacterController::EnableMouseCursor ()
+{
+	if (!GetWorld ()->IsServer () && IsLocallyControlled ())
+	{
+		GetWorld ()->GetFirstPlayerController ()->bShowMouseCursor = true;
+		GetWorld ()->GetFirstPlayerController ()->bEnableClickEvents = true;
+		GetWorld ()->GetFirstPlayerController ()->bEnableMouseOverEvents = true;
+
+		_showCursor = true;
+
+		StopShooting ();
+	}
+}
+
+void AMainCharacterController::DisableMouseCursor ()
+{
+	if (!GetWorld ()->IsServer () && IsLocallyControlled () && !_inAbilityMenu)
+	{
+		GetWorld ()->GetFirstPlayerController ()->bShowMouseCursor = false;
+		GetWorld ()->GetFirstPlayerController ()->bEnableClickEvents = false;
+		GetWorld ()->GetFirstPlayerController ()->bEnableMouseOverEvents = false;
+
+		_showCursor = false;
+	}
+}
+
+void AMainCharacterController::MouseClick ()
+{
+	if (!_showCursor)
+		return;
+
+	//Trace to see what is under the mouse cursor
+	FHitResult hit;
+
+	if (GetWorld ()->GetFirstPlayerController ()->GetHitResultUnderCursor (ECC_Visibility, true, hit))
+	{
+		FString hitName = hit.GetComponent ()->GetName ();
+
+		if (hitName == "AttackUpgradeButton")
+			AddStat (1);
+		else if (hitName == "DefenseUpgradeButton")
+			AddStat (2);
+		else if (hitName == "MobilityUpgradeButton")
+			AddStat (3);
+		else if (hitName == "AbilityMenuButton")
+			ToggleAbilityMenu ();
+	}
+}
+
+void AMainCharacterController::ToggleAbilityMenu ()
+{
+	if (_inAbilityMenu)
+		CloseAbilityMenu ();
+	else
+	{
+		OpenAbilityMenuBP ();
+
+		EnableMouseCursor ();
+		_inAbilityMenu = true;
+	}
+}
+
+void AMainCharacterController::CloseAbilityMenu ()
+{
+	_inAbilityMenu = false;
+	DisableMouseCursor ();
+
+	CloseAbilityMenuBP ();
 }
 
 void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProperty>& OutLifetimeProps) const
@@ -324,9 +423,9 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 	DOREPLIFETIME (AMainCharacterController, _experienceToNextLevel);
 	DOREPLIFETIME (AMainCharacterController, _availableStats);
 
-	DOREPLIFETIME (AMainCharacterController, _attackUpgradeAvailable);
-	DOREPLIFETIME (AMainCharacterController, _defenseUpgradeAvailable);
-	DOREPLIFETIME (AMainCharacterController, _mobilityUpgradeAvailable);
+	DOREPLIFETIME (AMainCharacterController, _attackUpgradesAvailable);
+	DOREPLIFETIME (AMainCharacterController, _defenseUpgradesAvailable);
+	DOREPLIFETIME (AMainCharacterController, _mobilityUpgradesAvailable);
 
 	DOREPLIFETIME (AMainCharacterController, _maxShieldCooldown);
 	DOREPLIFETIME (AMainCharacterController, _currentShieldCooldown);
@@ -338,7 +437,7 @@ void AMainCharacterController::SetupPlayerInputComponent (UInputComponent* Playe
 	Super::SetupPlayerInputComponent (PlayerInputComponent);
 
 	//Set up shoot bindings
-    PlayerInputComponent->BindAction ("Shoot", IE_Pressed, this, &AMainCharacterController::StartShooting);
+    PlayerInputComponent->BindAction ("Shoot", IE_Pressed, this, &AMainCharacterController::StartShootingInput);
 	PlayerInputComponent->BindAction ("Shoot", IE_Released, this, &AMainCharacterController::StopShooting);
 
 	//Set up "add stat" bindings
@@ -348,4 +447,12 @@ void AMainCharacterController::SetupPlayerInputComponent (UInputComponent* Playe
 
 	//Set up ability bindings
 	PlayerInputComponent->BindAction ("Ability1", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <1>);
+
+	//Set up mouse cursor bindings
+	PlayerInputComponent->BindAction ("ShowMouseCursor", IE_Pressed, this, &AMainCharacterController::EnableMouseCursor);
+	PlayerInputComponent->BindAction ("ShowMouseCursor", IE_Released, this, &AMainCharacterController::DisableMouseCursor);
+	PlayerInputComponent->BindAction ("MouseClick", IE_Pressed, this, &AMainCharacterController::MouseClick);
+
+	//Set up menu bindings
+	PlayerInputComponent->BindAction ("AbilityMenu", IE_Pressed, this, &AMainCharacterController::ToggleAbilityMenu);
 }
