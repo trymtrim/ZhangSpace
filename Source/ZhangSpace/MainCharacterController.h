@@ -35,7 +35,6 @@ public:
 	UFUNCTION (BlueprintCallable)
 	void CloseAbilityMenu ();
 
-
 	//Variables for the spaceship UI
 	UPROPERTY (BlueprintReadOnly) float healthPercentage;
 	UPROPERTY (BlueprintReadOnly) float powerPercentage;

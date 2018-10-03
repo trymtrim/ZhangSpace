@@ -44,7 +44,7 @@ void AMainCharacterController::Tick (float DeltaTime)
 		UpdateStatsUI ();
 
 	//Update local rotation based on delta rotation in MainPlayerController class
-	AddActorLocalRotation(_playerDeltaRotation, false, 0, ETeleportType::None);
+	AddActorLocalRotation (_playerDeltaRotation, false, 0, ETeleportType::None);
 
 	//Debug
 	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Rotation: " + _playerDeltaRotation.ToString());
@@ -86,17 +86,17 @@ void AMainCharacterController::AddExperience (int experience)
 
 void AMainCharacterController::AddAbility (int abilityIndex)
 {
-	if (_attackUpgradesAvailable == 0 && _defenseUpgradesAvailable == 0 && _mobilityUpgradesAvailable == 0)
-		return;
-
 	_abilities.Add (abilityIndex);
 
-	if (abilityIndex <= 3)
-		_attackUpgradesAvailable--;
-	else if (abilityIndex > 3 && abilityIndex <= 6)
-		_defenseUpgradesAvailable--;
-	else if (abilityIndex > 6 && abilityIndex <= 9)
-		_mobilityUpgradesAvailable--;
+	if (_attackUpgradesAvailable != 0 && _defenseUpgradesAvailable != 0 && _mobilityUpgradesAvailable != 0)
+	{
+		if (abilityIndex <= 3)
+			_attackUpgradesAvailable--;
+		else if (abilityIndex > 3 && abilityIndex <= 6)
+			_defenseUpgradesAvailable--;
+		else if (abilityIndex > 6 && abilityIndex <= 9)
+			_mobilityUpgradesAvailable--;
+	}
 }
 
 void AMainCharacterController::AddAvailableStats ()
@@ -235,7 +235,7 @@ void AMainCharacterController::Shoot ()
 
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 350.0f - FVector (0.0f, 0.0f, 40.0f);
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 350.0f - GetActorUpVector () * 40.0f;
 	FRotator spawnRotation;
 
 	//Check if line trace hits anything
