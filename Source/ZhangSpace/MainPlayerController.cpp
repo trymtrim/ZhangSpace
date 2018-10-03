@@ -3,17 +3,41 @@
 #include "MainPlayerController.h"
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/PlayerController.h"
+#include "UnrealNetwork.h"
+
+AMainPlayerController::AMainPlayerController()
+{
+	//Set this character to call Tick () every frame. You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+}
+
+//Called every frame
+void AMainPlayerController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (GetWorld()->IsServer())
+	{
+		UpdateRotation(pitchDelta, yawDelta, rollDelta);
+
+		//Debug
+		//if (_character != nullptr)
+			//GEngine->AddOnScreenDebugMessage (-1, .01f, FColor::Yellow, "_character is not nullptr");
+		
+	}
+}
 
 void AMainPlayerController::MoveForward (float value)
 {
-	if (value != 0.0f)
+	if (value != 0.0f )
 	{
 		//Add movement in that direction
 		GetCharacter ()->AddMovementInput (GetCharacter ()->GetActorForwardVector (), value);
 	}
 }
 
-void AMainPlayerController::MoveRight (float value)
+void AMainPlayerController::Strafe (float value)
 {
 	if (value != 0.0f)
 	{
@@ -22,50 +46,71 @@ void AMainPlayerController::MoveRight (float value)
 	}
 }
 
-void AMainPlayerController::Roll (float value)
+void AMainPlayerController::Roll_Implementation (float value)
 {
-	//Debug
-	//GEngine->AddOnScreenDebugMessage (-1, .01f, FColor::Yellow, "Roll Input Value = " + FString::SanitizeFloat (value, 2));
 
 	if (value != .0f)
 	{
-		//Add new rotation value to current value
-		FRotator newRotation = FRotator (.0f, .0f, value);
-		FQuat quaternionRotation = FQuat (newRotation);	//Make a quaternion based of FRotator 
-		GetCharacter ()->AddActorLocalRotation (quaternionRotation, false, 0, ETeleportType::None);	//Rotate around local axis with quat
+		rollDelta = value * _rollSpeed * GetWorld()->DeltaTimeSeconds;
 	}
+	//Debug
+	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Roll Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaRoll value = " + FString::SanitizeFloat(rollDelta, 2));
 }
 
-void AMainPlayerController::Pitch (float value)
+bool AMainPlayerController::Roll_Validate(float value) 
 {
-	//Debug
-	//GEngine->AddOnScreenDebugMessage (-1, .01f, FColor::Yellow, "Pitch Input Value = " + FString::SanitizeFloat (value, 2));
-
-	if (value != .0f)
-	{
-		//Add new rotation value to current value
-		//FRotator newRotation = FRotator (value * 20.0f * GetWorld ()->DeltaTimeSeconds, .0f, .0f);
-		//FQuat quaternionRotation = FQuat (newRotation);	//Make a quaternion based of FRotator 
-		//GetCharacter ()->AddActorLocalRotation (quaternionRotation, false, 0, ETeleportType::None);	//Rotate around local axis with quat
-		
-		GetCharacter ()->AddControllerPitchInput(value);
-	}
+	return true;
 }
 
-void AMainPlayerController::Yaw (float value)
+void AMainPlayerController::Pitch_Implementation (float value)
 {
-	//Debug
-	//GEngine->AddOnScreenDebugMessage (-1, .01f, FColor::Yellow, "Yaw Input Value = " + FString::SanitizeFloat (value, 2));
-
 	if (value != .0f)
 	{
-		//Add new rotation value to current value
-		//FRotator newRotation = FRotator (.0f, value * 20.0f * GetWorld ()->DeltaTimeSeconds, .0f);
-		//FQuat quaternionRotation = FQuat (newRotation);	//Make a quaternion based of FRotator 
-		//GetCharacter ()->AddActorLocalRotation (quaternionRotation, false, 0, ETeleportType::None);	//Rotate around local axis with quat
-		
-		GetCharacter ()->AddControllerYawInput(value);
+		pitchDelta = value * _turnSpeed * GetWorld()->DeltaTimeSeconds;
 	}
+
+	//Debug
+	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Pitch Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaPitch value = " + FString::SanitizeFloat(pitchDelta, 2));
+}
+
+bool AMainPlayerController::Pitch_Validate(float value) 
+{
+	return true;
+}
+
+void AMainPlayerController::Yaw_Implementation (float value)
+{
+	if (value != .0f)
+	{
+		yawDelta = value * _turnSpeed * GetWorld()->DeltaTimeSeconds;
+	}
+
+	//Debug
+	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Yaw Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaYaw value = " + FString::SanitizeFloat(yawDelta, 2));
+}
+
+bool AMainPlayerController::Yaw_Validate(float value) 
+{
+	return true;
+}
+
+void AMainPlayerController::UpdateRotation(float pitch, float yaw, float roll) 
+{
+	//If _character doesn't have a pointer, get one and return 1 frame
+	if (_character == nullptr) 
+	{
+		_character = Cast <AMainCharacterController>(GetCharacter());
+		return;
+	}
+	
+	//Make delta rotation in a Rotator and add it to the player delta rotation variable in MainCharacterController class
+	FRotator newDeltaRotation = FRotator(pitch,yaw,roll);
+	_character->_playerDeltaRotation = newDeltaRotation;
+
+	//Reset rotation values
+	yawDelta = .0f;
+	pitchDelta = .0f;
+	rollDelta = .0f;
 }
 
 void AMainPlayerController::SetupInputComponent ()
@@ -78,14 +123,11 @@ void AMainPlayerController::SetupInputComponent ()
 	{
 		//Set up movement bindings
 		InputComponent->BindAxis ("MoveForward", this, &AMainPlayerController::MoveForward);
-		InputComponent->BindAxis ("MoveRight", this, &AMainPlayerController::MoveRight);
-
-		InputComponent->BindAxis ("Roll", this, &AMainPlayerController::Roll);
+		InputComponent->BindAxis ("Strafe", this, &AMainPlayerController::Strafe);
 
 		//Set up "look" bindings
-		//PlayerInputComponent->BindAxis("Yaw", this, &AMainPlayerController::AddControllerYawInput);
 		InputComponent->BindAxis ("Yaw", this, &AMainPlayerController::Yaw);
-		//PlayerInputComponent->BindAxis("Pitch", this, &AMainPlayerController::AddControllerPitchInput);
 		InputComponent->BindAxis ("Pitch", this, &AMainPlayerController::Pitch);
+		InputComponent->BindAxis ("Roll", this, &AMainPlayerController::Roll);
 	}
 }

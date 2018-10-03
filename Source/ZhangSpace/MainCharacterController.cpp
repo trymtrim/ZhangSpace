@@ -40,6 +40,13 @@ void AMainCharacterController::Tick (float DeltaTime)
 	//Update stats for the client's UI
 	if (!GetWorld ()->IsServer () && IsLocallyControlled ())
 		UpdateStatsUI ();
+
+	//Update local rotation based on delta rotation in MainPlayerController class
+	AddActorLocalRotation(_playerDeltaRotation, false, 0, ETeleportType::None);
+
+	//Debug
+	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Rotation: " + _playerDeltaRotation.ToString());
+
 }
 
 void AMainCharacterController::ChangeMesh ()
@@ -330,6 +337,7 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 
 	DOREPLIFETIME (AMainCharacterController, _maxShieldCooldown);
 	DOREPLIFETIME (AMainCharacterController, _currentShieldCooldown);
+	DOREPLIFETIME (AMainCharacterController, _playerDeltaRotation);
 }
 
 //Called to bind functionality to input
