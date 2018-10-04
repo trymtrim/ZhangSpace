@@ -35,6 +35,8 @@ public:
 	UFUNCTION (BlueprintCallable)
 	void CloseAbilityMenu ();
 
+	FVector2D GetViewportSize();	//Returns the size of the clients viewport as a 2d vector
+
 	//Variables for the spaceship UI
 	UPROPERTY (BlueprintReadOnly) float healthPercentage;
 	UPROPERTY (BlueprintReadOnly) float powerPercentage;
@@ -50,7 +52,8 @@ public:
 
 	UPROPERTY (BlueprintReadOnly) float shieldCooldownPercentage;
 
-	UPROPERTY(Replicated) FRotator _playerDeltaRotation = FRotator(.0f, .0f, .0f);
+	//Poperty used to update rotation on server and to clients
+	UPROPERTY (Replicated) FRotator _playerRotation = FRotator(.0f, .0f, .0f);
 
 protected:
 	//Called when the game starts or when spawned

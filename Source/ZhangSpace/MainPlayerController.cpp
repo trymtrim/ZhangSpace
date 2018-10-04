@@ -5,11 +5,28 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/PlayerController.h"
 #include "UnrealNetwork.h"
+#include "Engine.h"
 
 AMainPlayerController::AMainPlayerController()
 {
 	//Set this character to call Tick () every frame. You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+}
+
+
+//Called when the game starts or when spawned
+void AMainPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	//Lock mouse to viewport
+	if (GetWorld()->GetGameViewport() != nullptr)
+	{
+		GetWorld()->GetGameViewport()->SetMouseLockMode(EMouseLockMode::LockAlways);
+		GetWorld()->GetGameViewport()->Viewport->LockMouseToViewport(true);
+		
+		//GEngine->GameViewport->Viewport->LockMouseToViewport(true); //Testing purposes for now
+	}
 }
 
 //Called every frame
@@ -105,7 +122,10 @@ void AMainPlayerController::UpdateRotation(float pitch, float yaw, float roll)
 	
 	//Make delta rotation in a Rotator and add it to the player delta rotation variable in MainCharacterController class
 	FRotator newDeltaRotation = FRotator(pitch,yaw,roll);
-	_character->_playerDeltaRotation = newDeltaRotation;
+	GetCharacter()->AddActorLocalRotation(newDeltaRotation, false, 0, ETeleportType::None);
+
+	//Update player rotation on server to match client rotation
+	_character->_playerRotation = GetCharacter()->GetActorRotation();
 
 	//Reset rotation values
 	yawDelta = .0f;

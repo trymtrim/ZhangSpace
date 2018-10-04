@@ -49,6 +49,10 @@ public:
 	virtual void Yaw_Implementation(float value);
 	virtual bool Yaw_Validate(float value);
 
+protected:
+	//Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
 private:
 	UPROPERTY (EditAnywhere) float _turnSpeed = 20.0f;
 	UPROPERTY (EditAnywhere) float _rollSpeed = 40.0f;
