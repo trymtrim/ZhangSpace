@@ -505,9 +505,9 @@ void AMainCharacterController::CloseAbilityMenu ()
 bool AMainCharacterController::GetCanMove ()
 {
 	if (_dead || _showCursor)
-		return true;
+		return false;
 
-	return false;
+	return true;
 }
 
 //Returns the viewport of the client
