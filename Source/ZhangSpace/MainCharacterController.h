@@ -98,6 +98,9 @@ private:
 	void MouseClick ();
 	void ToggleAbilityMenu ();
 
+	UFUNCTION (Server, Reliable, WithValidation)
+	void SetShowCursor (bool show);
+
 	void Die ();
 	void UpdateDeadState (float deltaTime);
 	void Respawn ();
@@ -118,8 +121,8 @@ private:
 	UPROPERTY (Replicated) int _attackPower = 1;
 	UPROPERTY (Replicated) int _defensePower = 1;
 	UPROPERTY (Replicated) int _mobilityPower = 1;
-	UPROPERTY (Replicated) float _maxPower = 100;
-	UPROPERTY (Replicated) float _power = 100;
+	UPROPERTY (Replicated) float _maxPower = 50;
+	UPROPERTY (Replicated) float _power = 50;
 	UPROPERTY (Replicated) int _experience = 0;
 	UPROPERTY (Replicated) int _experienceToNextLevel = 100;
 	UPROPERTY (Replicated) int _availableStats = 0;
@@ -128,7 +131,7 @@ private:
 	UPROPERTY (Replicated) int _mobilityUpgradesAvailable = 0;
 	UPROPERTY (Replicated) bool _dead = false;
 
-	UPROPERTY (Replicated) float _maxShieldCooldown = 10.0f;
+	UPROPERTY (Replicated) float _maxShieldCooldown = 20.0f;
 	UPROPERTY (Replicated) float _currentShieldCooldown = 0.0f;
 
 	bool _shooting = false;
@@ -145,7 +148,7 @@ private:
 
 	TArray <int> _abilities;
 
-	bool _showCursor = false;
+	UPROPERTY (Replicated) bool _showCursor = false;
 	bool _inAbilityMenu = false;
 
 	UPROPERTY (EditAnywhere)
