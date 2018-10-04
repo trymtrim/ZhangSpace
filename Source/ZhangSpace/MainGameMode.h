@@ -19,4 +19,5 @@ public:
 private:
 	int _maxPlayers = 6;
 	int _playerCount = 0;
+	int _currentPlayerStartIndex = 0;
 };

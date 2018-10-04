@@ -25,14 +25,24 @@ AMainGameMode::AMainGameMode ()
 
 AActor* AMainGameMode::ChoosePlayerStart_Implementation (AController* Player)
 {
+	TArray <AActor*> playerStarts;
+	UGameplayStatics::GetAllActorsOfClass (GetWorld (), APlayerStart::StaticClass (), playerStarts);
+
+	if (_playerCount == _maxPlayers)
+	{
+		if (_currentPlayerStartIndex == playerStarts.Num () - 1)
+			_currentPlayerStartIndex = 0;
+		else
+			_currentPlayerStartIndex++;
+
+		return playerStarts [_currentPlayerStartIndex];
+	}
+
 	if (_playerCount < _maxPlayers)
 		_playerCount++;
 
-	TArray <AActor*> actors;
-	UGameplayStatics::GetAllActorsOfClass (GetWorld (), APlayerStart::StaticClass (), actors);
-
 	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, Player->GetName ());
-	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, actors [_playerCount - 1]->GetName ());
+	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, playerStarts [_playerCount - 1]->GetName ());
 	
-	return actors [_playerCount - 1];
+	return playerStarts [_playerCount - 1];
 }
