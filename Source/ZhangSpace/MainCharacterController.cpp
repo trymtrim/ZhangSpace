@@ -290,15 +290,14 @@ void AMainCharacterController::Shoot ()
 
 	FVector cameraPosition = cameraComponent->GetComponentLocation ();
 
-	float downwardLength = 40.0f;
-
 	//Declare start and end position of the line trace based on camera position and rotation
 	FVector start = cameraPosition;
 	FVector end = cameraPosition + (cameraComponent->GetForwardVector () * 10000.0f);
 
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 350.0f;// - GetActorUpVector () * downwardLength;
+	spawnParams.Owner = this;
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 350.0f - GetActorUpVector () * 35.0f;
 	FRotator spawnRotation;
 
 	//Check if line trace hits anything
@@ -351,7 +350,7 @@ void AMainCharacterController::UpdateStats (float deltaTime)
 	//Gradually regain power
 	if (_power < _maxPower)
 	{
-		_power += deltaTime;
+		_power += deltaTime * 2.0f;
 
 		if (_power > _maxPower)
 			_power = _maxPower;
@@ -411,14 +410,7 @@ void AMainCharacterController::UpdateStatsUI ()
 		if (_currentDeadTimer <= 0.0f)
 			respawnText = "";
 		else
-		{
-			float formattedFloat = _maxDeadTimer - _currentDeadTimer;
-			formattedFloat *= 100;
-			formattedFloat = FMath::FloorToInt (formattedFloat);
-			formattedFloat /= 100;
-
-			respawnText = "Respawning in " + FString::SanitizeFloat (formattedFloat);
-		}
+			respawnText = "Respawning in " + FString::FromInt ((int) (_maxDeadTimer - _currentDeadTimer) + 1);
 	}
 	else
 		respawnText = "Game over!";
