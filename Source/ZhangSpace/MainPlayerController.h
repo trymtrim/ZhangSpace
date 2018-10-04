@@ -31,6 +31,9 @@ public:
 	UFUNCTION ()
 	void Strafe (float value);
 
+	UFUNCTION()
+	void VerticalStrafe (float value);
+
 	//Handles the roll feature of the spacecraft
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Roll (float value);

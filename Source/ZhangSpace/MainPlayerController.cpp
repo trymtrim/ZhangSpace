@@ -47,7 +47,7 @@ void AMainPlayerController::Tick(float DeltaTime)
 
 void AMainPlayerController::MoveForward (float value)
 {
-	if (value != 0.0f )
+	if (value != .0f )
 	{
 		//Add movement in that direction
 		GetCharacter ()->AddMovementInput (GetCharacter ()->GetActorForwardVector (), value);
@@ -56,10 +56,19 @@ void AMainPlayerController::MoveForward (float value)
 
 void AMainPlayerController::Strafe (float value)
 {
-	if (value != 0.0f)
+	if (value != .0f)
 	{
 		//Add movement in that direction
 		GetCharacter ()->AddMovementInput (GetCharacter ()->GetActorRightVector (), value);
+	}
+}
+
+void AMainPlayerController::VerticalStrafe (float value)
+{
+	//TODO: Add vertical strafe, add bindaction to manipulate a bool if shift key is pressed
+	if (value != .0f)
+	{
+		GetCharacter()->AddMovementInput(GetCharacter()->GetActorUpVector(), value);
 	}
 }
 
@@ -119,7 +128,12 @@ void AMainPlayerController::UpdateRotation(float pitch, float yaw, float roll)
 		_character = Cast <AMainCharacterController>(GetCharacter());
 		return;
 	}
-	
+
+	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Black, FString::Printf(TEXT("Can move Bool: %s"), _character->GetCanMove() ? TEXT("true") : TEXT("false")));
+
+	//If player is using the mouse to click on spaceship UI, prevent rotation based on mouse axis value
+	if (!_character->GetCanMove()) return;
+
 	//Make delta rotation in a Rotator and add it to the player delta rotation variable in MainCharacterController class
 	FRotator newDeltaRotation = FRotator(pitch,yaw,roll);
 	GetCharacter()->AddActorLocalRotation(newDeltaRotation, false, 0, ETeleportType::None);
@@ -144,6 +158,7 @@ void AMainPlayerController::SetupInputComponent ()
 		//Set up movement bindings
 		InputComponent->BindAxis ("MoveForward", this, &AMainPlayerController::MoveForward);
 		InputComponent->BindAxis ("Strafe", this, &AMainPlayerController::Strafe);
+		InputComponent->BindAxis ("Vertical_Strafe", this, &AMainPlayerController::VerticalStrafe);
 
 		//Set up "look" bindings
 		InputComponent->BindAxis ("Yaw", this, &AMainPlayerController::Yaw);
