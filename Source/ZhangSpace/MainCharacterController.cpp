@@ -432,7 +432,7 @@ void AMainCharacterController::EnableMouseCursor ()
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "Viewport: " + FString::SanitizeFloat(viewPort.X) + ", " + FString::SanitizeFloat(viewPort.Y));
 		
 		//Show cursor
-		_showCursor = true;
+		SetShowCursor (true);
 
 		StopShooting ();
 	}
@@ -446,8 +446,18 @@ void AMainCharacterController::DisableMouseCursor ()
 		GetWorld ()->GetFirstPlayerController ()->bEnableClickEvents = false;
 		GetWorld ()->GetFirstPlayerController ()->bEnableMouseOverEvents = false;
 
-		_showCursor = false;
+		SetShowCursor (false);
 	}
+}
+
+void AMainCharacterController::SetShowCursor_Implementation (bool show)
+{
+	_showCursor = show;
+}
+
+bool AMainCharacterController::SetShowCursor_Validate (bool show)
+{
+	return true;
 }
 
 void AMainCharacterController::MouseClick ()
@@ -542,6 +552,8 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 	DOREPLIFETIME (AMainCharacterController, _lives);
 
 	DOREPLIFETIME (AMainCharacterController, _playerRotation);
+
+	DOREPLIFETIME (AMainCharacterController, _showCursor);
 }
 
 //Called to bind functionality to input

@@ -98,6 +98,9 @@ private:
 	void MouseClick ();
 	void ToggleAbilityMenu ();
 
+	UFUNCTION (Server, Reliable, WithValidation)
+	void SetShowCursor (bool show);
+
 	void Die ();
 	void UpdateDeadState (float deltaTime);
 	void Respawn ();
@@ -145,7 +148,7 @@ private:
 
 	TArray <int> _abilities;
 
-	bool _showCursor = false;
+	UPROPERTY (Replicated) bool _showCursor = false;
 	bool _inAbilityMenu = false;
 
 	UPROPERTY (EditAnywhere)
