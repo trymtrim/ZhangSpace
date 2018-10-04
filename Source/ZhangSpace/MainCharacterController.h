@@ -34,6 +34,10 @@ public:
 	void CloseAbilityMenuBP ();
 	UFUNCTION (BlueprintCallable)
 	void CloseAbilityMenu ();
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void DieBP ();
+
+	bool GetCanMove ();
 
 	//Variables for the spaceship UI
 	UPROPERTY (BlueprintReadOnly) float healthPercentage;
@@ -47,10 +51,12 @@ public:
 	UPROPERTY (BlueprintReadOnly) bool attackUpgradeAvailable = false;
 	UPROPERTY (BlueprintReadOnly) bool defenseUpgradeAvailable = false;
 	UPROPERTY (BlueprintReadOnly) bool mobilityUpgradeAvailable = false;
+	UPROPERTY (BlueprintReadOnly) FString respawnText;
+	UPROPERTY (BlueprintReadOnly) int lives;
 
 	UPROPERTY (BlueprintReadOnly) float shieldCooldownPercentage;
 
-	UPROPERTY(Replicated) FRotator _playerDeltaRotation = FRotator(.0f, .0f, .0f);
+	UPROPERTY (Replicated) FRotator _playerDeltaRotation = FRotator (0.0f, 0.0f, 0.0f);
 
 protected:
 	//Called when the game starts or when spawned
@@ -89,6 +95,11 @@ private:
 	void MouseClick ();
 	void ToggleAbilityMenu ();
 
+	void Die ();
+	void UpdateDeadState (float deltaTime);
+	void Respawn ();
+	void GameOver ();
+
 	UFUNCTION (Server, Reliable, WithValidation)
 	void AddStat (int statIndex);
 
@@ -122,8 +133,12 @@ private:
 	float _currentShootingCooldown = 0.0f;
 
 	int _level = 1;
+	UPROPERTY (Replicated) int _lives = 3;
 	int _maxStatPower = 10;
 	float _shootCost = 2.5f;
+
+	float _maxDeadTimer = 5.0f;
+	UPROPERTY (Replicated) float _currentDeadTimer = 0.0f;
 
 	TArray <int> _abilities;
 

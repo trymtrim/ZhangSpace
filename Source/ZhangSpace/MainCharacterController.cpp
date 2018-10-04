@@ -5,6 +5,10 @@
 #include "GameFramework/PlayerController.h"
 #include "Camera/CameraComponent.h"
 #include "UnrealNetwork.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/PlayerStart.h"
+
+#include "Runtime/Engine/Public/DrawDebugHelpers.h"
 
 AMainCharacterController::AMainCharacterController ()
 {
@@ -19,9 +23,7 @@ void AMainCharacterController::BeginPlay ()
 
 	//Change mesh on client-side
 	if (!GetWorld ()->IsServer () && IsLocallyControlled ())
-	{
 		ChangeMesh ();
-	}
 
 	if (GetWorld ()->IsServer ())
 		AddAbility (1);
@@ -37,6 +39,9 @@ void AMainCharacterController::Tick (float DeltaTime)
 	{
 		UpdateShooting (DeltaTime);
 		UpdateStats (DeltaTime);
+
+		if (_dead)
+			UpdateDeadState (DeltaTime);
 	}
 
 	//Update stats for the client's UI
@@ -48,7 +53,6 @@ void AMainCharacterController::Tick (float DeltaTime)
 
 	//Debug
 	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Rotation: " + _playerDeltaRotation.ToString());
-
 }
 
 void AMainCharacterController::ChangeMesh ()
@@ -63,6 +67,58 @@ void AMainCharacterController::ChangeMesh ()
 		meshComponent = meshComps [1];
 
 	meshComponent->SetStaticMesh (_cockpitMesh);
+}
+
+void AMainCharacterController::Die ()
+{
+	_lives--;
+	_currentHealth = 0;
+	_dead = true;
+
+	DieBP ();
+
+	if (_lives == 0)
+		GameOver ();
+}
+
+void AMainCharacterController::UpdateDeadState (float deltaTime)
+{
+	if (_lives == 0)
+		return;
+
+	//Update respawn timer
+	_currentDeadTimer += deltaTime;
+
+	//If respawn timer is finished, respawn
+	if (_currentDeadTimer >= _maxDeadTimer)
+	{
+		_currentDeadTimer = 0.0f;
+		Respawn ();
+	}
+}
+
+void AMainCharacterController::Respawn ()
+{
+	//Reset attributes
+	_power = _maxPower;
+	_currentHealth = _maxHealth;
+
+	//Temp //TODO: reset ability cooldowns
+	_currentShieldCooldown = 0.0f;
+
+	//Set new location to a random player start
+	TArray <AActor*> playerStarts;
+	UGameplayStatics::GetAllActorsOfClass (GetWorld (), APlayerStart::StaticClass (), playerStarts);
+
+	int randomIndex = FMath::RandRange (0, playerStarts.Num () - 1);
+	SetActorLocation (playerStarts [randomIndex]->GetActorLocation ());
+
+	_dead = false;
+}
+
+void AMainCharacterController::GameOver ()
+{
+	//Do stuff
 }
 
 void AMainCharacterController::AddExperience (int experience)
@@ -229,13 +285,15 @@ void AMainCharacterController::Shoot ()
 
 	FVector cameraPosition = cameraComponent->GetComponentLocation ();
 
+	float downwardLength = 40.0f;
+
 	//Declare start and end position of the line trace based on camera position and rotation
 	FVector start = cameraPosition;
 	FVector end = cameraPosition + (cameraComponent->GetForwardVector () * 10000.0f);
 
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 350.0f - GetActorUpVector () * 40.0f;
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 350.0f;// - GetActorUpVector () * downwardLength;
 	FRotator spawnRotation;
 
 	//Check if line trace hits anything
@@ -304,10 +362,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 
 	//If health is below zero, die
 	if (_currentHealth <= 0)
-	{
-		_currentHealth = 0;
-		_dead = true;
-	}
+		Die ();
 
 	//Debug
 	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Health: " + FString::FromInt (_currentHealth));
@@ -325,6 +380,7 @@ void AMainCharacterController::UpdateStatsUI ()
 	experiencePercentage = (float) _experience / (float) _experienceToNextLevel;
 	healthText = FString::FromInt (_currentHealth) + "/" + FString::FromInt (_maxHealth);
 	availableStats = _availableStats;
+	lives = _lives;
 
 	if (_attackUpgradesAvailable > 0)
 		attackUpgradeAvailable = true;
@@ -341,7 +397,26 @@ void AMainCharacterController::UpdateStatsUI ()
 	else
 		mobilityUpgradeAvailable = false;
 
+	//Temp //TODO: update ability cooldowns
 	shieldCooldownPercentage = (float) _currentShieldCooldown / (float) _maxShieldCooldown;
+
+	//Update respawn text
+	if (_lives > 0)
+	{
+		if (_currentDeadTimer <= 0.0f)
+			respawnText = "";
+		else
+		{
+			float formattedFloat = _maxDeadTimer - _currentDeadTimer;
+			formattedFloat *= 100;
+			formattedFloat = FMath::FloorToInt (formattedFloat);
+			formattedFloat /= 100;
+
+			respawnText = "Respawning in " + FString::SanitizeFloat (formattedFloat);
+		}
+	}
+	else
+		respawnText = "Game over!";
 }
 
 void AMainCharacterController::EnableMouseCursor ()
@@ -414,6 +489,14 @@ void AMainCharacterController::CloseAbilityMenu ()
 	CloseAbilityMenuBP ();
 }
 
+bool AMainCharacterController::GetCanMove ()
+{
+	if (_dead || _showCursor)
+		return true;
+
+	return false;
+}
+
 void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps (OutLifetimeProps);
@@ -437,6 +520,9 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 	DOREPLIFETIME (AMainCharacterController, _maxShieldCooldown);
 	DOREPLIFETIME (AMainCharacterController, _currentShieldCooldown);
 	DOREPLIFETIME (AMainCharacterController, _playerDeltaRotation);
+
+	DOREPLIFETIME (AMainCharacterController, _currentDeadTimer);
+	DOREPLIFETIME (AMainCharacterController, _lives);
 }
 
 //Called to bind functionality to input
