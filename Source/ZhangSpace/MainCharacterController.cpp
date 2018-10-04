@@ -9,6 +9,7 @@
 #include "GameFramework/PlayerStart.h"
 
 #include "Runtime/Engine/Public/DrawDebugHelpers.h"
+#include "Engine.h"
 
 AMainCharacterController::AMainCharacterController ()
 {
@@ -49,10 +50,14 @@ void AMainCharacterController::Tick (float DeltaTime)
 		UpdateStatsUI ();
 
 	//Update local rotation based on delta rotation in MainPlayerController class
-	AddActorLocalRotation (_playerDeltaRotation, false, 0, ETeleportType::None);
+
+	//Note: Offset after some gameplay time...
+	//Solution: Add local rotation in playercontroller and then set actor rotation here
+
+	SetActorRotation(_playerRotation,ETeleportType::None);
 
 	//Debug
-	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Rotation: " + _playerDeltaRotation.ToString());
+	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Rotation: " + _playerRotation.ToString());
 }
 
 void AMainCharacterController::ChangeMesh ()
@@ -427,6 +432,14 @@ void AMainCharacterController::EnableMouseCursor ()
 		GetWorld ()->GetFirstPlayerController ()->bEnableClickEvents = true;
 		GetWorld ()->GetFirstPlayerController ()->bEnableMouseOverEvents = true;
 
+		//Center mouse position - Ari
+		FVector2D viewPort = GetViewportSize();
+		GetWorld()->GetFirstPlayerController()->SetMouseLocation(viewPort.X / 2, viewPort.Y / 2);
+
+		//Debug that shit
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "Viewport: " + FString::SanitizeFloat(viewPort.X) + ", " + FString::SanitizeFloat(viewPort.Y));
+		
+		//Show cursor
 		_showCursor = true;
 
 		StopShooting ();
@@ -497,6 +510,18 @@ bool AMainCharacterController::GetCanMove ()
 	return false;
 }
 
+//Returns the viewport of the client
+FVector2D AMainCharacterController::GetViewportSize() 
+{
+	FVector2D result = FVector2D(1.0f,1.0f);
+
+	if (GEngine != NULL && GEngine->GameViewport != NULL)
+	{
+		GEngine->GameViewport->GetViewportSize(result);
+	}
+	return result;
+}
+
 void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps (OutLifetimeProps);
@@ -519,10 +544,12 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 
 	DOREPLIFETIME (AMainCharacterController, _maxShieldCooldown);
 	DOREPLIFETIME (AMainCharacterController, _currentShieldCooldown);
-	DOREPLIFETIME (AMainCharacterController, _playerDeltaRotation);
+
 
 	DOREPLIFETIME (AMainCharacterController, _currentDeadTimer);
 	DOREPLIFETIME (AMainCharacterController, _lives);
+
+	DOREPLIFETIME (AMainCharacterController, _playerRotation);
 }
 
 //Called to bind functionality to input
