@@ -38,6 +38,7 @@ public:
 	void DieBP ();
 
 	bool GetCanMove ();
+	bool GetIsDead ();
 
 	FVector2D GetViewportSize();	//Returns the size of the clients viewport as a 2d vector
 

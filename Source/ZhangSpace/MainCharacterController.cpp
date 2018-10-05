@@ -512,6 +512,11 @@ bool AMainCharacterController::GetCanMove ()
 	return true;
 }
 
+bool AMainCharacterController::GetIsDead ()
+{
+	return _dead;
+}
+
 //Returns the viewport of the client
 FVector2D AMainCharacterController::GetViewportSize() 
 {

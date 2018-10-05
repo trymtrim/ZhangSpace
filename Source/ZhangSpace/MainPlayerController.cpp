@@ -43,19 +43,33 @@ void AMainPlayerController::Tick(float DeltaTime)
 			//GEngine->AddOnScreenDebugMessage (-1, .01f, FColor::Yellow, "_character is not nullptr");
 		
 	}
+	else if (_character == nullptr)
+		_character = Cast <AMainCharacterController> (GetCharacter ());
 }
 
 void AMainPlayerController::MoveForward (float value)
 {
+	if (_character != nullptr)
+	{
+		if (_character->GetIsDead ())
+			return;
+	}
+
 	if (value != .0f )
 	{
 		//Add movement in that direction
-		GetCharacter ()->AddMovementInput (GetCharacter ()->GetActorForwardVector (), value);
+		GetCharacter ()->AddMovementInput (GetCharacter ()->GetActorForwardVector (), value * 5);
 	}
 }
 
 void AMainPlayerController::Strafe (float value)
 {
+	if (_character != nullptr)
+	{
+		if (_character->GetIsDead ())
+			return;
+	}
+	
 	if (value != .0f)
 	{
 		//Add movement in that direction
@@ -65,6 +79,12 @@ void AMainPlayerController::Strafe (float value)
 
 void AMainPlayerController::VerticalStrafe (float value)
 {
+	if (_character != nullptr)
+	{
+		if (!_character->GetIsDead ())
+			return;
+	}
+
 	//TODO: Add vertical strafe, add bindaction to manipulate a bool if shift key is pressed
 	if (value != .0f)
 	{
@@ -129,7 +149,7 @@ void AMainPlayerController::UpdateRotation(float pitch, float yaw, float roll)
 		return;
 	}
 
-	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Black, FString::Printf(TEXT("Can move Bool: %s"), _character->GetCanMove() ? TEXT("true") : TEXT("false")));
+	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Black, FString::Printf(TEXT("Can move Bool: %s"), _character->GetCanMove() ? TEXT("true") : TEXT("false")));
 
 	//If player is using the mouse to click on spaceship UI, prevent rotation based on mouse axis value
 	if (!_character->GetCanMove()) return;
