@@ -57,8 +57,11 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	UPROPERTY (EditAnywhere) float _turnSpeed = 20.0f;
-	UPROPERTY (EditAnywhere) float _rollSpeed = 40.0f;
+	float _turnSpeed = 20.0f;
+	float _rollSpeed = 100.0f;
+	float _moveSpeed = 10000.0f;
+	float _strafeSpeed = 10000.0f;
+
 	float pitchDelta = .0f;
 	float yawDelta = .0f;
 	float rollDelta = .0f;

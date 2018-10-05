@@ -50,6 +50,7 @@ void AMainPlayerController::MoveForward (float value)
 	if (value != .0f )
 	{
 		//Add movement in that direction
+		//float speed = value * _moveSpeed * GetWorld()->DeltaTimeSeconds;
 		GetCharacter ()->AddMovementInput (GetCharacter ()->GetActorForwardVector (), value);
 	}
 }
@@ -59,6 +60,7 @@ void AMainPlayerController::Strafe (float value)
 	if (value != .0f)
 	{
 		//Add movement in that direction
+		//float speed = value * _strafeSpeed * GetWorld()->DeltaTimeSeconds;
 		GetCharacter ()->AddMovementInput (GetCharacter ()->GetActorRightVector (), value);
 	}
 }
@@ -68,6 +70,7 @@ void AMainPlayerController::VerticalStrafe (float value)
 	//TODO: Add vertical strafe, add bindaction to manipulate a bool if shift key is pressed
 	if (value != .0f)
 	{
+		//float speed = value * _strafeSpeed * GetWorld()->DeltaTimeSeconds;
 		GetCharacter()->AddMovementInput(GetCharacter()->GetActorUpVector(), value);
 	}
 }
