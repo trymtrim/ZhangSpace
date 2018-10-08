@@ -41,8 +41,8 @@ AActor* AMainGameMode::ChoosePlayerStart_Implementation (AController* Player)
 	if (_playerCount < _maxPlayers)
 		_playerCount++;
 
-	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, Player->GetName ());
-	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, playerStarts [_playerCount - 1]->GetName ());
+	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, Player->GetName ());
+	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, playerStarts [_playerCount - 1]->GetName ());
 	
 	return playerStarts [_playerCount - 1];
 }

@@ -38,6 +38,10 @@ public:
 	void DieBP ();
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void TakeDamageBP (int damage, const FString& damageType);
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void SpawnShieldBP ();
+	UFUNCTION (BlueprintCallable)
+	void UpdateHotkeyBar (TArray <int> abilities);
 
 	bool GetCanMove ();
 	bool GetIsDead ();
@@ -58,8 +62,7 @@ public:
 	UPROPERTY (BlueprintReadOnly) bool mobilityUpgradeAvailable = false;
 	UPROPERTY (BlueprintReadOnly) FString respawnText;
 	UPROPERTY (BlueprintReadOnly) int lives;
-
-	UPROPERTY (BlueprintReadOnly) float shieldCooldownPercentage;
+	UPROPERTY (BlueprintReadOnly) TArray <float> cooldownPercentages {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
 	//Poperty used to update rotation on server and to clients
 	UPROPERTY (Replicated) FRotator _playerRotation = FRotator(.0f, .0f, .0f);
@@ -94,6 +97,7 @@ private:
 	//Abilities
 	void Shield ();
 
+	void InitializeAbilityCooldowns ();
 	void ChangeMesh ();
 	void AddAvailableStats ();
 	void UpdateStats (float deltaTime);
@@ -136,9 +140,6 @@ private:
 	UPROPERTY (Replicated) int _mobilityUpgradesAvailable = 0;
 	UPROPERTY (Replicated) bool _dead = false;
 
-	UPROPERTY (Replicated) float _maxShieldCooldown = 20.0f;
-	UPROPERTY (Replicated) float _currentShieldCooldown = 0.0f;
-
 	UPROPERTY (Replicated) bool _shooting = false;
 	float _maxShootingCooldown = 0.25f;
 	UPROPERTY (Replicated) float _currentShootingCooldown = 0.0f;
@@ -151,7 +152,10 @@ private:
 	float _maxDeadTimer = 5.0f;
 	UPROPERTY (Replicated) float _currentDeadTimer = 0.0f;
 
-	TArray <int> _abilities;
+	UPROPERTY (Replicated) TArray <int> _abilities;
+	TArray <int> _hotkeyBarAbilities;
+	UPROPERTY (Replicated) TArray <float> _abilityCooldowns;
+	TMap <int, float> _abilityMaxCooldowns;
 
 	UPROPERTY (Replicated) bool _showCursor = false;
 	bool _inAbilityMenu = false;
@@ -160,6 +164,4 @@ private:
 	UStaticMesh* _cockpitMesh;
 	UPROPERTY (EditAnywhere)
 	TSubclassOf <AProjectile> _projectileBP;
-	UPROPERTY (EditAnywhere)
-	TSubclassOf <AShield> _shieldBP;
 };

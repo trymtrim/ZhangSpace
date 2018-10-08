@@ -78,7 +78,7 @@ void AMainPlayerController::VerticalStrafe (float value)
 {
 	if (_character != nullptr)
 	{
-		if (!_character->GetIsDead ())
+		if (_character->GetIsDead ())
 			return;
 	}
 

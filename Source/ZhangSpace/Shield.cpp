@@ -32,10 +32,6 @@ void AShield::SetShieldOwner (AActor* owner)
 
 void AShield::ServerUpdate (float deltaTime)
 {
-	//Follow the player
-	if (_owner != nullptr)
-		SetActorLocation (_owner->GetActorLocation ());
-
 	//Destroy itself after a while
 	_destroyTimer += deltaTime;
 

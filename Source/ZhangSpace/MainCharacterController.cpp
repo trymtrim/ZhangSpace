@@ -27,7 +27,16 @@ void AMainCharacterController::BeginPlay ()
 		ChangeMesh ();
 
 	if (GetWorld ()->IsServer ())
+	{
 		AddAbility (1);
+
+		AddExperience (100);
+		AddExperience (100);
+		AddExperience (100);
+		AddExperience (100);
+	}
+
+	InitializeAbilityCooldowns ();
 }
 
 //Called every frame
@@ -64,6 +73,14 @@ void AMainCharacterController::Tick (float DeltaTime)
 
 	//Debug
 	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Rotation: " + _playerRotation.ToString());
+}
+
+void AMainCharacterController::InitializeAbilityCooldowns ()
+{
+	_abilityMaxCooldowns.Add (1, 20.0f); //Shield
+
+	//Add shield ability to hotkey bar
+	_hotkeyBarAbilities.Add (1);
 }
 
 void AMainCharacterController::ChangeMesh ()
@@ -114,8 +131,9 @@ void AMainCharacterController::Respawn ()
 	_power = _maxPower;
 	_currentHealth = _maxHealth;
 
-	//Temp //TODO: reset ability cooldowns
-	_currentShieldCooldown = 0.0f;
+	//Reset ability cooldowns
+	for (int i = 0; i < _abilities.Num (); i++)
+		_abilities [i] = 0.0f;
 
 	//Set new location to a random player start
 	TArray <AActor*> playerStarts;
@@ -153,7 +171,10 @@ void AMainCharacterController::AddExperience (int experience)
 
 void AMainCharacterController::AddAbility (int abilityIndex)
 {
+	//Add ability to the list of abilities
 	_abilities.Add (abilityIndex);
+	//Add ability to the list of ability cooldowns
+	_abilityCooldowns.Add (0.0f);
 
 	if (_attackUpgradesAvailable != 0 && _defenseUpgradesAvailable != 0 && _mobilityUpgradesAvailable != 0)
 	{
@@ -209,21 +230,17 @@ bool AMainCharacterController::AddStat_Validate (int statIndex)
 
 void AMainCharacterController::UseAbilityInput (int abilityIndex)
 {
-	if (_dead || _showCursor)
+	if (_dead || _showCursor || _hotkeyBarAbilities.Num () < abilityIndex)
 		return;
 
 	//Get camera component
 	TArray <UCameraComponent*> cameraComps;
 	GetComponents <UCameraComponent> (cameraComps);
-	UCameraComponent* cameraComponent = cameraComps[0];
+	UCameraComponent* cameraComponent = cameraComps [0];
 
 	FVector cameraPosition = cameraComponent->GetComponentLocation ();
 
-	//TODO: Use the ability that is assigned to this slot if the player has the ability
-
-	//For now
-	int actualAbilityIndex = abilityIndex;
-
+	int actualAbilityIndex = _hotkeyBarAbilities [abilityIndex -1];
 	UseAbility (actualAbilityIndex, cameraPosition);
 }
 
@@ -231,6 +248,19 @@ void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVec
 {
 	if (!_abilities.Contains (abilityIndex))
 		return;
+
+	for (int i = 0; i < _abilities.Num (); i++)
+	{
+		if (_abilities [i] == abilityIndex)
+		{
+			if (_abilityCooldowns [i] > 0.0f)
+				return;
+
+
+			_abilityCooldowns [i] = _abilityMaxCooldowns [abilityIndex];
+			break;
+		}
+	}
 
 	switch (abilityIndex)
 	{
@@ -354,28 +384,18 @@ bool AMainCharacterController::Shoot_Validate (FVector cameraPosition)
 
 void AMainCharacterController::Shield ()
 {
-	if (_currentShieldCooldown > 0.0f)
-		return;
-
-	//Reset shield cooldown
-	_currentShieldCooldown = _maxShieldCooldown;
-
-	//Declare spawn parameters
-	FActorSpawnParameters spawnParams;
-	spawnParams.Owner = this;
-	FVector spawnPosition = GetActorLocation ();
-	FRotator spawnRotation = FRotator (0.0f, 0.0f, 0.0f);
-
 	//Spawn shield
-	AShield* shield = GetWorld ()->SpawnActor <AShield> (_shieldBP, spawnPosition, spawnRotation, spawnParams);
-	shield->SetShieldOwner (this);
+	SpawnShieldBP ();
 }
 
 void AMainCharacterController::UpdateStats (float deltaTime)
 {
-	//Shield cooldown
-	if (_currentShieldCooldown > 0.0f)
-		_currentShieldCooldown -= deltaTime;
+	//Update cooldowns
+	for (int i = 0; i < _abilities.Num (); i++)
+	{
+		if (_abilityCooldowns [i] > 0.0f)
+			_abilityCooldowns [i] -= deltaTime;
+	}
 
 	//Gradually regain power
 	if (_power < _maxPower)
@@ -437,8 +457,20 @@ void AMainCharacterController::UpdateStatsUI ()
 	else
 		mobilityUpgradeAvailable = false;
 
-	//Temp //TODO: update ability cooldowns
-	shieldCooldownPercentage = (float) _currentShieldCooldown / (float) _maxShieldCooldown;
+	//Update ability cooldowns
+	for (int i = 0; i < _hotkeyBarAbilities.Num (); i++)
+	{
+		int abilityIndex = _hotkeyBarAbilities [i];
+
+		for (int j = 0; j < _abilities.Num (); j++)
+		{
+			if (abilityIndex == _abilities [j])
+			{
+				int abilityCooldownIndex = _abilities [j];
+				cooldownPercentages [i] = _abilityCooldowns [j] / _abilityMaxCooldowns [abilityCooldownIndex];
+			}
+		}
+	}
 
 	//Update respawn text
 	if (_lives > 0)
@@ -450,6 +482,11 @@ void AMainCharacterController::UpdateStatsUI ()
 	}
 	else
 		respawnText = "Game over!";
+}
+
+void AMainCharacterController::UpdateHotkeyBar (TArray <int> abilities)
+{
+	_hotkeyBarAbilities = abilities;
 }
 
 void AMainCharacterController::EnableMouseCursor ()
@@ -586,9 +623,9 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 	DOREPLIFETIME (AMainCharacterController, _attackUpgradesAvailable);
 	DOREPLIFETIME (AMainCharacterController, _defenseUpgradesAvailable);
 	DOREPLIFETIME (AMainCharacterController, _mobilityUpgradesAvailable);
-
-	DOREPLIFETIME (AMainCharacterController, _maxShieldCooldown);
-	DOREPLIFETIME (AMainCharacterController, _currentShieldCooldown);
+	
+	DOREPLIFETIME (AMainCharacterController, _abilities);
+	DOREPLIFETIME (AMainCharacterController, _abilityCooldowns);
 
 	DOREPLIFETIME (AMainCharacterController, _currentDeadTimer);
 	DOREPLIFETIME (AMainCharacterController, _lives);
@@ -614,6 +651,8 @@ void AMainCharacterController::SetupPlayerInputComponent (UInputComponent* Playe
 
 	//Set up ability bindings
 	PlayerInputComponent->BindAction ("Ability1", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <1>);
+	PlayerInputComponent->BindAction ("Ability2", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <2>);
+	PlayerInputComponent->BindAction ("Ability2", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <3>);
 
 	//Set up mouse cursor bindings
 	PlayerInputComponent->BindAction ("ShowMouseCursor", IE_Pressed, this, &AMainCharacterController::EnableMouseCursor);

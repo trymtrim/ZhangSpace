@@ -29,8 +29,7 @@ private:
 
 	float _destroyTimer = 0.0f;
 
-	UPROPERTY (EditAnywhere)
-	float _shieldDuration;
+	float _shieldDuration = 5.0f;
 
 	AActor* _owner;
 };
