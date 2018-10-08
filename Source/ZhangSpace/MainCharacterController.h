@@ -36,11 +36,13 @@ public:
 	void CloseAbilityMenu ();
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void DieBP ();
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void TakeDamageBP (int damage, const FString& damageType);
 
 	bool GetCanMove ();
 	bool GetIsDead ();
 
-	FVector2D GetViewportSize();	//Returns the size of the clients viewport as a 2d vector
+	FVector2D GetViewportSize (); //Returns the size of the clients viewport as a 2d vector
 
 	//Variables for the spaceship UI
 	UPROPERTY (BlueprintReadOnly) float healthPercentage;
@@ -74,11 +76,13 @@ private:
 	UFUNCTION (Server, Reliable, WithValidation)
 	void StopShooting ();
 	UFUNCTION (Server, Reliable, WithValidation)
-	void UseAbility (int abilityIndex);
+	void UseAbility (int abilityIndex, FVector cameraPosition);
 
-	void UpdateShooting (float deltaTime);
+	void UpdateShooting ();
+	void UpdateShootingCooldown (float deltaTime);
 	void StartShootingInput ();
-	void Shoot ();
+	UFUNCTION (Server, Reliable, WithValidation)
+	void Shoot (FVector cameraPosition);
 	void UseAbilityInput (int abilityIndex);
 
 	template <int index>
@@ -135,9 +139,9 @@ private:
 	UPROPERTY (Replicated) float _maxShieldCooldown = 20.0f;
 	UPROPERTY (Replicated) float _currentShieldCooldown = 0.0f;
 
-	bool _shooting = false;
+	UPROPERTY (Replicated) bool _shooting = false;
 	float _maxShootingCooldown = 0.25f;
-	float _currentShootingCooldown = 0.0f;
+	UPROPERTY (Replicated) float _currentShootingCooldown = 0.0f;
 
 	int _level = 1;
 	UPROPERTY (Replicated) int _lives = 3;

@@ -23,6 +23,9 @@ public:
 
 	void UpdateRotation(float pitch, float yaw, float roll);
 	
+	UFUNCTION (Server, Reliable, WithValidation)
+	void ServerUpdateRotation (FRotator rotation);
+
 	//Handles input for moving forward and backward
 	UFUNCTION ()
 	void MoveForward (float value);
@@ -35,22 +38,13 @@ public:
 	void VerticalStrafe (float value);
 
 	//Handles the roll feature of the spacecraft
-	UFUNCTION(Server, Reliable, WithValidation)
 	void Roll (float value);
-	virtual void Roll_Implementation(float value);
-	virtual bool Roll_Validate(float value);
 
 	//Handles the pitching feature of the spacecraft
-	UFUNCTION(Server, Reliable, WithValidation)
 	void Pitch (float value);
-	virtual void Pitch_Implementation(float value);
-	virtual bool Pitch_Validate(float value);
 
 	//Handles the yaw feature of the spacecraft
-	UFUNCTION(Server, Reliable, WithValidation)
 	void Yaw (float value);
-	virtual void Yaw_Implementation(float value);
-	virtual bool Yaw_Validate(float value);
 
 protected:
 	//Called when the game starts or when spawned
