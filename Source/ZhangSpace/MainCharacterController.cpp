@@ -38,8 +38,8 @@ void AMainCharacterController::Tick (float DeltaTime)
 	//Update cooldowns server side
 	if (GetWorld ()->IsServer () && Role == ROLE_Authority)
 	{
-		UpdateShooting (DeltaTime);
 		UpdateStats (DeltaTime);
+		UpdateShootingCooldown (DeltaTime);
 
 		if (_dead)
 			UpdateDeadState (DeltaTime);
@@ -47,14 +47,20 @@ void AMainCharacterController::Tick (float DeltaTime)
 
 	//Update stats for the client's UI
 	if (!GetWorld ()->IsServer () && IsLocallyControlled ())
+	{
 		UpdateStatsUI ();
+
+		if (_shooting)
+			UpdateShooting ();
+	}
 
 	//Update local rotation based on delta rotation in MainPlayerController class
 
 	//Note: Offset after some gameplay time...
 	//Solution: Add local rotation in playercontroller and then set actor rotation here
 
-	SetActorRotation(_playerRotation,ETeleportType::None);
+	if (!IsLocallyControlled ())
+		SetActorRotation(_playerRotation, ETeleportType::None);
 
 	//Debug
 	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Rotation: " + _playerRotation.ToString());
@@ -206,15 +212,22 @@ void AMainCharacterController::UseAbilityInput (int abilityIndex)
 	if (_dead || _showCursor)
 		return;
 
+	//Get camera component
+	TArray <UCameraComponent*> cameraComps;
+	GetComponents <UCameraComponent> (cameraComps);
+	UCameraComponent* cameraComponent = cameraComps[0];
+
+	FVector cameraPosition = cameraComponent->GetComponentLocation ();
+
 	//TODO: Use the ability that is assigned to this slot if the player has the ability
 
 	//For now
 	int actualAbilityIndex = abilityIndex;
 
-	UseAbility (actualAbilityIndex);
+	UseAbility (actualAbilityIndex, cameraPosition);
 }
 
-void AMainCharacterController::UseAbility_Implementation (int abilityIndex)
+void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVector cameraPosition)
 {
 	if (!_abilities.Contains (abilityIndex))
 		return;
@@ -227,7 +240,7 @@ void AMainCharacterController::UseAbility_Implementation (int abilityIndex)
 	}
 }
 
-bool AMainCharacterController::UseAbility_Validate (int abilityIndex)
+bool AMainCharacterController::UseAbility_Validate (int abilityIndex, FVector cameraPosition)
 {
 	return true;
 }
@@ -260,21 +273,34 @@ bool AMainCharacterController::StopShooting_Validate ()
 	return true;
 }
 
-void AMainCharacterController::UpdateShooting (float deltaTime)
+void AMainCharacterController::UpdateShooting ()
 {
-	if (_currentShootingCooldown > 0.0f)
-		_currentShootingCooldown -= deltaTime;
-	else if (_shooting)
+	if (_currentShootingCooldown <= 0.0f)
 	{
-		_currentShootingCooldown = _maxShootingCooldown;
-		Shoot ();
+		//Get camera component
+		TArray <UCameraComponent*> cameraComps;
+		GetComponents <UCameraComponent> (cameraComps);
+		UCameraComponent* cameraComponent = cameraComps[0];
+
+		FVector cameraPosition = cameraComponent->GetComponentLocation ();
+
+		Shoot (cameraPosition);
 	}
 }
 
-void AMainCharacterController::Shoot ()
+void AMainCharacterController::UpdateShootingCooldown (float deltaTime)
 {
-	if (_power < _shootCost || _dead)
+	if (_currentShootingCooldown > 0.0f)
+		_currentShootingCooldown -= deltaTime;
+}
+
+void AMainCharacterController::Shoot_Implementation (FVector cameraPosition)
+{
+	if (_power < _shootCost || _dead || _currentShootingCooldown > 0.0f)
 		return;
+
+	//Reset shootingCooldown
+	_currentShootingCooldown = _maxShootingCooldown;
 
 	//Line trace from camera to check if there is something in the crosshair's sight
     FCollisionQueryParams traceParams = FCollisionQueryParams (FName (TEXT ("RV_Trace")), true, this);
@@ -287,8 +313,6 @@ void AMainCharacterController::Shoot ()
 	TArray <UCameraComponent*> cameraComps;
 	GetComponents <UCameraComponent> (cameraComps);
 	UCameraComponent* cameraComponent = cameraComps [0];
-
-	FVector cameraPosition = cameraComponent->GetComponentLocation ();
 
 	//Declare start and end position of the line trace based on camera position and rotation
 	FVector start = cameraPosition;
@@ -323,6 +347,11 @@ void AMainCharacterController::Shoot ()
 	_power -= _shootCost;
 }
 
+bool AMainCharacterController::Shoot_Validate (FVector cameraPosition)
+{
+	return true;
+}
+
 void AMainCharacterController::Shield ()
 {
 	if (_currentShieldCooldown > 0.0f)
@@ -333,6 +362,7 @@ void AMainCharacterController::Shield ()
 
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
+	spawnParams.Owner = this;
 	FVector spawnPosition = GetActorLocation ();
 	FRotator spawnRotation = FRotator (0.0f, 0.0f, 0.0f);
 
@@ -363,6 +393,12 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 		return 0.0f;
 
 	_currentHealth -= Damage;
+
+	if (DamageCauser->GetName ().Contains ("Projectile"))
+	{
+		FString damageType = "Projectile";
+		TakeDamageBP ((int) Damage, damageType);
+	}
 
 	//If health is below zero, die
 	if (_currentHealth <= 0)
@@ -544,6 +580,8 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 	DOREPLIFETIME (AMainCharacterController, _experience);
 	DOREPLIFETIME (AMainCharacterController, _experienceToNextLevel);
 	DOREPLIFETIME (AMainCharacterController, _availableStats);
+	DOREPLIFETIME (AMainCharacterController, _shooting);
+	DOREPLIFETIME (AMainCharacterController, _currentShootingCooldown);
 
 	DOREPLIFETIME (AMainCharacterController, _attackUpgradesAvailable);
 	DOREPLIFETIME (AMainCharacterController, _defenseUpgradesAvailable);
@@ -551,7 +589,6 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 
 	DOREPLIFETIME (AMainCharacterController, _maxShieldCooldown);
 	DOREPLIFETIME (AMainCharacterController, _currentShieldCooldown);
-
 
 	DOREPLIFETIME (AMainCharacterController, _currentDeadTimer);
 	DOREPLIFETIME (AMainCharacterController, _lives);

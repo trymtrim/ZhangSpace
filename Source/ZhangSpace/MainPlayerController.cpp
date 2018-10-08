@@ -34,16 +34,10 @@ void AMainPlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (GetWorld()->IsServer())
-	{
-		UpdateRotation(pitchDelta, yawDelta, rollDelta);
+	if (!GetWorld ()->IsServer ())
+		UpdateRotation (pitchDelta, yawDelta, rollDelta);
 
-		//Debug
-		//if (_character != nullptr)
-			//GEngine->AddOnScreenDebugMessage (-1, .01f, FColor::Yellow, "_character is not nullptr");
-		
-	}
-	else if (_character == nullptr)
+	if (_character == nullptr)
 		_character = Cast <AMainCharacterController> (GetCharacter ());
 }
 
@@ -96,7 +90,7 @@ void AMainPlayerController::VerticalStrafe (float value)
 	}
 }
 
-void AMainPlayerController::Roll_Implementation (float value)
+void AMainPlayerController::Roll (float value)
 {
 
 	if (value != .0f)
@@ -107,12 +101,7 @@ void AMainPlayerController::Roll_Implementation (float value)
 	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Roll Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaRoll value = " + FString::SanitizeFloat(rollDelta, 2));
 }
 
-bool AMainPlayerController::Roll_Validate(float value) 
-{
-	return true;
-}
-
-void AMainPlayerController::Pitch_Implementation (float value)
+void AMainPlayerController::Pitch (float value)
 {
 	if (value != .0f)
 	{
@@ -123,12 +112,7 @@ void AMainPlayerController::Pitch_Implementation (float value)
 	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Pitch Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaPitch value = " + FString::SanitizeFloat(pitchDelta, 2));
 }
 
-bool AMainPlayerController::Pitch_Validate(float value) 
-{
-	return true;
-}
-
-void AMainPlayerController::Yaw_Implementation (float value)
+void AMainPlayerController::Yaw (float value)
 {
 	if (value != .0f)
 	{
@@ -137,11 +121,6 @@ void AMainPlayerController::Yaw_Implementation (float value)
 
 	//Debug
 	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Yaw Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaYaw value = " + FString::SanitizeFloat(yawDelta, 2));
-}
-
-bool AMainPlayerController::Yaw_Validate(float value) 
-{
-	return true;
 }
 
 void AMainPlayerController::UpdateRotation(float pitch, float yaw, float roll) 
@@ -163,12 +142,27 @@ void AMainPlayerController::UpdateRotation(float pitch, float yaw, float roll)
 	GetCharacter()->AddActorLocalRotation(newDeltaRotation, false, 0, ETeleportType::None);
 
 	//Update player rotation on server to match client rotation
-	_character->_playerRotation = GetCharacter()->GetActorRotation();
+	//_character->_playerRotation = GetCharacter()->GetActorRotation();
+
+	ServerUpdateRotation (GetCharacter ()->GetActorRotation ());
 
 	//Reset rotation values
 	yawDelta = .0f;
 	pitchDelta = .0f;
 	rollDelta = .0f;
+}
+
+void AMainPlayerController::ServerUpdateRotation_Implementation (FRotator rotation)
+{
+	if (_character == nullptr)
+		return;
+
+	_character->_playerRotation = rotation;
+}
+
+bool AMainPlayerController::ServerUpdateRotation_Validate (FRotator rotation)
+{
+	return true;
 }
 
 void AMainPlayerController::SetupInputComponent ()
