@@ -19,7 +19,7 @@ void AShield::BeginPlay ()
 
 	if (!GetWorld ()->IsServer ())
 	{
-		AMainCharacterController* parentPlayer = Cast <AMainCharacterController> (GetAttachParentActor ());
+		parentPlayer = Cast <AMainCharacterController> (GetAttachParentActor ());
 		AMainCharacterController* localPlayer = Cast <AMainCharacterController> (GetWorld ()->GetFirstPlayerController ()->GetCharacter ());
 
 		//If the parent player is the local player, turn off the mesh
@@ -35,13 +35,17 @@ void AShield::BeginPlay ()
 	else
 	{
 		//Check if player has shield refleft, only on server side atm, variable is not replicated
-		AMainCharacterController* parentPlayer = Cast <AMainCharacterController> (GetParentActor ());
+		parentPlayer = Cast <AMainCharacterController> (GetParentActor ());
 
 		if (parentPlayer->GetShieldReflect ())
 		{
 			shieldReflect = true;
 			GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Has shield reflect");
 		}
+
+		//Tell character controller that shield is active
+		parentPlayer->shieldActive = true;
+		parentPlayer->shield = this;
 	}
 }
 
@@ -74,6 +78,18 @@ void AShield::OnHitByProjectile (FRotator bulletRotation)
 	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Shield hit by projectile");
 }
 
+void AShield::ApplyDamage (int damage)
+{
+	_health -= damage;
+
+	//If health is below zero, die
+	if (_health <= 0)
+	{
+		parentPlayer->shieldActive = false;
+		Destroy ();
+	}
+}
+
 float AShield::TakeDamage (float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	_health -= Damage;
@@ -81,7 +97,10 @@ float AShield::TakeDamage (float Damage, FDamageEvent const& DamageEvent, AContr
 
 	//If health is below zero, die
 	if (_health <= 0)
+	{
+		parentPlayer->shieldActive = false;
 		Destroy ();
+	}
 
 	//Debug
 	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Health: " + FString::FromInt (_health));
@@ -95,5 +114,8 @@ void AShield::ServerUpdate (float deltaTime)
 	_destroyTimer += deltaTime;
 
 	if (_destroyTimer >= _shieldDuration)
+	{
+		parentPlayer->shieldActive = false;
 		Destroy ();
+	}
 }

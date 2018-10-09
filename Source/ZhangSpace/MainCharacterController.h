@@ -70,6 +70,10 @@ public:
 	//Poperty used to update rotation on server and to clients
 	UPROPERTY (Replicated) FRotator _playerRotation = FRotator(.0f, .0f, .0f);
 
+	//These variables are set by the shield script
+	UPROPERTY (Replicated, BlueprintReadOnly) bool shieldActive = false;
+	AShield* shield = nullptr;
+
 	//Temp for midterm
 	UPROPERTY (BlueprintReadOnly) bool teleportUnlocked = false;
 

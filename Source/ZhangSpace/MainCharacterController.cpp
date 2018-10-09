@@ -32,7 +32,7 @@ void AMainCharacterController::BeginPlay ()
 		AddAbility (0);
 
 		//Temp
-		AddAbility (7);
+		//AddAbility (7);
 	}
 
 	if (GetWorld ()->IsServer ())
@@ -390,7 +390,7 @@ void AMainCharacterController::Shoot_Implementation (FVector cameraPosition)
 
 	//Declare start and end position of the line trace based on camera position and rotation
 	FVector start = cameraPosition;
-	FVector end = cameraPosition + (cameraComponent->GetForwardVector () * 10000.0f);
+	FVector end = cameraPosition + (cameraComponent->GetForwardVector () * 30000.0f);
 
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
@@ -473,23 +473,31 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 	if (_dead)
 		return 0.0f;
 
-	_currentHealth -= Damage;
-
-	if (DamageCauser != nullptr)
+	if (shieldActive)
 	{
-		if (DamageCauser->GetName ().Contains ("Projectile"))
-		{
-			FString damageType = "Projectile";
-			TakeDamageBP ((int) Damage, damageType);
-		}
+		shield->ApplyDamage (Damage);
+		return 0.0f;
 	}
+	else
+	{
+		_currentHealth -= Damage;
 
-	//If health is below zero, die
-	if (_currentHealth <= 0)
-		Die ();
+		if (DamageCauser != nullptr)
+		{
+			if (DamageCauser->GetName ().Contains ("Projectile"))
+			{
+				FString damageType = "Projectile";
+				TakeDamageBP ((int) Damage, damageType);
+			}
+		}
 
-	//Debug
-	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Health: " + FString::FromInt (_currentHealth));
+		//If health is below zero, die
+		if (_currentHealth <= 0)
+			Die ();
+
+		//Debug
+		//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Health: " + FString::FromInt (_currentHealth));
+	}
 
 	return Super::TakeDamage (Damage, DamageEvent, EventInstigator, DamageCauser);
 }
@@ -697,6 +705,8 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 	DOREPLIFETIME (AMainCharacterController, _playerRotation);
 
 	DOREPLIFETIME (AMainCharacterController, _showCursor);
+
+	DOREPLIFETIME (AMainCharacterController, shieldActive);
 }
 
 //Called to bind functionality to input
