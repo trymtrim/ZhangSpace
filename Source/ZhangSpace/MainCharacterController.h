@@ -70,6 +70,9 @@ public:
 	//Poperty used to update rotation on server and to clients
 	UPROPERTY (Replicated) FRotator _playerRotation = FRotator(.0f, .0f, .0f);
 
+	//Temp for midterm
+	UPROPERTY (BlueprintReadOnly) bool teleportUnlocked = false;
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay () override;
@@ -83,6 +86,8 @@ private:
 	void StopShooting ();
 	UFUNCTION (Server, Reliable, WithValidation)
 	void UseAbility (int abilityIndex, FVector cameraPosition);
+	UFUNCTION (Server, Reliable, WithValidation)
+	void ServerAddAbility (int abilityIndex);
 
 	void UpdateShooting ();
 	void UpdateShootingCooldown (float deltaTime);

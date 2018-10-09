@@ -36,10 +36,8 @@ private:
 	float _destroyTimer = 0.0f;
 	float _shieldDuration = 30.0f;
 
-	int _health = 100;
-
-	AActor* _owner;
+	int _health = 50;
 
 	UPROPERTY (EditAnywhere)
-	TSubclassOf <AProjectile> _projectileBP;
+	TSubclassOf <AActor> _projectileBP;
 };

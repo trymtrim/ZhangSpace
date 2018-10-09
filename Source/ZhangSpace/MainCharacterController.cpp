@@ -22,24 +22,29 @@ void AMainCharacterController::BeginPlay ()
 {
 	Super::BeginPlay ();
 
+	InitializeAbilityCooldowns ();
+
 	//Change mesh on client-side
 	if (!GetWorld ()->IsServer () && IsLocallyControlled ())
+	{
 		ChangeMesh ();
 
-	if (GetWorld ()->IsServer ())
-	{
 		AddAbility (0);
 
-		//Debugging
-		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
-		AddAbility (4);
+		//Temp
 		AddAbility (7);
 	}
 
-	InitializeAbilityCooldowns ();
+	if (GetWorld ()->IsServer ())
+	{
+		//Debugging
+		/*AddExperience (100);
+		AddExperience (100);
+		AddExperience (100);
+		AddExperience (100);*/
+		//AddAbility (4);
+		//AddAbility (7);
+	}
 }
 
 //Called every frame
@@ -72,7 +77,7 @@ void AMainCharacterController::Tick (float DeltaTime)
 	//Solution: Add local rotation in playercontroller and then set actor rotation here
 
 	if (!IsLocallyControlled ())
-		SetActorRotation(_playerRotation, ETeleportType::None);
+		SetActorRotation (_playerRotation, ETeleportType::None);
 
 	//Debug
 	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Rotation: " + _playerRotation.ToString());
@@ -85,9 +90,6 @@ void AMainCharacterController::InitializeAbilityCooldowns ()
 
 	//Add shield ability to hotkey bar //TEMP
 	_hotkeyBarAbilities.Add (0); //Probably not temp
-
-	//ONLY ADD TO HOTKEYBAR IF IT IS ALREADY ADDED TO ABILITIES
-	_hotkeyBarAbilities.Add (7);
 }
 
 void AMainCharacterController::ChangeMesh ()
@@ -140,7 +142,7 @@ void AMainCharacterController::Respawn ()
 
 	//Reset ability cooldowns
 	for (int i = 0; i < _abilities.Num (); i++)
-		_abilities [i] = 0.0f;
+		_abilityCooldowns [i] = 0.0f;
 
 	//Set new location to a random player start
 	TArray <AActor*> playerStarts;
@@ -178,6 +180,18 @@ void AMainCharacterController::AddExperience (int experience)
 
 void AMainCharacterController::AddAbility (int abilityIndex)
 {
+	ServerAddAbility (abilityIndex);
+
+	//Temp for midterm
+	if (abilityIndex == 7)
+	{
+		teleportUnlocked = true;
+		_hotkeyBarAbilities.Add (7);
+	}
+}
+
+void AMainCharacterController::ServerAddAbility_Implementation (int abilityIndex)
+{
 	//If the ability is a passive, enable the respective bool, otherwise add it the the ability list
 	if (abilityIndex == 4) //||...)
 	{
@@ -205,6 +219,11 @@ void AMainCharacterController::AddAbility (int abilityIndex)
 		else if (abilityIndex > 6 && abilityIndex <= 9)
 			_mobilityUpgradesAvailable--;
 	}
+}
+
+bool AMainCharacterController::ServerAddAbility_Validate (int abilityIndex)
+{
+	return true;
 }
 
 void AMainCharacterController::AddAvailableStats ()
@@ -547,7 +566,7 @@ void AMainCharacterController::EnableMouseCursor ()
 		GetWorld()->GetFirstPlayerController()->SetMouseLocation(viewPort.X / 2, viewPort.Y / 2);
 
 		//Debug that shit
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "Viewport: " + FString::SanitizeFloat(viewPort.X) + ", " + FString::SanitizeFloat(viewPort.Y));
+		//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "Viewport: " + FString::SanitizeFloat(viewPort.X) + ", " + FString::SanitizeFloat(viewPort.Y));
 		
 		//Show cursor
 		SetShowCursor (true);
