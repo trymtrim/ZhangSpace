@@ -33,7 +33,7 @@ void AProjectile::ServerUpdate (float deltaTime)
 	//Destroy projectile after a little while
 	_destroyTimer += deltaTime;
 
-	if (_destroyTimer >= 2.5f)
+	if (_destroyTimer >= 5.0f)
 		Destroy ();
 }
 

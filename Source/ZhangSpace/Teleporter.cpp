@@ -35,7 +35,7 @@ void ATeleporter::ServerUpdate (float deltaTime)
 
 	if (_destroyTimer >= _duration)
 	{
-		_secondTeleporter->Destroy ();
+		secondTeleporter->Destroy ();
 		Destroy ();
 	}
 }
@@ -44,14 +44,14 @@ void ATeleporter::SpawnSecondTeleporter ()
 {
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 5000.0f;
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * _distance;
 	FRotator spawnRotation = GetActorRotation ();
 
 	//Spawn teleporter to land in
-	_secondTeleporter = GetWorld ()->SpawnActor <AActor> (_secondTeleporterBP, spawnPosition, spawnRotation, spawnParams);
+	secondTeleporter = GetWorld ()->SpawnActor <AActor> (_secondTeleporterBP, spawnPosition, spawnRotation, spawnParams);
 }
 
 void ATeleporter::TeleportPlayer (AActor* player)
 {
-	player->SetActorLocation (_secondTeleporter->GetActorLocation ());
+	player->SetActorLocation (secondTeleporter->GetActorLocation ());
 }

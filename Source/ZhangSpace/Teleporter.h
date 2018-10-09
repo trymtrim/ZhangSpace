@@ -23,6 +23,8 @@ public:
 	UFUNCTION (BlueprintCallable)
 	void TeleportPlayer (AActor* player);
 
+	UPROPERTY (BlueprintReadOnly) AActor* secondTeleporter;
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay () override;
@@ -31,10 +33,11 @@ private:
 	void ServerUpdate (float deltaTime);
 
 	float _destroyTimer = 0.0f;
-	float _duration = 5.0f;
-
-	UPROPERTY () AActor* _secondTeleporter;
 
 	UPROPERTY (EditAnywhere)
 	TSubclassOf <AActor> _secondTeleporterBP;
+	UPROPERTY (EditAnywhere)
+	float _duration = 10.0f;
+	UPROPERTY (EditAnywhere)
+	float _distance = 5000.0f;
 };

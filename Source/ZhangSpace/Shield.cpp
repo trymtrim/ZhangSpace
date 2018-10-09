@@ -57,14 +57,18 @@ void AShield::Tick (float DeltaTime)
 void AShield::OnHitByProjectile (FRotator bulletRotation)
 {
 	if (shieldReflect)
-	{/*
+	{
+		GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, bulletRotation.ToString ());
+
 		//Declare spawn parameters
 		FActorSpawnParameters spawnParams;
-		FVector spawnPosition = GetActorLocation () - bulletRotation.Vector () * 50.0f; //GetInverse ().Vector ().ForwardVector * 50.0f;
-		FRotator spawnRotation = (-bulletRotation.Vector ().ForwardVector).Rotation ();
+		FVector spawnPosition = GetActorLocation () - bulletRotation.Vector () * 500.0f;
+		FRotator spawnRotation = (-bulletRotation.Vector ()).Rotation ();
 
 		//Spawn projectile
-		GetWorld ()->SpawnActor <AActor> (_projectileBP, spawnPosition, spawnRotation, spawnParams);*/
+		GetWorld ()->SpawnActor <AActor> (_projectileBP, spawnPosition, spawnRotation, spawnParams);
+
+		GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Shield hit by projectile");
 	}
 
 	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Shield hit by projectile");
@@ -80,7 +84,7 @@ float AShield::TakeDamage (float Damage, FDamageEvent const& DamageEvent, AContr
 		Destroy ();
 
 	//Debug
-	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Health: " + FString::FromInt (_health));
+	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Health: " + FString::FromInt (_health));
 
 	return Super::TakeDamage (Damage, DamageEvent, EventInstigator, DamageCauser);
 }
