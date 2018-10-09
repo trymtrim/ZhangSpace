@@ -80,7 +80,7 @@ void AMainCharacterController::Tick (float DeltaTime)
 
 void AMainCharacterController::InitializeAbilityCooldowns ()
 {
-	_abilityMaxCooldowns.Add (0, 20.0f); //Shield
+	_abilityMaxCooldowns.Add (0, 60.0f); //Shield
 	_abilityMaxCooldowns.Add (7, 5.0f); //Teleport
 
 	//Add shield ability to hotkey bar //TEMP

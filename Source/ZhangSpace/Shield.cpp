@@ -54,14 +54,35 @@ void AShield::Tick (float DeltaTime)
 		ServerUpdate (DeltaTime);
 }
 
-void AShield::CheckIfOwner (AActor* ownerPlayer)
+void AShield::OnHitByProjectile (FRotator bulletRotation)
 {
-	_owner = ownerPlayer;
+	if (shieldReflect)
+	{/*
+		//Declare spawn parameters
+		FActorSpawnParameters spawnParams;
+		FVector spawnPosition = GetActorLocation () - bulletRotation.Vector () * 50.0f; //GetInverse ().Vector ().ForwardVector * 50.0f;
+		FRotator spawnRotation = (-bulletRotation.Vector ().ForwardVector).Rotation ();
+
+		//Spawn projectile
+		GetWorld ()->SpawnActor <AActor> (_projectileBP, spawnPosition, spawnRotation, spawnParams);*/
+	}
+
+	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Shield hit by projectile");
 }
 
-void AShield::OnHitByProjectile ()
+float AShield::TakeDamage (float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Shield hit by projectile");
+	_health -= Damage;
+
+
+	//If health is below zero, die
+	if (_health <= 0)
+		Destroy ();
+
+	//Debug
+	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Health: " + FString::FromInt (_health));
+
+	return Super::TakeDamage (Damage, DamageEvent, EventInstigator, DamageCauser);
 }
 
 void AShield::ServerUpdate (float deltaTime)
