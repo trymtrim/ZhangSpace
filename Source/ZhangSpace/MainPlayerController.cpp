@@ -19,13 +19,11 @@ void AMainPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//Lock mouse to viewport
+	//Lock mouse to viewport when starting a game
 	if (GetWorld()->GetGameViewport() != nullptr)
 	{
 		GetWorld()->GetGameViewport()->SetMouseLockMode(EMouseLockMode::LockAlways);
 		GetWorld()->GetGameViewport()->Viewport->LockMouseToViewport(true);
-		
-		//GEngine->GameViewport->Viewport->LockMouseToViewport(true); //Testing purposes for now
 	}
 }
 
@@ -34,58 +32,61 @@ void AMainPlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (_character == nullptr) 
+	{
+		_character = Cast <AMainCharacterController>(GetCharacter());
+
+		if (_UCharMoveComp == nullptr && _character != nullptr)
+			_UCharMoveComp = _character->GetCharacterMovement();
+	}
+
 	if (!GetWorld ()->IsServer ())
 		UpdateRotation (pitchDelta, yawDelta, rollDelta);
 
-	if (_character == nullptr)
-		_character = Cast <AMainCharacterController> (GetCharacter ());
+	//---------- DEBUG ---------//
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "HIGH SCROLL VALUE: " + FString::SanitizeFloat(_highScroll, 1) + "\nLOW SCROLL VALUE: " + FString::SanitizeFloat(_lowScroll, 1));
 }
 
 void AMainPlayerController::MoveForward (float value)
 {
-	if (_character != nullptr)
+	if (_character != nullptr)			//If we have a reference to the character pointer
 	{
-		if (_character->GetIsDead ())
+		if (_character->GetIsDead ())	//And the player is dead, don't do anything
 			return;
 	}
 
 	if (value != .0f )
 	{
 		//Add movement in that direction
-
-		//float speed = value * _moveSpeed * GetWorld()->DeltaTimeSeconds;
 		GetCharacter ()->AddMovementInput (GetCharacter ()->GetActorForwardVector (), value);
 	}
 }
 
 void AMainPlayerController::Strafe (float value)
 {
-	if (_character != nullptr)
+	if (_character != nullptr)			//If we have a reference to the character pointer
 	{
-		if (_character->GetIsDead ())
+		if (_character->GetIsDead())	//And the player is dead, don't do anything
 			return;
 	}
 	
 	if (value != .0f)
 	{
 		//Add movement in that direction
-		//float speed = value * _strafeSpeed * GetWorld()->DeltaTimeSeconds;
 		GetCharacter ()->AddMovementInput (GetCharacter ()->GetActorRightVector (), value);
 	}
 }
 
 void AMainPlayerController::VerticalStrafe (float value)
 {
-	if (_character != nullptr)
+	if (_character != nullptr)			//If we have a reference to the character pointer
 	{
-		if (_character->GetIsDead ())
+		if (_character->GetIsDead())	//And the player is dead, don't do anything
 			return;
 	}
 
-	//TODO: Add vertical strafe, add bindaction to manipulate a bool if shift key is pressed
 	if (value != .0f)
 	{
-		//float speed = value * _strafeSpeed * GetWorld()->DeltaTimeSeconds;
 		GetCharacter()->AddMovementInput(GetCharacter()->GetActorUpVector(), value);
 	}
 }
@@ -97,6 +98,7 @@ void AMainPlayerController::Roll (float value)
 	{
 		rollDelta = value * _rollSpeed * GetWorld()->DeltaTimeSeconds;
 	}
+
 	//Debug
 	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Roll Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaRoll value = " + FString::SanitizeFloat(rollDelta, 2));
 }
@@ -125,7 +127,7 @@ void AMainPlayerController::Yaw (float value)
 
 void AMainPlayerController::UpdateRotation(float pitch, float yaw, float roll) 
 {
-	//If _character doesn't have a pointer, get one and return 1 frame
+	//If _character doesn't have a pointer, get one and wait a frame
 	if (_character == nullptr) 
 	{
 		_character = Cast <AMainCharacterController>(GetCharacter());
@@ -142,8 +144,6 @@ void AMainPlayerController::UpdateRotation(float pitch, float yaw, float roll)
 	GetCharacter()->AddActorLocalRotation(newDeltaRotation, false, 0, ETeleportType::None);
 
 	//Update player rotation on server to match client rotation
-	//_character->_playerRotation = GetCharacter()->GetActorRotation();
-
 	ServerUpdateRotation (GetCharacter ()->GetActorRotation ());
 
 	//Reset rotation values
@@ -165,6 +165,39 @@ bool AMainPlayerController::ServerUpdateRotation_Validate (FRotator rotation)
 	return true;
 }
 
+void AMainPlayerController::UpdateSpeed_Implementation (float value) 
+{
+	if (_character == nullptr || _UCharMoveComp == nullptr)
+		return;
+
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Current speed: " + FString::SanitizeFloat(_UCharMoveComp->MaxFlySpeed, 1));
+
+	//If current speed is less or higher than max/min speed after last frame, set it to max/min
+	if (_UCharMoveComp->MaxFlySpeed > _maxSpeed) { _UCharMoveComp->MaxFlySpeed = _maxSpeed; return; }
+	else if (_UCharMoveComp->MaxFlySpeed < _minSpeed) { _UCharMoveComp->MaxFlySpeed = _minSpeed; return; }
+
+	if (value != 0.0f) 
+	{
+		/*
+		if (value > 0.0f)
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Mouse wheel UP! Value: " + FString::SanitizeFloat(value, 1));
+		else if (value < 0.0f)
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Mouse wheel DOWN! Value: " + FString::SanitizeFloat(value, 1));
+		*/
+
+		if (_UCharMoveComp->MaxFlySpeed <= _maxSpeed && _UCharMoveComp->MaxFlySpeed >= _minSpeed) 
+		{
+			_UCharMoveComp->MaxFlySpeed += value * _deltaAcceleration * GetWorld()->DeltaTimeSeconds;
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Current speed: " + FString::SanitizeFloat(_UCharMoveComp->MaxFlySpeed, 1));
+		}
+	}
+}
+
+ bool AMainPlayerController::UpdateSpeed_Validate (float value)
+{
+	 return true;
+}
+
 void AMainPlayerController::SetupInputComponent ()
 {
 	Super::SetupInputComponent ();
@@ -182,5 +215,6 @@ void AMainPlayerController::SetupInputComponent ()
 		InputComponent->BindAxis ("Yaw", this, &AMainPlayerController::Yaw);
 		InputComponent->BindAxis ("Pitch", this, &AMainPlayerController::Pitch);
 		InputComponent->BindAxis ("Roll", this, &AMainPlayerController::Roll);
+		InputComponent->BindAxis ("UpdateSpeed",this,&AMainPlayerController::UpdateSpeed);
 	}
 }
