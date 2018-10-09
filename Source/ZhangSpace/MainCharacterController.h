@@ -46,6 +46,9 @@ public:
 	bool GetCanMove ();
 	bool GetIsDead ();
 
+	//Pasive ability getters
+	bool GetShieldReflect ();
+
 	FVector2D GetViewportSize (); //Returns the size of the clients viewport as a 2d vector
 
 	//Variables for the spaceship UI
@@ -96,6 +99,10 @@ private:
 
 	//Abilities
 	void Shield ();
+	void Teleport ();
+
+	//Passive abilities
+	bool _shieldReflect = false;
 
 	void InitializeAbilityCooldowns ();
 	void ChangeMesh ();
@@ -164,4 +171,6 @@ private:
 	UStaticMesh* _cockpitMesh;
 	UPROPERTY (EditAnywhere)
 	TSubclassOf <AProjectile> _projectileBP;
+	UPROPERTY (EditAnywhere)
+	TSubclassOf <AActor> _teleporterBP;
 };

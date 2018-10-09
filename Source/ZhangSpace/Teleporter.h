@@ -4,26 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Shield.generated.h"
+#include "Teleporter.generated.h"
 
 UCLASS()
-class ZHANGSPACE_API AShield : public AActor
+class ZHANGSPACE_API ATeleporter : public AActor
 {
 	GENERATED_BODY ()
 	
-public:	
+public:
 	//Sets default values for this actor's properties
-	AShield ();
+	ATeleporter ();
 
 	//Called every frame
 	virtual void Tick (float DeltaTime) override;
 
-	UFUNCTION (BlueprintCallable)
-	void CheckIfOwner (AActor* ownerPlayer);
-	UFUNCTION (BlueprintCallable)
-	void OnHitByProjectile ();
+	void SpawnSecondTeleporter ();
 
-	UPROPERTY (BlueprintReadOnly) bool shieldReflect;
+	UFUNCTION (BlueprintCallable)
+	void TeleportPlayer (AActor* player);
 
 protected:
 	//Called when the game starts or when spawned
@@ -33,7 +31,10 @@ private:
 	void ServerUpdate (float deltaTime);
 
 	float _destroyTimer = 0.0f;
-	float _shieldDuration = 5.0f;
+	float _duration = 5.0f;
 
-	AActor* _owner;
+	UPROPERTY () AActor* _secondTeleporter;
+
+	UPROPERTY (EditAnywhere)
+	TSubclassOf <AActor> _secondTeleporterBP;
 };

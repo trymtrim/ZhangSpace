@@ -28,12 +28,15 @@ void AMainCharacterController::BeginPlay ()
 
 	if (GetWorld ()->IsServer ())
 	{
-		AddAbility (1);
+		AddAbility (0);
 
+		//Debugging
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
+		AddAbility (4);
+		AddAbility (7);
 	}
 
 	InitializeAbilityCooldowns ();
@@ -77,10 +80,14 @@ void AMainCharacterController::Tick (float DeltaTime)
 
 void AMainCharacterController::InitializeAbilityCooldowns ()
 {
-	_abilityMaxCooldowns.Add (1, 20.0f); //Shield
+	_abilityMaxCooldowns.Add (0, 20.0f); //Shield
+	_abilityMaxCooldowns.Add (7, 5.0f); //Teleport
 
-	//Add shield ability to hotkey bar
-	_hotkeyBarAbilities.Add (1);
+	//Add shield ability to hotkey bar //TEMP
+	_hotkeyBarAbilities.Add (0); //Probably not temp
+
+	//ONLY ADD TO HOTKEYBAR IF IT IS ALREADY ADDED TO ABILITIES
+	_hotkeyBarAbilities.Add (7);
 }
 
 void AMainCharacterController::ChangeMesh ()
@@ -171,12 +178,25 @@ void AMainCharacterController::AddExperience (int experience)
 
 void AMainCharacterController::AddAbility (int abilityIndex)
 {
-	//Add ability to the list of abilities
-	_abilities.Add (abilityIndex);
-	//Add ability to the list of ability cooldowns
-	_abilityCooldowns.Add (0.0f);
+	//If the ability is a passive, enable the respective bool, otherwise add it the the ability list
+	if (abilityIndex == 4) //||...)
+	{
+		switch (abilityIndex)
+		{
+		case 4: //Shield reflect
+			_shieldReflect = true;
+			break;
+		}
+	}
+	else
+	{
+		//Add ability to the list of abilities
+		_abilities.Add (abilityIndex);
+		//Add ability to the list of ability cooldowns
+		_abilityCooldowns.Add (0.0f);
+	}
 
-	if (_attackUpgradesAvailable != 0 && _defenseUpgradesAvailable != 0 && _mobilityUpgradesAvailable != 0)
+	if (_attackUpgradesAvailable != 0 || _defenseUpgradesAvailable != 0 || _mobilityUpgradesAvailable != 0)
 	{
 		if (abilityIndex <= 3)
 			_attackUpgradesAvailable--;
@@ -205,19 +225,19 @@ void AMainCharacterController::AddStat_Implementation (int statIndex)
 	case 1: //Attack
 		_attackPower++;
 
-		if (_attackPower == 3 || _attackPower == 7 || _attackPower == 10)
+		if (_attackPower == 4 || _attackPower == 7 || _attackPower == 10)
 			_attackUpgradesAvailable++;
 		break;
 	case 2: //Defense
 		_defensePower++;
 
-		if (_defensePower == 3 || _defensePower == 7 || _defensePower == 10)
+		if (_defensePower == 4 || _defensePower == 7 || _defensePower == 10)
 			_defenseUpgradesAvailable++;
 		break;
 	case 3: //Mobility
 		_mobilityPower++;
 
-		if (_mobilityPower == 3 || _mobilityPower == 7 || _mobilityPower == 10)
+		if (_mobilityPower == 4 || _mobilityPower == 7 || _mobilityPower == 10)
 			_mobilityUpgradesAvailable++;
 		break;
 	}
@@ -249,6 +269,7 @@ void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVec
 	if (!_abilities.Contains (abilityIndex))
 		return;
 
+	//Put ability on cooldown
 	for (int i = 0; i < _abilities.Num (); i++)
 	{
 		if (_abilities [i] == abilityIndex)
@@ -262,10 +283,14 @@ void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVec
 		}
 	}
 
+	//Use ability based on ability index
 	switch (abilityIndex)
 	{
-	case 1:
+	case 0:
 		Shield ();
+		break;
+	case 7:
+		Teleport ();
 		break;
 	}
 }
@@ -388,6 +413,23 @@ void AMainCharacterController::Shield ()
 	SpawnShieldBP ();
 }
 
+void AMainCharacterController::Teleport ()
+{
+	//Declare spawn parameters
+	FActorSpawnParameters spawnParams;
+	spawnParams.Owner = this;
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 750.0f;
+	FRotator spawnRotation = GetActorRotation ();
+
+	//Spawn projectile
+	GetWorld ()->SpawnActor <AActor> (_teleporterBP, spawnPosition, spawnRotation, spawnParams);
+}
+
+bool AMainCharacterController::GetShieldReflect ()
+{
+	return _shieldReflect;
+}
+
 void AMainCharacterController::UpdateStats (float deltaTime)
 {
 	//Update cooldowns
@@ -414,10 +456,13 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 
 	_currentHealth -= Damage;
 
-	if (DamageCauser->GetName ().Contains ("Projectile"))
+	if (DamageCauser != nullptr)
 	{
-		FString damageType = "Projectile";
-		TakeDamageBP ((int) Damage, damageType);
+		if (DamageCauser->GetName ().Contains ("Projectile"))
+		{
+			FString damageType = "Projectile";
+			TakeDamageBP ((int) Damage, damageType);
+		}
 	}
 
 	//If health is below zero, die
@@ -652,7 +697,8 @@ void AMainCharacterController::SetupPlayerInputComponent (UInputComponent* Playe
 	//Set up ability bindings
 	PlayerInputComponent->BindAction ("Ability1", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <1>);
 	PlayerInputComponent->BindAction ("Ability2", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <2>);
-	PlayerInputComponent->BindAction ("Ability2", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <3>);
+	PlayerInputComponent->BindAction ("Ability3", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <3>);
+	PlayerInputComponent->BindAction ("Ability4", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <4>);
 
 	//Set up mouse cursor bindings
 	PlayerInputComponent->BindAction ("ShowMouseCursor", IE_Pressed, this, &AMainCharacterController::EnableMouseCursor);
