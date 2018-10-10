@@ -40,6 +40,8 @@ public:
 	void TakeDamageBP (int damage, const FString& damageType);
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void SpawnShieldBP ();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Character Controller")
+	void ShootBP ();
 	UFUNCTION (BlueprintCallable)
 	void UpdateHotkeyBar (TArray <int> abilities);
 

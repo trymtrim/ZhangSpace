@@ -419,6 +419,8 @@ void AMainCharacterController::Shoot_Implementation (FVector cameraPosition)
 
 	//Spend power
 	_power -= _shootCost;
+
+	ShootBP ();
 }
 
 bool AMainCharacterController::Shoot_Validate (FVector cameraPosition)
