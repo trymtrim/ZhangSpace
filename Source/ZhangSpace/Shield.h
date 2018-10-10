@@ -7,6 +7,8 @@
 #include "Projectile.h"
 #include "Shield.generated.h"
 
+class AMainCharacterController;
+
 UCLASS()
 class ZHANGSPACE_API AShield : public AActor
 {
@@ -24,6 +26,8 @@ public:
 
 	UPROPERTY (BlueprintReadOnly) bool shieldReflect;
 
+	void ApplyDamage (int damage);
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay () override;
@@ -37,6 +41,8 @@ private:
 	float _shieldDuration = 30.0f;
 
 	int _health = 50;
+
+	AMainCharacterController* parentPlayer;
 
 	UPROPERTY (EditAnywhere)
 	TSubclassOf <AActor> _projectileBP;

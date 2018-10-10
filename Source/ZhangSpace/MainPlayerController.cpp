@@ -188,7 +188,7 @@ void AMainPlayerController::UpdateSpeed_Implementation (float value)
 		if (_UCharMoveComp->MaxFlySpeed <= _maxSpeed && _UCharMoveComp->MaxFlySpeed >= _minSpeed) 
 		{
 			_UCharMoveComp->MaxFlySpeed += value * _deltaAcceleration * GetWorld()->DeltaTimeSeconds;
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Current speed: " + FString::SanitizeFloat(_UCharMoveComp->MaxFlySpeed, 1));
+			//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Current speed: " + FString::SanitizeFloat(_UCharMoveComp->MaxFlySpeed, 1));
 		}
 	}
 }
