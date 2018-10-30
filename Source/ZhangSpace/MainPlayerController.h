@@ -20,10 +20,7 @@ public:
 
 	virtual void SetupInputComponent () override;
 
-	void UpdateRotation(float pitch, float yaw, float roll);
-	
-	UFUNCTION (Server, Reliable, WithValidation)
-	void ServerUpdateRotation (FRotator rotation);
+	void UpdatePlayerRotation (float pitch, float yaw, float roll);
 
 	//Handles input for moving forward and backward
 	UFUNCTION ()
@@ -55,11 +52,10 @@ protected:
 
 private:
 	//---------- MOVEMENT VALUES ----------//
-	float _rollSpeed = 70.0f;				//Used to determine roll speed
+	float _rollSpeed = 100.0f;				//Used to determine roll speed
 	float const _minSpeed = 1500.0f;		//Used as the lowest possible speed when flying
 	float const _maxSpeed = 10000.0f;		//Used as the default max speed
 	float _deltaAcceleration = 3000.0f;
-
 
 	//----------- ROTATION VALUES ----------//
 	float pitchDelta = .0f;
@@ -71,5 +67,4 @@ private:
 	//Pointer reference to the character class and its CharacterMovementComponent
 	AMainCharacterController* _character = nullptr;
 	UCharacterMovementComponent* _UCharMoveComp = nullptr;
-
 };

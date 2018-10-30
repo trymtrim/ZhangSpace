@@ -7,6 +7,7 @@
 #include "UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
+#include "WidgetComponent.h"
 
 #include "Runtime/Engine/Public/DrawDebugHelpers.h"
 #include "Engine.h"
@@ -45,6 +46,19 @@ void AMainCharacterController::BeginPlay ()
 		//AddAbility (4);
 		//AddAbility (7);
 	}
+
+	//FPS
+	if (!GetWorld ()->IsServer () && IsLocallyControlled ())
+	{
+		FTimerHandle FPSTimerHandle;
+		GetWorld ()->GetTimerManager ().SetTimer (FPSTimerHandle, this, &AMainCharacterController::UpdateFPS, 1.0f, true);
+	}
+}
+
+void AMainCharacterController::UpdateFPS ()
+{
+	FPSText = FString::FromInt (FPS);
+	FPS = 0;
 }
 
 //Called every frame
@@ -69,18 +83,9 @@ void AMainCharacterController::Tick (float DeltaTime)
 
 		if (_shooting)
 			UpdateShooting ();
+
+		FPS++;
 	}
-
-	//Update local rotation based on delta rotation in MainPlayerController class
-
-	//Note: Offset after some gameplay time...
-	//Solution: Add local rotation in playercontroller and then set actor rotation here
-
-	if (!IsLocallyControlled ())
-		SetActorRotation (_playerRotation, ETeleportType::None);
-
-	//Debug
-	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Rotation: " + _playerRotation.ToString());
 }
 
 void AMainCharacterController::InitializeAbilityCooldowns ()
@@ -475,7 +480,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 	if (_dead)
 		return 0.0f;
 
-	if (shieldActive)
+	if (shieldActive && !DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
 	{
 		shield->ApplyDamage (Damage);
 		return 0.0f;
@@ -628,6 +633,7 @@ void AMainCharacterController::MouseClick ()
 		else if (hitName == "AbilityMenuButton")
 			ToggleAbilityMenu ();
 	}
+
 }
 
 void AMainCharacterController::ToggleAbilityMenu ()
@@ -703,8 +709,6 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 
 	DOREPLIFETIME (AMainCharacterController, _currentDeadTimer);
 	DOREPLIFETIME (AMainCharacterController, _lives);
-
-	DOREPLIFETIME (AMainCharacterController, _playerRotation);
 
 	DOREPLIFETIME (AMainCharacterController, _showCursor);
 

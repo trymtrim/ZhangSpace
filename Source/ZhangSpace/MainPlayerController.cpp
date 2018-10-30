@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "UnrealNetwork.h"
 #include "Engine.h"
+#include "Kismet/KismetMathLibrary.h"
 
 AMainPlayerController::AMainPlayerController()
 {
@@ -25,6 +26,12 @@ void AMainPlayerController::BeginPlay()
 		GetWorld()->GetGameViewport()->SetMouseLockMode(EMouseLockMode::LockAlways);
 		GetWorld()->GetGameViewport()->Viewport->LockMouseToViewport(true);
 	}
+
+	PlayerCameraManager->ViewPitchMax = 359.998993f;
+	PlayerCameraManager->ViewPitchMin = 0.0f;
+	PlayerCameraManager->ViewYawMax = 359.998993f;
+	PlayerCameraManager->ViewRollMax = 359.998993f;
+	PlayerCameraManager->ViewRollMin = 0.0f;
 }
 
 //Called every frame
@@ -41,7 +48,7 @@ void AMainPlayerController::Tick(float DeltaTime)
 	}
 
 	if (!GetWorld ()->IsServer ())
-		UpdateRotation (pitchDelta, yawDelta, rollDelta);
+		UpdatePlayerRotation (pitchDelta, yawDelta, rollDelta);
 
 	//---------- DEBUG ---------//
 	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "HIGH SCROLL VALUE: " + FString::SanitizeFloat(_highScroll, 1) + "\nLOW SCROLL VALUE: " + FString::SanitizeFloat(_lowScroll, 1));
@@ -93,9 +100,9 @@ void AMainPlayerController::VerticalStrafe (float value)
 
 void AMainPlayerController::Roll (float value)
 {
-
 	if (value != .0f)
 	{
+		//GetCharacter ()->AddControllerRollInput (value * GetWorld ()->DeltaTimeSeconds * 50.0f);
 		rollDelta = value * _rollSpeed * GetWorld()->DeltaTimeSeconds;
 	}
 
@@ -107,6 +114,7 @@ void AMainPlayerController::Pitch (float value)
 {
 	if (value != .0f)
 	{
+		//GetCharacter ()->AddControllerPitchInput (value * GetWorld ()->DeltaTimeSeconds * 10.0f);
 		pitchDelta = value * _turnSpeed * GetWorld()->DeltaTimeSeconds;
 	}
 
@@ -118,6 +126,7 @@ void AMainPlayerController::Yaw (float value)
 {
 	if (value != .0f)
 	{
+		//GetCharacter ()->AddControllerYawInput (value * GetWorld ()->DeltaTimeSeconds * 10.0f);
 		yawDelta = value * _turnSpeed * GetWorld()->DeltaTimeSeconds;
 	}
 
@@ -125,7 +134,7 @@ void AMainPlayerController::Yaw (float value)
 	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Yaw Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaYaw value = " + FString::SanitizeFloat(yawDelta, 2));
 }
 
-void AMainPlayerController::UpdateRotation(float pitch, float yaw, float roll) 
+void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float roll) 
 {
 	//If _character doesn't have a pointer, get one and wait a frame
 	if (_character == nullptr) 
@@ -142,27 +151,12 @@ void AMainPlayerController::UpdateRotation(float pitch, float yaw, float roll)
 	//Make delta rotation in a Rotator and add it to the player delta rotation variable in MainCharacterController class
 	FRotator newDeltaRotation = FRotator(pitch,yaw,roll);
 	GetCharacter()->AddActorLocalRotation(newDeltaRotation, false, 0, ETeleportType::None);
-
-	//Update player rotation on server to match client rotation
-	ServerUpdateRotation (GetCharacter ()->GetActorRotation ());
+	SetControlRotation (GetCharacter ()->GetActorRotation ());
 
 	//Reset rotation values
 	yawDelta = .0f;
 	pitchDelta = .0f;
 	rollDelta = .0f;
-}
-
-void AMainPlayerController::ServerUpdateRotation_Implementation (FRotator rotation)
-{
-	if (_character == nullptr)
-		return;
-
-	_character->_playerRotation = rotation;
-}
-
-bool AMainPlayerController::ServerUpdateRotation_Validate (FRotator rotation)
-{
-	return true;
 }
 
 void AMainPlayerController::UpdateSpeed_Implementation (float value) 

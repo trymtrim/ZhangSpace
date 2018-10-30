@@ -68,9 +68,7 @@ public:
 	UPROPERTY (BlueprintReadOnly) FString respawnText;
 	UPROPERTY (BlueprintReadOnly) int lives;
 	UPROPERTY (BlueprintReadOnly) TArray <float> cooldownPercentages {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-
-	//Poperty used to update rotation on server and to clients
-	UPROPERTY (Replicated) FRotator _playerRotation = FRotator(.0f, .0f, .0f);
+	UPROPERTY (BlueprintReadOnly) FString FPSText;
 
 	//These variables are set by the shield script
 	UPROPERTY (Replicated, BlueprintReadOnly) bool shieldActive = false;
@@ -177,6 +175,9 @@ private:
 
 	UPROPERTY (Replicated) bool _showCursor = false;
 	bool _inAbilityMenu = false;
+
+	int FPS = 0;
+	void UpdateFPS ();
 
 	UPROPERTY (EditAnywhere)
 	UStaticMesh* _cockpitMesh;

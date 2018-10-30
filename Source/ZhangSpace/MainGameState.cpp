@@ -56,11 +56,11 @@ void AMainGameState::DamagePlayersOutsideOfCircle ()
 
 		if (playerController)
 		{
-			if (FVector::Distance (_shrinkingCircle->GetActorLocation (), playerController->GetCharacter ()->GetActorLocation ()) > _shrinkingCircle->GetActorScale3D ().X * 50.0f)
+			if (FVector::Distance (_shrinkingCircle->GetActorLocation (), playerController->GetCharacter ()->GetActorLocation ()) > _shrinkingCircle->GetActorScale ().X * 50.0f)
 			{
-				float damage = 2.5f;
+				float damage = 3.0f;
 
-				UGameplayStatics::ApplyDamage (playerController->GetCharacter (), damage, nullptr, nullptr, nullptr);
+				UGameplayStatics::ApplyDamage (playerController->GetCharacter (), damage, nullptr, _shrinkingCircle, nullptr);
 			}
 		}
 	}
