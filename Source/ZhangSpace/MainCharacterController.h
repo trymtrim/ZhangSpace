@@ -37,6 +37,8 @@ public:
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void DieBP ();
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void RespawnBP ();
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void TakeDamageBP (int damage, const FString& damageType);
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void SpawnShieldBP ();
@@ -114,7 +116,7 @@ private:
 	bool _shieldReflect = false;
 
 	void InitializeAbilityCooldowns ();
-	void ChangeMesh ();
+	void ChangeMesh (UStaticMesh* mesh);
 	void AddAvailableStats ();
 	void UpdateStats (float deltaTime);
 	void UpdateStatsUI ();
@@ -178,6 +180,8 @@ private:
 
 	int FPS = 0;
 	void UpdateFPS ();
+
+	bool right = true;
 
 	UPROPERTY (EditAnywhere)
 	UStaticMesh* _cockpitMesh;

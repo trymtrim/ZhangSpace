@@ -7,7 +7,7 @@
 #include "UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
-#include "WidgetComponent.h"
+#include "Components/ArrowComponent.h"
 
 #include "Runtime/Engine/Public/DrawDebugHelpers.h"
 #include "Engine.h"
@@ -28,8 +28,10 @@ void AMainCharacterController::BeginPlay ()
 	//Change mesh on client-side
 	if (!GetWorld ()->IsServer () && IsLocallyControlled ())
 	{
-		ChangeMesh ();
+		//Change to cockpit mesh
+		ChangeMesh (_cockpitMesh);
 
+		//Add shield ability
 		AddAbility (0);
 
 		//Temp
@@ -97,7 +99,7 @@ void AMainCharacterController::InitializeAbilityCooldowns ()
 	_hotkeyBarAbilities.Add (0); //Probably not temp
 }
 
-void AMainCharacterController::ChangeMesh ()
+void AMainCharacterController::ChangeMesh (UStaticMesh* mesh)
 {
 	TArray <UStaticMeshComponent*> meshComps;
 	GetComponents <UStaticMeshComponent> (meshComps);
@@ -108,17 +110,22 @@ void AMainCharacterController::ChangeMesh ()
 	else
 		meshComponent = meshComps [1];
 
-	meshComponent->SetStaticMesh (_cockpitMesh);
+	meshComponent->SetStaticMesh (mesh);
 }
 
 void AMainCharacterController::Die ()
 {
+	//Update lives and health
 	_lives--;
 	_currentHealth = 0;
 	_dead = true;
 
 	DieBP ();
 
+	//Stop movement
+	GetCharacterMovement ()->StopMovementImmediately ();
+
+	//If the player has no lives left, call game over
 	if (_lives == 0)
 		GameOver ();
 }
@@ -155,6 +162,8 @@ void AMainCharacterController::Respawn ()
 
 	int randomIndex = FMath::RandRange (0, playerStarts.Num () - 1);
 	SetActorLocation (playerStarts [randomIndex]->GetActorLocation ());
+
+	RespawnBP ();
 
 	_dead = false;
 }
@@ -402,6 +411,16 @@ void AMainCharacterController::Shoot_Implementation (FVector cameraPosition)
 	spawnParams.Owner = this;
 	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 350.0f - GetActorUpVector () * 35.0f;
 	FRotator spawnRotation;
+
+	TArray <UArrowComponent*> arrowComps;
+	GetComponents <UArrowComponent> (arrowComps);
+	
+	if (right)
+		spawnPosition = arrowComps [1]->GetComponentLocation ();
+	else
+		spawnPosition = arrowComps [2]->GetComponentLocation ();
+
+	right = !right;
 
 	//Check if line trace hits anything
     if (GetWorld ()->LineTraceSingleByChannel (hit, start, end, ECC_Visibility, traceParams))
