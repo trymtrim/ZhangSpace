@@ -409,27 +409,28 @@ void AMainCharacterController::Shoot_Implementation (FVector cameraPosition)
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
 	spawnParams.Owner = this;
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 350.0f - GetActorUpVector () * 35.0f;
+	FVector spawnPosition; //= GetActorLocation () + GetActorForwardVector () * 350.0f - GetActorUpVector () * 35.0f;
 	FRotator spawnRotation;
 
+	//Spawn projectile at assigned gun position
 	TArray <UArrowComponent*> arrowComps;
 	GetComponents <UArrowComponent> (arrowComps);
 	
-	if (right)
+	if (gunPositionSwitch)
 		spawnPosition = arrowComps [1]->GetComponentLocation ();
 	else
 		spawnPosition = arrowComps [2]->GetComponentLocation ();
 
-	right = !right;
+	gunPositionSwitch = !gunPositionSwitch;
 
 	//Check if line trace hits anything
     if (GetWorld ()->LineTraceSingleByChannel (hit, start, end, ECC_Visibility, traceParams))
     {
 		//If line trace hits a projectile, spawn bullet with rotation towards the end of the line trace
 		if (hit.GetActor ()->ActorHasTag ("Projectile"))
-			spawnRotation = (end - GetActorLocation ()).Rotation ();
+			spawnRotation = (end - spawnPosition).Rotation ();
 		else //Otherwise, spawn bullet with rotation towards what it hits
-			spawnRotation = (hit.ImpactPoint - GetActorLocation ()).Rotation ();
+			spawnRotation = (hit.ImpactPoint - spawnPosition).Rotation ();
     }
     else //If line trace doesn't hit anything, spawn bullet with rotation towards the end of the line trace
         spawnRotation = (end - GetActorLocation ()).Rotation ();
@@ -502,6 +503,8 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 	if (shieldActive && !DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
 	{
 		shield->ApplyDamage (Damage);
+		ShieldTakeDamageBP ();
+
 		return 0.0f;
 	}
 	else

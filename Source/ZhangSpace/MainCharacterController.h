@@ -42,6 +42,8 @@ public:
 	void TakeDamageBP (int damage, const FString& damageType);
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void SpawnShieldBP ();
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void ShieldTakeDamageBP ();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Character Controller")
 	void ShootBP ();
 	UFUNCTION (BlueprintCallable)
@@ -181,7 +183,7 @@ private:
 	int FPS = 0;
 	void UpdateFPS ();
 
-	bool right = true;
+	bool gunPositionSwitch = true;
 
 	UPROPERTY (EditAnywhere)
 	UStaticMesh* _cockpitMesh;

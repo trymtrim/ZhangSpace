@@ -31,7 +31,4 @@ private:
 	void ServerUpdate (float deltaTime);
 
 	float _destroyTimer = 0.0f;
-
-	UPROPERTY (EditAnywhere)
-	float _speed;
 };
