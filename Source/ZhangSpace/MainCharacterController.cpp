@@ -41,6 +41,7 @@ void AMainCharacterController::BeginPlay ()
 	if (GetWorld ()->IsServer ())
 	{
 		//Debugging
+		/*AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
@@ -51,8 +52,7 @@ void AMainCharacterController::BeginPlay ()
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
+		AddExperience (100);*/
 		//AddAbility (4);
 		//AddAbility (7);
 	}
@@ -268,7 +268,7 @@ void AMainCharacterController::AddStat_Implementation (int statIndex)
 
 		_maxShootingCooldown -= _maxShootingCooldown * 0.1f;
 
-		GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, FString::SanitizeFloat (_maxShootingCooldown));
+		//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, FString::SanitizeFloat (_maxShootingCooldown));
 
 		if (_attackPower == 3 || _attackPower == 6 || _attackPower == 10)
 			_attackUpgradesAvailable++;
