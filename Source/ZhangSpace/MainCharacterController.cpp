@@ -41,6 +41,7 @@ void AMainCharacterController::BeginPlay ()
 	if (GetWorld ()->IsServer ())
 	{
 		//Debugging
+		/*AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
@@ -51,8 +52,7 @@ void AMainCharacterController::BeginPlay ()
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
+		AddExperience (100);*/
 		//AddAbility (4);
 		//AddAbility (7);
 	}
