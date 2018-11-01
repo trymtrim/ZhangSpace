@@ -41,7 +41,6 @@ void AMainCharacterController::BeginPlay ()
 	if (GetWorld ()->IsServer ())
 	{
 		//Debugging
-		/*AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
@@ -52,7 +51,8 @@ void AMainCharacterController::BeginPlay ()
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
-		AddExperience (100);*/
+		AddExperience (100);
+		AddExperience (100);
 		//AddAbility (4);
 		//AddAbility (7);
 	}
@@ -101,7 +101,7 @@ void AMainCharacterController::Tick (float DeltaTime)
 void AMainCharacterController::InitializeAbilityCooldowns ()
 {
 	_abilityMaxCooldowns.Add (0, 60.0f); //Shield
-	_abilityMaxCooldowns.Add (7, 5.0f); //Teleport
+	_abilityMaxCooldowns.Add (7, 15.0f); //Teleport
 
 	//Add shield ability to hotkey bar //TEMP
 	_hotkeyBarAbilities.Add (0); //Probably not temp
@@ -416,7 +416,7 @@ void AMainCharacterController::Shoot_Implementation (FVector cameraPosition)
 
 	//Declare start and end position of the line trace based on camera position and rotation
 	FVector start = cameraPosition;
-	FVector end = cameraPosition + (cameraComponent->GetForwardVector () * 30000.0f);
+	FVector end = cameraPosition + (cameraComponent->GetForwardVector () * 400000.0f);
 
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
@@ -476,7 +476,7 @@ void AMainCharacterController::Teleport ()
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
 	spawnParams.Owner = this;
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 750.0f;
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 5000.0f;
 	FRotator spawnRotation = GetActorRotation ();
 
 	//Spawn projectile
