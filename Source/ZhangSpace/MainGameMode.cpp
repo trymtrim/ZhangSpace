@@ -31,9 +31,17 @@ void AMainGameMode::Tick (float DeltaTime)
 {
 	Super::Tick (DeltaTime);
 
+	if (!_canStopServer)
+	{
+		_canStopServerTimer += DeltaTime;
+
+		if (_canStopServerTimer > 15.0f)
+			_canStopServer = true;
+	}
+
 	//TODO, start game after players have joined, keep track of all players
 
-	if (_playerCount > 0)
+	if (_playerCount > 0 || _canStopServer)
 	{
 		_connectedPlayersCheckTimer += DeltaTime;
 

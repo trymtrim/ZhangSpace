@@ -51,6 +51,7 @@ public:
 
 	bool GetCanMove ();
 	bool GetIsDead ();
+	int GetMobilityPower ();
 
 	//Pasive ability getters
 	bool GetShieldReflect ();
@@ -161,7 +162,7 @@ private:
 	UPROPERTY (Replicated) bool _dead = false;
 
 	UPROPERTY (Replicated) bool _shooting = false;
-	float _maxShootingCooldown = 0.25f;
+	float _maxShootingCooldown = 0.3f;
 	UPROPERTY (Replicated) float _currentShootingCooldown = 0.0f;
 
 	int _level = 1;

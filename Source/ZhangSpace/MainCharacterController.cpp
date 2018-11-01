@@ -41,10 +41,18 @@ void AMainCharacterController::BeginPlay ()
 	if (GetWorld ()->IsServer ())
 	{
 		//Debugging
-		/*AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
-		AddExperience (100);*/
+		AddExperience (100);
+		AddExperience (100);
+		AddExperience (100);
+		AddExperience (100);
+		AddExperience (100);
+		AddExperience (100);
+		AddExperience (100);
+		AddExperience (100);
+		AddExperience (100);
+		AddExperience (100);
 		//AddAbility (4);
 		//AddAbility (7);
 	}
@@ -258,19 +266,23 @@ void AMainCharacterController::AddStat_Implementation (int statIndex)
 	case 1: //Attack
 		_attackPower++;
 
-		if (_attackPower == 4 || _attackPower == 7 || _attackPower == 10)
+		_maxShootingCooldown -= _maxShootingCooldown * 0.1f;
+
+		GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, FString::SanitizeFloat (_maxShootingCooldown));
+
+		if (_attackPower == 3 || _attackPower == 6 || _attackPower == 10)
 			_attackUpgradesAvailable++;
 		break;
 	case 2: //Defense
 		_defensePower++;
 
-		if (_defensePower == 4 || _defensePower == 7 || _defensePower == 10)
+		if (_defensePower == 3 || _defensePower == 6 || _defensePower == 10)
 			_defenseUpgradesAvailable++;
 		break;
 	case 3: //Mobility
 		_mobilityPower++;
 
-		if (_mobilityPower == 4 || _mobilityPower == 7 || _mobilityPower == 10)
+		if (_mobilityPower == 3 || _mobilityPower == 6 || _mobilityPower == 10)
 			_mobilityUpgradesAvailable++;
 		break;
 	}
@@ -440,7 +452,7 @@ void AMainCharacterController::Shoot_Implementation (FVector cameraPosition)
 
 	//Set projectile damage
 	if (projectile->IsValidLowLevel () && projectile != nullptr)
-		projectile->SetDamage (_attackPower * 10);
+		projectile->SetDamage (10 + _attackPower * 3);
 
 	//Spend power
 	_power -= _shootCost;
@@ -488,7 +500,7 @@ void AMainCharacterController::UpdateStats (float deltaTime)
 	//Gradually regain power
 	if (_power < _maxPower)
 	{
-		_power += deltaTime * 2.0f;
+		_power += deltaTime * (2.0f + (_attackPower / 3.5f));
 
 		if (_power > _maxPower)
 			_power = _maxPower;
@@ -598,13 +610,10 @@ void AMainCharacterController::EnableMouseCursor ()
 		GetWorld ()->GetFirstPlayerController ()->bEnableClickEvents = true;
 		GetWorld ()->GetFirstPlayerController ()->bEnableMouseOverEvents = true;
 
-		//Center mouse position - Ari
+		//Center mouse position
 		FVector2D viewPort = GetViewportSize();
 		GetWorld()->GetFirstPlayerController()->SetMouseLocation(viewPort.X / 2, viewPort.Y / 2);
 
-		//Debug that shit
-		//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "Viewport: " + FString::SanitizeFloat(viewPort.X) + ", " + FString::SanitizeFloat(viewPort.Y));
-		
 		//Show cursor
 		SetShowCursor (true);
 
@@ -666,7 +675,9 @@ void AMainCharacterController::ToggleAbilityMenu ()
 	{
 		OpenAbilityMenuBP ();
 
-		EnableMouseCursor ();
+		if (!_showCursor)
+			EnableMouseCursor ();
+
 		_inAbilityMenu = true;
 	}
 }
@@ -690,6 +701,11 @@ bool AMainCharacterController::GetCanMove ()
 bool AMainCharacterController::GetIsDead ()
 {
 	return _dead;
+}
+
+int AMainCharacterController::GetMobilityPower ()
+{
+	return _mobilityPower;
 }
 
 //Returns the viewport of the client

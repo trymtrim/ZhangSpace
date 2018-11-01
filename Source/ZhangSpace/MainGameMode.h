@@ -25,4 +25,7 @@ private:
 	int _currentPlayerStartIndex = 0;
 
 	float _connectedPlayersCheckTimer = 0.0f;
+
+	float _canStopServerTimer = 0.0f;
+	bool _canStopServer = false;
 };

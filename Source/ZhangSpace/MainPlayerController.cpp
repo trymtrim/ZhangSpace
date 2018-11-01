@@ -32,6 +32,9 @@ void AMainPlayerController::BeginPlay()
 	PlayerCameraManager->ViewYawMax = 359.998993f;
 	PlayerCameraManager->ViewRollMax = 359.998993f;
 	PlayerCameraManager->ViewRollMin = 0.0f;
+
+	//To get mobility power (values = 1-10):
+	//_character->GetMobilityPower ();
 }
 
 //Called every frame
@@ -112,6 +115,12 @@ void AMainPlayerController::Roll (float value)
 
 void AMainPlayerController::Pitch (float value)
 {
+	if (_character != nullptr)			//If we have a reference to the character pointer
+	{
+		//If player is using the mouse to click on spaceship UI, prevent rotation based on mouse axis value
+		if (!_character->GetCanMove ()) return;
+	}
+
 	if (value != .0f)
 	{
 		//GetCharacter ()->AddControllerPitchInput (value * GetWorld ()->DeltaTimeSeconds * 10.0f);
@@ -124,6 +133,12 @@ void AMainPlayerController::Pitch (float value)
 
 void AMainPlayerController::Yaw (float value)
 {
+	if (_character != nullptr)			//If we have a reference to the character pointer
+	{
+		//If player is using the mouse to click on spaceship UI, prevent rotation based on mouse axis value
+		if (!_character->GetCanMove ()) return;
+	}
+
 	if (value != .0f)
 	{
 		//GetCharacter ()->AddControllerYawInput (value * GetWorld ()->DeltaTimeSeconds * 10.0f);
@@ -144,9 +159,6 @@ void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float r
 	}
 
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Black, FString::Printf(TEXT("Can move Bool: %s"), _character->GetCanMove() ? TEXT("true") : TEXT("false")));
-
-	//If player is using the mouse to click on spaceship UI, prevent rotation based on mouse axis value
-	if (!_character->GetCanMove()) return;
 
 	//Make delta rotation in a Rotator and add it to the player delta rotation variable in MainCharacterController class
 	FRotator newDeltaRotation = FRotator(pitch,yaw,roll);
