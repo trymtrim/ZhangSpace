@@ -421,18 +421,28 @@ void AMainCharacterController::Shoot_Implementation (FVector cameraPosition)
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
 	spawnParams.Owner = this;
-	FVector spawnPosition; //= GetActorLocation () + GetActorForwardVector () * 350.0f - GetActorUpVector () * 35.0f;
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 350.0f - GetActorUpVector () * 35.0f;
 	FRotator spawnRotation;
 
 	//Spawn projectile at assigned gun position
 	TArray <UArrowComponent*> arrowComps;
 	GetComponents <UArrowComponent> (arrowComps);
 	
-	if (gunPositionSwitch)
-		spawnPosition = arrowComps [1]->GetComponentLocation ();
+	if (GetWorld ()->WorldType == EWorldType::Game)
+	{
+		if (gunPositionSwitch)
+			spawnPosition = arrowComps [0]->GetComponentLocation ();
+		else
+			spawnPosition = arrowComps [1]->GetComponentLocation ();
+	}
 	else
-		spawnPosition = arrowComps [2]->GetComponentLocation ();
-
+	{
+		if (gunPositionSwitch)
+			spawnPosition = arrowComps [1]->GetComponentLocation ();
+		else
+			spawnPosition = arrowComps [2]->GetComponentLocation ();
+	}
+		
 	gunPositionSwitch = !gunPositionSwitch;
 
 	//Check if line trace hits anything
