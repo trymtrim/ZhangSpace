@@ -102,7 +102,7 @@ private:
 	void UpdateShootingCooldown (float deltaTime);
 	void StartShootingInput ();
 	UFUNCTION (Server, Reliable, WithValidation)
-	void Shoot (FVector cameraPosition);
+	void Shoot (FVector cameraPosition, FVector cameraForward);
 	void UseAbilityInput (int abilityIndex);
 
 	template <int index>

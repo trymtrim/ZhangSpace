@@ -383,8 +383,8 @@ void AMainCharacterController::UpdateShooting ()
 		UCameraComponent* cameraComponent = cameraComps[0];
 
 		FVector cameraPosition = cameraComponent->GetComponentLocation ();
-
-		Shoot (cameraPosition);
+		FVector cameraForward = cameraComponent->GetForwardVector ();
+		Shoot (cameraPosition, cameraForward);
 	}
 }
 
@@ -394,7 +394,7 @@ void AMainCharacterController::UpdateShootingCooldown (float deltaTime)
 		_currentShootingCooldown -= deltaTime;
 }
 
-void AMainCharacterController::Shoot_Implementation (FVector cameraPosition)
+void AMainCharacterController::Shoot_Implementation (FVector cameraPosition, FVector cameraForward)
 {
 	if (_power < _shootCost || _dead || _currentShootingCooldown > 0.0f)
 		return;
@@ -408,20 +408,15 @@ void AMainCharacterController::Shoot_Implementation (FVector cameraPosition)
     traceParams.bReturnPhysicalMaterial = false;
 
     FHitResult hit (ForceInit);
-	
-	//Get camera component
-	TArray <UCameraComponent*> cameraComps;
-	GetComponents <UCameraComponent> (cameraComps);
-	UCameraComponent* cameraComponent = cameraComps [0];
 
 	//Declare start and end position of the line trace based on camera position and rotation
 	FVector start = cameraPosition;
-	FVector end = cameraPosition + (cameraComponent->GetForwardVector () * 400000.0f);
+	FVector end = cameraPosition + (cameraForward * 400000.0f);
 
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
 	spawnParams.Owner = this;
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 350.0f - GetActorUpVector () * 35.0f;
+	FVector spawnPosition; // = GetActorLocation () + GetActorForwardVector () * 350.0f - GetActorUpVector () * 35.0f;
 	FRotator spawnRotation;
 
 	//Spawn projectile at assigned gun position
@@ -470,7 +465,7 @@ void AMainCharacterController::Shoot_Implementation (FVector cameraPosition)
 	ShootBP ();
 }
 
-bool AMainCharacterController::Shoot_Validate (FVector cameraPosition)
+bool AMainCharacterController::Shoot_Validate (FVector cameraPosition, FVector cameraForward)
 {
 	return true;
 }
@@ -674,7 +669,6 @@ void AMainCharacterController::MouseClick ()
 		else if (hitName == "AbilityMenuButton")
 			ToggleAbilityMenu ();
 	}
-
 }
 
 void AMainCharacterController::ToggleAbilityMenu ()
