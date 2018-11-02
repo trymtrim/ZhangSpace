@@ -25,11 +25,48 @@ void ConfigManager::InitializeConfigFile (EWorldType::Type gameType)
 
 	FJsonObject* jsonObject = new FJsonObject ();
 	jsonObject->SetStringField ("IP_Address", "127.0.0.1");
+	jsonObject->SetStringField ("Player_Name", "Default Name");
 
 	FString outputString;
 	TSharedRef <TJsonWriter <>> writer = TJsonWriterFactory <>::Create (&outputString);
 	FJsonSerializer::Serialize (MakeShareable (jsonObject), writer);
 
+	//Save the file to disk
+	std::ofstream file;
+	file.open (std::string (TCHAR_TO_UTF8 (*_configFilePath)));
+	file << std::string (TCHAR_TO_UTF8 (*outputString));
+	file.close ();
+}
+
+void ConfigManager::ChangeConfig (FString configType, FString newConfig)
+{
+	std::string str;
+
+	//Load the file
+	std::ifstream loadFile (std::string (TCHAR_TO_UTF8 (*_configFilePath)));
+
+	FString jsonString;
+
+	//Read the next line from the file and add it to the json string until it reaches the end
+	while (std::getline (loadFile, str))
+	{
+		jsonString += str.c_str ();
+		jsonString += "\n";
+	}
+
+	TSharedPtr <FJsonObject> json;
+	TSharedRef <TJsonReader <>> reader = TJsonReaderFactory<>::Create (jsonString);
+
+	FJsonSerializer::Deserialize (reader, json);
+
+	//Update the config attribute
+	FJsonObject* jsonObject = new FJsonObject (*json);
+	jsonObject->SetStringField (configType, newConfig);
+
+	FString outputString;
+	TSharedRef <TJsonWriter <>> writer = TJsonWriterFactory <>::Create (&outputString);
+	FJsonSerializer::Serialize (MakeShareable (jsonObject), writer);
+	
 	//Save the file to disk
 	std::ofstream file;
 	file.open (std::string (TCHAR_TO_UTF8 (*_configFilePath)));
@@ -57,6 +94,6 @@ FString ConfigManager::GetConfig (FString configType)
 	TSharedRef <TJsonReader <>> reader = TJsonReaderFactory<>::Create (jsonString);
 
 	FJsonSerializer::Deserialize (reader, json);
-
+	
 	return json.Get ()->GetStringField (configType);
 }

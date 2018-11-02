@@ -34,6 +34,25 @@ public:
 	UCreateGameRequest ();
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
 	FString type;
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
+	FString gameName;
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
+	FString playerName;
+};
+
+UCLASS(BlueprintType, Blueprintable)
+class UJoinGameRequest : public UObject
+{
+	GENERATED_BODY ()
+
+public:
+	UJoinGameRequest ();
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
+	FString type;
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
+	FString gameName;
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
+	FString playerName;
 };
 
 UCLASS(BlueprintType, Blueprintable)
@@ -54,6 +73,39 @@ class UFindGameRequest : public UObject
 
 public:
 	UFindGameRequest ();
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
+	FString type;
+};
+
+UCLASS(BlueprintType, Blueprintable)
+class UCancelFindingGameRequest : public UObject
+{
+	GENERATED_BODY ()
+
+public:
+	UCancelFindingGameRequest ();
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
+	FString type;
+};
+
+UCLASS(BlueprintType, Blueprintable)
+class ULeaveLobbyRequest : public UObject
+{
+	GENERATED_BODY ()
+
+public:
+	ULeaveLobbyRequest ();
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
+	FString type;
+};
+
+UCLASS(BlueprintType, Blueprintable)
+class UStartGameRequest : public UObject
+{
+	GENERATED_BODY ()
+
+public:
+	UStartGameRequest ();
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
 	FString type;
 };
@@ -86,4 +138,19 @@ public:
 	int gameServerCount;
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
 	TArray <FString> gameServerIpAddresses;
+};
+
+UCLASS(BlueprintType, Blueprintable)
+class URefreshLobbyResponse : public UObject
+{
+	GENERATED_BODY ()
+
+public:
+	URefreshLobbyResponse ();
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
+	FString type;
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
+	FString gameName;
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
+	TArray <FString> lobbyNames;
 };

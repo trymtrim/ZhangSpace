@@ -18,8 +18,13 @@ public:
 	//Called every frame
 	virtual void Tick (float DeltaTime) override;
 
+	UFUNCTION (BlueprintCallable)
+	void SetPlayerName (FString newPlayerName);
+
 	UPROPERTY (BlueprintReadOnly)
 	FString ipAddress;
+	UPROPERTY (BlueprintReadOnly)
+	FString playerName;
 
 protected:
 	//Called when the game starts or when spawned

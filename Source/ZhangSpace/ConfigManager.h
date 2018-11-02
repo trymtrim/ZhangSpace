@@ -13,6 +13,7 @@ public:
 	//Make sure to run this method at the very start of the game
 	static void InitializeConfigFile (EWorldType::Type gameType);
 
+	static void ChangeConfig (FString configType, FString newConfig);
 	static FString GetConfig (FString configType);
 
 private:

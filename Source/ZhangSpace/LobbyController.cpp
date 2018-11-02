@@ -21,10 +21,17 @@ void ALobbyController::BeginPlay ()
 
 	//Declare the IP address of the master server
 	ipAddress = ConfigManager::GetConfig ("IP_Address");
+	playerName = ConfigManager::GetConfig ("Player_Name");
 }
 
 //Called every frame
 void ALobbyController::Tick (float DeltaTime)
 {
 	Super::Tick (DeltaTime);
+}
+
+void ALobbyController::SetPlayerName (FString newPlayerName)
+{
+	ConfigManager::ChangeConfig ("Player_Name", newPlayerName);
+	playerName = newPlayerName;
 }

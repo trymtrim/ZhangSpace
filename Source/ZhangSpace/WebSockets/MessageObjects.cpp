@@ -14,12 +14,32 @@ UCreateGameRequest::UCreateGameRequest ()
 
 }
 
+UJoinGameRequest::UJoinGameRequest ()
+{
+
+}
+
 URefreshRequest::URefreshRequest ()
 {
 
 }
 
 UFindGameRequest::UFindGameRequest ()
+{
+
+}
+
+UCancelFindingGameRequest::UCancelFindingGameRequest ()
+{
+
+}
+
+ULeaveLobbyRequest::ULeaveLobbyRequest ()
+{
+
+}
+
+UStartGameRequest::UStartGameRequest ()
 {
 
 }
@@ -32,6 +52,11 @@ UJoinGameResponse::UJoinGameResponse ()
 }
 
 URefreshResponse::URefreshResponse ()
+{
+
+}
+
+URefreshLobbyResponse::URefreshLobbyResponse ()
 {
 
 }
