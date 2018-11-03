@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Projectile.h"
 #include "Components/StaticMeshComponent.h"
+#include "Camera/CameraComponent.h"
 #include "ShrinkingCircle.h"
 #include "Shield.h"
 #include "MainCharacterController.generated.h"
@@ -55,7 +56,10 @@ public:
 	bool GetIsDead ();
 	int GetMobilityPower ();
 
-	//Pasive ability getters
+	UFUNCTION (BlueprintCallable)
+	bool IsAttackableInScope ();
+
+	//Passive ability getters
 	bool GetShieldReflect ();
 
 	FVector2D GetViewportSize (); //Returns the size of the clients viewport as a 2d vector
@@ -186,6 +190,8 @@ private:
 
 	int FPS = 0;
 	void UpdateFPS ();
+
+	UCameraComponent* _cameraComponent;
 
 	bool gunPositionSwitch = true;
 

@@ -3,7 +3,6 @@
 #include "MainCharacterController.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
-#include "Camera/CameraComponent.h"
 #include "UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
@@ -30,6 +29,11 @@ void AMainCharacterController::BeginPlay ()
 	{
 		//Change to cockpit mesh
 		ChangeMesh (_cockpitMesh);
+
+		//Get camera component
+		TArray <UCameraComponent*> cameraComps;
+		GetComponents <UCameraComponent> (cameraComps);
+		_cameraComponent = cameraComps [0];
 
 		//Add shield ability
 		AddAbility (0);
@@ -298,12 +302,7 @@ void AMainCharacterController::UseAbilityInput (int abilityIndex)
 	if (_dead || _showCursor || _hotkeyBarAbilities.Num () < abilityIndex)
 		return;
 
-	//Get camera component
-	TArray <UCameraComponent*> cameraComps;
-	GetComponents <UCameraComponent> (cameraComps);
-	UCameraComponent* cameraComponent = cameraComps [0];
-
-	FVector cameraPosition = cameraComponent->GetComponentLocation ();
+	FVector cameraPosition = _cameraComponent->GetComponentLocation ();
 
 	int actualAbilityIndex = _hotkeyBarAbilities [abilityIndex -1];
 	UseAbility (actualAbilityIndex, cameraPosition);
@@ -377,13 +376,8 @@ void AMainCharacterController::UpdateShooting ()
 {
 	if (_currentShootingCooldown <= 0.0f)
 	{
-		//Get camera component
-		TArray <UCameraComponent*> cameraComps;
-		GetComponents <UCameraComponent> (cameraComps);
-		UCameraComponent* cameraComponent = cameraComps[0];
-
-		FVector cameraPosition = cameraComponent->GetComponentLocation ();
-		FVector cameraForward = cameraComponent->GetForwardVector ();
+		FVector cameraPosition = _cameraComponent->GetComponentLocation ();
+		FVector cameraForward = _cameraComponent->GetForwardVector ();
 		Shoot (cameraPosition, cameraForward);
 	}
 }
@@ -468,6 +462,33 @@ void AMainCharacterController::Shoot_Implementation (FVector cameraPosition, FVe
 bool AMainCharacterController::Shoot_Validate (FVector cameraPosition, FVector cameraForward)
 {
 	return true;
+}
+
+bool AMainCharacterController::IsAttackableInScope ()
+{
+	//Line trace from camera to check if there is something in the crosshair's sight
+	FCollisionQueryParams traceParams = FCollisionQueryParams (FName (TEXT ("RV_Trace")), true, this);
+	traceParams.bTraceComplex = true;
+	traceParams.bReturnPhysicalMaterial = false;
+
+	FHitResult hit (ForceInit);
+
+	//Get camera position and rotation
+	FVector cameraPosition = _cameraComponent->GetComponentLocation ();
+	FVector cameraForward = _cameraComponent->GetForwardVector ();
+
+	//Declare start and end position of the line trace based on camera position and rotation
+	FVector start = cameraPosition;
+	FVector end = cameraPosition + (cameraForward * 400000.0f);
+
+	if (GetWorld ()->LineTraceSingleByChannel (hit, start, end, ECC_Visibility, traceParams))
+	{
+		//If line trace hits a projectile, spawn bullet with rotation towards the end of the line trace
+		if (hit.GetActor ()->ActorHasTag ("Player") || hit.GetActor ()->ActorHasTag ("Resource"))
+			return true;
+	}
+
+	return false;
 }
 
 void AMainCharacterController::Shield ()
