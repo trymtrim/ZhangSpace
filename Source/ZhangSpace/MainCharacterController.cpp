@@ -609,6 +609,9 @@ void AMainCharacterController::UpdateHotkeyBar (TArray <int> abilities)
 
 void AMainCharacterController::EnableMouseCursor ()
 {
+	if (_inSettingsMenu)
+		return;
+
 	if (!GetWorld ()->IsServer () && IsLocallyControlled ())
 	{
 		GetWorld ()->GetFirstPlayerController ()->bShowMouseCursor = true;
@@ -628,6 +631,9 @@ void AMainCharacterController::EnableMouseCursor ()
 
 void AMainCharacterController::DisableMouseCursor ()
 {
+	if (_inSettingsMenu)
+		return;
+
 	if (!GetWorld ()->IsServer () && IsLocallyControlled () && !_inAbilityMenu)
 	{
 		GetWorld ()->GetFirstPlayerController ()->bShowMouseCursor = false;
@@ -673,6 +679,9 @@ void AMainCharacterController::MouseClick ()
 
 void AMainCharacterController::ToggleAbilityMenu ()
 {
+	if (_inSettingsMenu)
+		return;
+
 	if (_inAbilityMenu)
 		CloseAbilityMenu ();
 	else
@@ -692,6 +701,20 @@ void AMainCharacterController::CloseAbilityMenu ()
 	DisableMouseCursor ();
 
 	CloseAbilityMenuBP ();
+}
+
+void AMainCharacterController::OpenSettingsMenu (bool open)
+{
+	if (open)
+	{
+		EnableMouseCursor ();
+		_inSettingsMenu = true;
+	}
+	else
+	{
+		_inSettingsMenu = false;
+		DisableMouseCursor ();
+	}
 }
 
 bool AMainCharacterController::GetCanMove ()

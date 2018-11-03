@@ -18,7 +18,7 @@ void ConfigManager::InitializeConfigFile (EWorldType::Type gameType)
 
 	//Declare the file to check for
 	std::ifstream fileToCheck (std::string (TCHAR_TO_UTF8 (*_configFilePath)));
-
+	
 	//If there is no file yet, create a file
 	if (fileToCheck)
 		return;
@@ -26,6 +26,8 @@ void ConfigManager::InitializeConfigFile (EWorldType::Type gameType)
 	FJsonObject* jsonObject = new FJsonObject ();
 	jsonObject->SetStringField ("IP_Address", "127.0.0.1");
 	jsonObject->SetStringField ("Player_Name", "Default Name");
+	jsonObject->SetStringField ("Show_FPS", "false");
+	jsonObject->SetStringField ("Show_Ping", "false");
 
 	FString outputString;
 	TSharedRef <TJsonWriter <>> writer = TJsonWriterFactory <>::Create (&outputString);

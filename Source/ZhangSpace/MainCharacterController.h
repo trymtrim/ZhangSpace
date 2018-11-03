@@ -48,6 +48,8 @@ public:
 	void ShootBP ();
 	UFUNCTION (BlueprintCallable)
 	void UpdateHotkeyBar (TArray <int> abilities);
+	UFUNCTION (BlueprintCallable)
+	void OpenSettingsMenu (bool open);
 
 	bool GetCanMove ();
 	bool GetIsDead ();
@@ -180,6 +182,7 @@ private:
 
 	UPROPERTY (Replicated) bool _showCursor = false;
 	bool _inAbilityMenu = false;
+	bool _inSettingsMenu = false;
 
 	int FPS = 0;
 	void UpdateFPS ();

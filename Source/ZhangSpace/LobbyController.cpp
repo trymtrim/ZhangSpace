@@ -1,7 +1,6 @@
 // Copyright Team Monkey Business 2018.
 
 #include "LobbyController.h"
-#include "Engine/World.h"
 #include "ConfigManager.h"
 
 //Sets default values
@@ -15,9 +14,6 @@ ALobbyController::ALobbyController ()
 void ALobbyController::BeginPlay ()
 {
 	Super::BeginPlay ();
-
-	//Initialize the game's config file
-	ConfigManager::InitializeConfigFile (GetWorld ()->WorldType);
 
 	//Declare the IP address of the master server
 	ipAddress = ConfigManager::GetConfig ("IP_Address");
