@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MainPlayerController.h"
 #include "GameFramework/Character.h"
+#include "UnrealNetwork.h"
 
 AMainGameState::AMainGameState ()
 {
@@ -22,7 +23,7 @@ void AMainGameState::BeginPlay ()
 		//Find available spells from scene
 		TArray <AActor*> actors;
 		UGameplayStatics::GetAllActorsOfClass (GetWorld (), AShrinkingCircle::StaticClass (), actors);
-		_shrinkingCircle = dynamic_cast <AShrinkingCircle*> (actors [0]);
+		_shrinkingCircle = Cast <AShrinkingCircle> (actors [0]);
 	}
 }
 
@@ -64,4 +65,22 @@ void AMainGameState::DamagePlayersOutsideOfCircle ()
 			}
 		}
 	}
+}
+
+void AMainGameState::RegisterPlayer (AMainPlayerController* playerController, FString playerName)
+{
+	_playerIndexes.Add (_players.Num (), playerController);
+	_players.Add (playerController);
+
+	playerNames.Add (playerName);
+	playerKills.Add (0);
+}
+
+
+void AMainGameState::GetLifetimeReplicatedProps (TArray <FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps (OutLifetimeProps);
+
+	DOREPLIFETIME (AMainGameState, playerNames);
+	DOREPLIFETIME (AMainGameState, playerKills);
 }

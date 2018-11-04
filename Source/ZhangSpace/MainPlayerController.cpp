@@ -7,6 +7,8 @@
 #include "UnrealNetwork.h"
 #include "Engine.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "MainGameState.h"
+#include "ConfigManager.h"
 
 AMainPlayerController::AMainPlayerController()
 {
@@ -32,6 +34,9 @@ void AMainPlayerController::BeginPlay()
 	PlayerCameraManager->ViewYawMax = 359.998993f;
 	PlayerCameraManager->ViewRollMax = 359.998993f;
 	PlayerCameraManager->ViewRollMin = 0.0f;
+
+	if (!GetWorld ()->IsServer ())
+		RegisterPlayer (ConfigManager::GetConfig ("Player_Name"));
 
 	//To get mobility power (values = 1-10):
 	//_character->GetMobilityPower ();
@@ -202,6 +207,18 @@ void AMainPlayerController::UpdateSpeed_Implementation (float value)
  bool AMainPlayerController::UpdateSpeed_Validate (float value)
 {
 	 return true;
+}
+
+void AMainPlayerController::RegisterPlayer_Implementation (const FString& playerName)
+{
+	//Register player to the game state class
+	AMainGameState* gameState = Cast <AMainGameState> (GetWorld ()->GetGameState ());
+	gameState->RegisterPlayer (this, playerName);
+}
+
+bool AMainPlayerController::RegisterPlayer_Validate (const FString& playerName)
+{
+	return true;
 }
 
 void AMainPlayerController::SetupInputComponent ()

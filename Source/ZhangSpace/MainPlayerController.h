@@ -46,6 +46,9 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void UpdateSpeed (float value);
 
+	UFUNCTION (Server, Reliable, WithValidation)
+	void RegisterPlayer (const FString& playerName);
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay() override;

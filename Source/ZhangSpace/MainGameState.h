@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
 #include "ShrinkingCircle.h"
+#include "MainPlayerController.h"
 #include "MainGameState.generated.h"
 
 UCLASS()
@@ -17,6 +18,11 @@ public:
 
 	//Called every frame
 	virtual void Tick (float DeltaTime) override;
+
+	void RegisterPlayer (AMainPlayerController* playerController, FString playerName);
+
+	UPROPERTY (Replicated, BlueprintReadOnly) TArray <FString> playerNames;
+	UPROPERTY (Replicated, BlueprintReadOnly) TArray <int> playerKills;
 
 protected:
 	//Called when the game starts or when spawned
@@ -31,4 +37,11 @@ private:
 
 	UPROPERTY ()
 	AShrinkingCircle* _shrinkingCircle;
+
+	//Player stats
+	TMap <int, AMainPlayerController*> _playerIndexes;
+	TArray <AMainPlayerController*> _players;
+
+	//TMap <AMainPlayerController*, FString> _playerNames;
+	//TMap <AMainPlayerController*, int> _playerKills;
 };
