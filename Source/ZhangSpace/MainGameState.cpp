@@ -69,13 +69,25 @@ void AMainGameState::DamagePlayersOutsideOfCircle ()
 
 void AMainGameState::RegisterPlayer (AMainPlayerController* playerController, FString playerName)
 {
-	_playerIndexes.Add (_players.Num (), playerController);
+	_playerIndexes.Add (playerController, _players.Num ());
 	_players.Add (playerController);
 
 	playerNames.Add (playerName);
 	playerKills.Add (0);
+	playerLives.Add (3);
 }
 
+void AMainGameState::AddPlayerKill (AMainPlayerController* playerController)
+{
+	int playerIndex = _playerIndexes [playerController];
+	playerKills [playerIndex]++;
+}
+
+void AMainGameState::UpdatePlayerLives (AMainPlayerController* playerController, int lives)
+{
+	int playerIndex = _playerIndexes [playerController];
+	playerLives [playerIndex] = lives;
+}
 
 void AMainGameState::GetLifetimeReplicatedProps (TArray <FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -83,4 +95,5 @@ void AMainGameState::GetLifetimeReplicatedProps (TArray <FLifetimeProperty>& Out
 
 	DOREPLIFETIME (AMainGameState, playerNames);
 	DOREPLIFETIME (AMainGameState, playerKills);
+	DOREPLIFETIME (AMainGameState, playerLives);
 }

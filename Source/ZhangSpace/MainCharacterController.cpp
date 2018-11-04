@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 #include "Components/ArrowComponent.h"
+#include "MainGameState.h"
 
 #include "Runtime/Engine/Public/DrawDebugHelpers.h"
 #include "Engine.h"
@@ -35,6 +36,12 @@ void AMainCharacterController::BeginPlay ()
 		GetComponents <UCameraComponent> (cameraComps);
 		_cameraComponent = cameraComps [0];
 
+		DisableMouseCursor ();
+
+		//FPS
+		FTimerHandle FPSTimerHandle;
+		GetWorld ()->GetTimerManager ().SetTimer (FPSTimerHandle, this, &AMainCharacterController::UpdateFPS, 1.0f, true);
+
 		//Add shield ability
 		AddAbility (0);
 
@@ -44,6 +51,13 @@ void AMainCharacterController::BeginPlay ()
 
 	if (GetWorld ()->IsServer ())
 	{
+		//Get a reference to the game state
+		while (_gameState == nullptr)
+		{
+			if (GetWorld ()->GetGameState () != nullptr)
+				_gameState = Cast <AMainGameState> (GetWorld ()->GetGameState ());
+		}
+
 		//Debugging
 		/*AddExperience (100);
 		AddExperience (100);
@@ -59,13 +73,6 @@ void AMainCharacterController::BeginPlay ()
 		AddExperience (100);*/
 		//AddAbility (4);
 		//AddAbility (7);
-	}
-
-	//FPS
-	if (!GetWorld ()->IsServer () && IsLocallyControlled ())
-	{
-		FTimerHandle FPSTimerHandle;
-		GetWorld ()->GetTimerManager ().SetTimer (FPSTimerHandle, this, &AMainCharacterController::UpdateFPS, 1.0f, true);
 	}
 }
 
@@ -136,6 +143,10 @@ void AMainCharacterController::Die ()
 
 	//Stop movement
 	GetCharacterMovement ()->StopMovementImmediately ();
+
+	//Update lives in game state
+	AMainPlayerController* playerController = Cast <AMainPlayerController> (GetController ());
+	_gameState->UpdatePlayerLives (playerController, _lives);
 
 	//If the player has no lives left, call game over
 	if (_lives == 0)
@@ -555,11 +566,21 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 			{
 				FString damageType = "Projectile";
 				TakeDamageBP ((int) Damage, damageType);
+
+				if (_currentHealth <= 0)
+				{
+					//Update kill in game state
+					AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser->GetOwner ());
+					AMainPlayerController* killPlayerController = Cast <AMainPlayerController> (killCharacter->GetController ());
+					_gameState->AddPlayerKill (killPlayerController);
+
+					Die ();
+				}
 			}
 		}
 
 		//If health is below zero, die
-		if (_currentHealth <= 0)
+		if (_currentHealth <= 0 && !_dead)
 			Die ();
 
 		//Debug
@@ -639,6 +660,13 @@ void AMainCharacterController::EnableMouseCursor ()
 		GetWorld ()->GetFirstPlayerController ()->bEnableClickEvents = true;
 		GetWorld ()->GetFirstPlayerController ()->bEnableMouseOverEvents = true;
 
+		if (GetWorld ()->WorldType == EWorldType::Game)
+		{
+			//Set input mode to UI
+			FInputModeGameAndUI uiInputMode;
+			GetWorld ()->GetFirstPlayerController ()->SetInputMode (uiInputMode);
+		}
+
 		//Center mouse position
 		FVector2D viewPort = GetViewportSize();
 		GetWorld()->GetFirstPlayerController()->SetMouseLocation(viewPort.X / 2, viewPort.Y / 2);
@@ -660,6 +688,13 @@ void AMainCharacterController::DisableMouseCursor ()
 		GetWorld ()->GetFirstPlayerController ()->bShowMouseCursor = false;
 		GetWorld ()->GetFirstPlayerController ()->bEnableClickEvents = false;
 		GetWorld ()->GetFirstPlayerController ()->bEnableMouseOverEvents = false;
+
+		if (GetWorld ()->WorldType == EWorldType::Game)
+		{
+			//Set input mode to game
+			FInputModeGameOnly gameInputMode;
+			GetWorld ()->GetFirstPlayerController ()->SetInputMode (gameInputMode);
+		}
 
 		SetShowCursor (false);
 	}

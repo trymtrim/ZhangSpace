@@ -11,6 +11,8 @@
 #include "Shield.h"
 #include "MainCharacterController.generated.h"
 
+class AMainGameState;
+
 UCLASS()
 class ZHANGSPACE_API AMainCharacterController : public ACharacter
 {
@@ -194,6 +196,8 @@ private:
 	UCameraComponent* _cameraComponent;
 
 	bool gunPositionSwitch = true;
+
+	AMainGameState* _gameState = nullptr;
 
 	UPROPERTY (EditAnywhere)
 	UStaticMesh* _cockpitMesh;

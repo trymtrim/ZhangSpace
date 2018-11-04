@@ -20,9 +20,13 @@ public:
 	virtual void Tick (float DeltaTime) override;
 
 	void RegisterPlayer (AMainPlayerController* playerController, FString playerName);
+	
+	void AddPlayerKill (AMainPlayerController* playerController);
+	void UpdatePlayerLives (AMainPlayerController* playerController, int lives);
 
 	UPROPERTY (Replicated, BlueprintReadOnly) TArray <FString> playerNames;
 	UPROPERTY (Replicated, BlueprintReadOnly) TArray <int> playerKills;
+	UPROPERTY (Replicated, BlueprintReadOnly) TArray <int> playerLives;
 
 protected:
 	//Called when the game starts or when spawned
@@ -39,9 +43,6 @@ private:
 	AShrinkingCircle* _shrinkingCircle;
 
 	//Player stats
-	TMap <int, AMainPlayerController*> _playerIndexes;
+	TMap <AMainPlayerController*, int> _playerIndexes;
 	TArray <AMainPlayerController*> _players;
-
-	//TMap <AMainPlayerController*, FString> _playerNames;
-	//TMap <AMainPlayerController*, int> _playerKills;
 };
