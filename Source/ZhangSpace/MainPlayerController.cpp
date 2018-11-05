@@ -9,13 +9,13 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "MainGameState.h"
 #include "ConfigManager.h"
+#include "SettingsManager.h"
 
 AMainPlayerController::AMainPlayerController()
 {
 	//Set this character to call Tick () every frame. You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
-
 
 //Called when the game starts or when spawned
 void AMainPlayerController::BeginPlay()
@@ -36,7 +36,7 @@ void AMainPlayerController::BeginPlay()
 	PlayerCameraManager->ViewRollMin = 0.0f;
 
 	if (!GetWorld ()->IsServer ())
-		RegisterPlayer (ConfigManager::GetConfig ("Player_Name"));
+		RegisterPlayer (ConfigManager::GetConfig ("Player_Name"), Cast <USettingsManager> (GetWorld ()->GetGameInstance ())->GetTargetPlayerCount ());
 
 	//To get mobility power (values = 1-10):
 	//_character->GetMobilityPower ();
@@ -209,14 +209,14 @@ void AMainPlayerController::UpdateSpeed_Implementation (float value)
 	 return true;
 }
 
-void AMainPlayerController::RegisterPlayer_Implementation (const FString& playerName)
+void AMainPlayerController::RegisterPlayer_Implementation (const FString& playerName, int targetPlayerCount)
 {
 	//Register player to the game state class
 	AMainGameState* gameState = Cast <AMainGameState> (GetWorld ()->GetGameState ());
-	gameState->RegisterPlayer (this, playerName);
+	gameState->RegisterPlayer (this, playerName, targetPlayerCount);
 }
 
-bool AMainPlayerController::RegisterPlayer_Validate (const FString& playerName)
+bool AMainPlayerController::RegisterPlayer_Validate (const FString& playerName, int targetPlayerCount)
 {
 	return true;
 }

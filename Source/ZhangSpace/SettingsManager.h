@@ -22,7 +22,14 @@ public:
 	UPROPERTY (BlueprintReadOnly)
 	bool showPing;
 
+	UFUNCTION (BlueprintCallable)
+	void SetTargetPlayerCount (int targetPlayerCount);
+	int GetTargetPlayerCount ();
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void Init () override;
+
+private:
+	int _targetPlayerCount = 0;
 };

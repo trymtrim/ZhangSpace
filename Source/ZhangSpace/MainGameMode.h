@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
+#include "MainPlayerController.h"
 #include "MainGameMode.generated.h"
 
 UCLASS()
@@ -18,11 +19,19 @@ public:
 	virtual void Tick (float DeltaTime) override;
 
 	virtual AActor* ChoosePlayerStart_Implementation (AController* Player) override;
+	void RegisterPlayer (AMainPlayerController* playerController, int targetPlayerCount);
 
 private:
+	void StartGame ();
+
 	int _maxPlayers = 6;
 	int _playerCount = 0;
 	int _currentPlayerStartIndex = 0;
+
+	TArray <AMainPlayerController*> _connectedPlayers;
+	bool _gameStarted = false;
+
+	int _targetPlayerCount = 0;
 
 	float _connectedPlayersCheckTimer = 0.0f;
 

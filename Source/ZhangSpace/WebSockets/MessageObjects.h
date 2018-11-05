@@ -123,6 +123,8 @@ public:
 	FString type;
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
 	FString ipAddress;
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
+	int targetPlayerCount;
 };
 
 UCLASS(BlueprintType, Blueprintable)

@@ -19,7 +19,7 @@ public:
 	//Called every frame
 	virtual void Tick (float DeltaTime) override;
 
-	void RegisterPlayer (AMainPlayerController* playerController, FString playerName);
+	void RegisterPlayer (AMainPlayerController* playerController, FString playerName, int targetPlayerCount);
 	
 	void AddPlayerKill (AMainPlayerController* playerController);
 	void UpdatePlayerLives (AMainPlayerController* playerController, int lives);

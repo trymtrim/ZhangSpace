@@ -803,6 +803,11 @@ FVector2D AMainCharacterController::GetViewportSize()
 	return result;
 }
 
+void AMainCharacterController::StartGame ()
+{
+	gameStarted = true;
+}
+
 void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps (OutLifetimeProps);
@@ -834,6 +839,8 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 	DOREPLIFETIME (AMainCharacterController, _showCursor);
 
 	DOREPLIFETIME (AMainCharacterController, shieldActive);
+
+	DOREPLIFETIME (AMainCharacterController, gameStarted);
 }
 
 //Called to bind functionality to input

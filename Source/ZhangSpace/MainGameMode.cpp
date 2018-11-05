@@ -1,7 +1,6 @@
 // Copyright Team Monkey Business 2018.
 
 #include "MainGameMode.h"
-#include "MainPlayerController.h"
 #include "MainGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
@@ -18,7 +17,7 @@ AMainGameMode::AMainGameMode ()
 
 	if (PlayerPawnClass.Class != NULL)
 		DefaultPawnClass = PlayerPawnClass.Class;
-
+	
 	//Set default player controller class
 	PlayerControllerClass = AMainPlayerController::StaticClass ();
 
@@ -57,6 +56,8 @@ void AMainGameMode::Tick (float DeltaTime)
 		}
 	}
 
+	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, FString::FromInt (_connectedPlayers.Num ()));
+
 	/*
 	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Rotation: " + FString::FromInt (NumPlayers));
 	UE_LOG (LogTemp, Log, TEXT ("There are currently %d players connected."), NumPlayers);
@@ -92,9 +93,35 @@ AActor* AMainGameMode::ChoosePlayerStart_Implementation (AController* Player)
 
 	if (_playerCount < _maxPlayers)
 		_playerCount++;
-
+	
 	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, Player->GetName ());
 	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, playerStarts [_playerCount - 1]->GetName ());
 	
 	return playerStarts [_playerCount - 1];
+}
+
+void AMainGameMode::RegisterPlayer (AMainPlayerController* playerController, int targetPlayerCount)
+{
+	if (_targetPlayerCount == 0)
+		_targetPlayerCount = targetPlayerCount;
+
+	//Add player to the list of connected players
+	_connectedPlayers.Add (playerController);
+
+	//If all players have connected, start game
+	if (!_gameStarted && _connectedPlayers.Num () == _targetPlayerCount || !_gameStarted && _targetPlayerCount == 0)
+		StartGame ();
+}
+
+void AMainGameMode::StartGame ()
+{
+	//TODO: If all players haven't joined within a certain time, start game anyway
+
+	for (int i = 0; i < _connectedPlayers.Num (); i++)
+	{
+		AMainCharacterController* characterController = Cast <AMainCharacterController> (_connectedPlayers [i]->GetCharacter ());
+		characterController->StartGame ();
+	}
+
+	_gameStarted = true;
 }

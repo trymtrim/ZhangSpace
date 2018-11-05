@@ -39,3 +39,13 @@ void USettingsManager::SetShowPing (bool status)
 
 	showPing = status;
 }
+
+void USettingsManager::SetTargetPlayerCount (int targetPlayerCount)
+{
+	_targetPlayerCount = targetPlayerCount;
+}
+
+int USettingsManager::GetTargetPlayerCount ()
+{
+	return _targetPlayerCount;
+}

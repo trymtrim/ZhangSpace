@@ -6,6 +6,7 @@
 #include "MainPlayerController.h"
 #include "GameFramework/Character.h"
 #include "UnrealNetwork.h"
+#include "MainGameMode.h"
 
 AMainGameState::AMainGameState ()
 {
@@ -67,11 +68,13 @@ void AMainGameState::DamagePlayersOutsideOfCircle ()
 	}
 }
 
-void AMainGameState::RegisterPlayer (AMainPlayerController* playerController, FString playerName)
+void AMainGameState::RegisterPlayer (AMainPlayerController* playerController, FString playerName, int targetPlayerCount)
 {
+	Cast <AMainGameMode> (GetWorld ()->GetAuthGameMode ())->RegisterPlayer (playerController, targetPlayerCount);
+
 	_playerIndexes.Add (playerController, _players.Num ());
 	_players.Add (playerController);
-
+	
 	playerNames.Add (playerName);
 	playerKills.Add (0);
 	playerLives.Add (3);

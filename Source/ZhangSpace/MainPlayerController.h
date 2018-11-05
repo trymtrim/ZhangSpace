@@ -47,7 +47,7 @@ public:
 	void UpdateSpeed (float value);
 
 	UFUNCTION (Server, Reliable, WithValidation)
-	void RegisterPlayer (const FString& playerName);
+	void RegisterPlayer (const FString& playerName, int targetPlayerCount);
 
 protected:
 	//Called when the game starts or when spawned

@@ -66,6 +66,11 @@ public:
 
 	FVector2D GetViewportSize (); //Returns the size of the clients viewport as a 2d vector
 
+	//Called from the server when the game starts
+	void StartGame ();
+
+	UPROPERTY (Replicated, BlueprintReadOnly) bool gameStarted = false;
+
 	//Variables for the spaceship UI
 	UPROPERTY (BlueprintReadOnly) float healthPercentage;
 	UPROPERTY (BlueprintReadOnly) float powerPercentage;
