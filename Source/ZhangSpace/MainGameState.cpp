@@ -39,6 +39,9 @@ void AMainGameState::Tick (float DeltaTime)
 
 void AMainGameState::ServerUpdate (float deltaTime)
 {
+	if (!_gameStarted)
+		return;
+
 	//Update damage timer
 	_damageTimer += deltaTime;
 
@@ -78,6 +81,11 @@ void AMainGameState::RegisterPlayer (AMainPlayerController* playerController, FS
 	playerNames.Add (playerName);
 	playerKills.Add (0);
 	playerLives.Add (3);
+}
+
+void AMainGameState::StartGame ()
+{
+	_gameStarted = true;
 }
 
 void AMainGameState::AddPlayerKill (AMainPlayerController* playerController)

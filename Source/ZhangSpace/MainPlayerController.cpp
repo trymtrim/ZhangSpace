@@ -108,6 +108,12 @@ void AMainPlayerController::VerticalStrafe (float value)
 
 void AMainPlayerController::Roll (float value)
 {
+	if (_character != nullptr)			//If we have a reference to the character pointer
+	{
+		if (_character->GetIsDead ())	//And the player is dead, don't do anything
+			return;
+	}
+
 	if (value != .0f)
 	{
 		//GetCharacter ()->AddControllerRollInput (value * GetWorld ()->DeltaTimeSeconds * 50.0f);

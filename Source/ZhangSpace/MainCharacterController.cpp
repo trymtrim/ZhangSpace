@@ -310,7 +310,7 @@ bool AMainCharacterController::AddStat_Validate (int statIndex)
 
 void AMainCharacterController::UseAbilityInput (int abilityIndex)
 {
-	if (_dead || _showCursor || _hotkeyBarAbilities.Num () < abilityIndex)
+	if (!gameStarted || _dead || _showCursor || _hotkeyBarAbilities.Num () < abilityIndex)
 		return;
 
 	FVector cameraPosition = _cameraComponent->GetComponentLocation ();
@@ -321,7 +321,7 @@ void AMainCharacterController::UseAbilityInput (int abilityIndex)
 
 void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVector cameraPosition)
 {
-	if (!_abilities.Contains (abilityIndex))
+	if (!_abilities.Contains (abilityIndex) || !gameStarted || _dead)
 		return;
 
 	//Put ability on cooldown
@@ -357,7 +357,7 @@ bool AMainCharacterController::UseAbility_Validate (int abilityIndex, FVector ca
 
 void AMainCharacterController::StartShootingInput ()
 {
-	if (_showCursor)
+	if (!gameStarted || _showCursor || _dead)
 		return;
 
 	StartShooting ();
@@ -401,7 +401,7 @@ void AMainCharacterController::UpdateShootingCooldown (float deltaTime)
 
 void AMainCharacterController::Shoot_Implementation (FVector cameraPosition, FVector cameraForward)
 {
-	if (_power < _shootCost || _dead || _currentShootingCooldown > 0.0f)
+	if (!gameStarted || _power < _shootCost || _dead || _currentShootingCooldown > 0.0f)
 		return;
 
 	//Reset shootingCooldown
@@ -775,7 +775,7 @@ void AMainCharacterController::OpenSettingsMenu (bool open)
 
 bool AMainCharacterController::GetCanMove ()
 {
-	if (_dead || _showCursor)
+	if (_dead || _showCursor || !gameStarted)
 		return false;
 
 	return true;
@@ -783,6 +783,9 @@ bool AMainCharacterController::GetCanMove ()
 
 bool AMainCharacterController::GetIsDead ()
 {
+	if (!gameStarted || _dead)
+		return true;
+
 	return _dead;
 }
 

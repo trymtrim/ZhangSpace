@@ -20,7 +20,8 @@ public:
 	virtual void Tick (float DeltaTime) override;
 
 	void RegisterPlayer (AMainPlayerController* playerController, FString playerName, int targetPlayerCount);
-	
+	void StartGame ();
+
 	void AddPlayerKill (AMainPlayerController* playerController);
 	void UpdatePlayerLives (AMainPlayerController* playerController, int lives);
 
@@ -38,6 +39,8 @@ private:
 
 	float _damageInterval = 1.0f;
 	float _damageTimer = 0.0f;
+
+	bool _gameStarted = false;
 
 	UPROPERTY ()
 	AShrinkingCircle* _shrinkingCircle;

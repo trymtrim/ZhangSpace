@@ -109,7 +109,7 @@ void AMainGameMode::RegisterPlayer (AMainPlayerController* playerController, int
 	_connectedPlayers.Add (playerController);
 
 	//If all players have connected, start game
-	if (!_gameStarted && _connectedPlayers.Num () == _targetPlayerCount || !_gameStarted && _targetPlayerCount == 0)
+	if (!_gameStarted && _connectedPlayers.Num () == _targetPlayerCount || _targetPlayerCount == 0)
 		StartGame ();
 }
 
@@ -119,9 +119,12 @@ void AMainGameMode::StartGame ()
 
 	for (int i = 0; i < _connectedPlayers.Num (); i++)
 	{
-		AMainCharacterController* characterController = Cast <AMainCharacterController> (_connectedPlayers [i]->GetCharacter ());
+		AMainPlayerController* playerController = _connectedPlayers [i];
+		AMainCharacterController* characterController = Cast <AMainCharacterController> (playerController->GetCharacter ());
+
 		characterController->StartGame ();
 	}
-
+	
+	Cast <AMainGameState> (GameState)->StartGame ();
 	_gameStarted = true;
 }
