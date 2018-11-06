@@ -53,5 +53,5 @@ void ATeleporter::SpawnSecondTeleporter ()
 
 void ATeleporter::TeleportPlayer (AActor* player)
 {
-	player->SetActorLocation (secondTeleporter->GetActorLocation ());
+	player->SetActorLocation (secondTeleporter->GetActorLocation () + secondTeleporter->GetActorForwardVector () * 3000.0f);
 }
