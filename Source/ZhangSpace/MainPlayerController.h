@@ -42,6 +42,10 @@ public:
 	//Handles the yaw feature of the spacecraft
 	void Yaw (float value);
 
+	//Cruise speed
+	UFUNCTION(Server, Reliable, WithValidation)
+	void CruiseSpeed();
+
 	//Handles the change of speed
 	UFUNCTION(Server, Reliable, WithValidation)
 	void UpdateSpeed (float value);
@@ -55,10 +59,12 @@ protected:
 
 private:
 	//---------- MOVEMENT VALUES ----------//
-	float _rollSpeed = 100.0f;				//Used to determine roll speed
+	float _rollSpeed = 80.0f;				//Used to determine roll speed
 	float const _minSpeed = 1500.0f;		//Used as the lowest possible speed when flying
 	float const _maxSpeed = 10000.0f;		//Used as the default max speed
-	float _deltaAcceleration = 3000.0f;
+	float _acceleration = 3000.0f;			//The rate at which the speed increases, is multiplied with scroll axis value
+
+	UPROPERTY (Replicated) bool _cruiseSpeed = false;				//Determines if player has entered cruise speed or not
 
 	//----------- ROTATION VALUES ----------//
 	float pitchDelta = .0f;

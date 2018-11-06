@@ -29,12 +29,14 @@ void AMainPlayerController::BeginPlay()
 		GetWorld()->GetGameViewport()->Viewport->LockMouseToViewport(true);
 	}
 
+	//This is preventing gimbal lock
 	PlayerCameraManager->ViewPitchMax = 359.998993f;
 	PlayerCameraManager->ViewPitchMin = 0.0f;
 	PlayerCameraManager->ViewYawMax = 359.998993f;
 	PlayerCameraManager->ViewRollMax = 359.998993f;
 	PlayerCameraManager->ViewRollMin = 0.0f;
 
+	//Register 
 	if (!GetWorld ()->IsServer ())
 		RegisterPlayer (ConfigManager::GetConfig ("Player_Name"), Cast <USettingsManager> (GetWorld ()->GetGameInstance ())->GetTargetPlayerCount ());
 
@@ -58,6 +60,14 @@ void AMainPlayerController::Tick(float DeltaTime)
 	if (!GetWorld ()->IsServer ())
 		UpdatePlayerRotation (pitchDelta, yawDelta, rollDelta);
 
+	//Normally the movement is done when pressing down a button, when in cruise speed we want constant movement forward
+	if (_cruiseSpeed)
+	{
+		_character->AddMovementInput(GetCharacter()->GetActorForwardVector(), 1.0f);
+		
+	}
+
+
 	//---------- DEBUG ---------//
 	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "HIGH SCROLL VALUE: " + FString::SanitizeFloat(_highScroll, 1) + "\nLOW SCROLL VALUE: " + FString::SanitizeFloat(_lowScroll, 1));
 }
@@ -70,10 +80,13 @@ void AMainPlayerController::MoveForward (float value)
 			return;
 	}
 
+	if (_cruiseSpeed)
+		return;
+
 	if (value != .0f )
 	{
-		//Add movement in that direction
-		GetCharacter ()->AddMovementInput (GetCharacter ()->GetActorForwardVector (), value);
+		//Add movement in that direction based on value
+		_character->AddMovementInput (_character->GetActorForwardVector (), value);
 	}
 }
 
@@ -85,10 +98,12 @@ void AMainPlayerController::Strafe (float value)
 			return;
 	}
 	
+	if (_cruiseSpeed) return;
+
 	if (value != .0f)
 	{
 		//Add movement in that direction
-		GetCharacter ()->AddMovementInput (GetCharacter ()->GetActorRightVector (), value);
+		_character->AddMovementInput (_character->GetActorRightVector (), value);
 	}
 }
 
@@ -99,10 +114,11 @@ void AMainPlayerController::VerticalStrafe (float value)
 		if (_character->GetIsDead())	//And the player is dead, don't do anything
 			return;
 	}
+	if (_cruiseSpeed) return;
 
 	if (value != .0f)
 	{
-		GetCharacter()->AddMovementInput(GetCharacter()->GetActorUpVector(), value);
+		_character->AddMovementInput(_character->GetActorUpVector(), value);
 	}
 }
 
@@ -113,6 +129,8 @@ void AMainPlayerController::Roll (float value)
 		if (_character->GetIsDead ())	//And the player is dead, don't do anything
 			return;
 	}
+
+	if (_cruiseSpeed) return;
 
 	if (value != .0f)
 	{
@@ -135,7 +153,10 @@ void AMainPlayerController::Pitch (float value)
 	if (value != .0f)
 	{
 		//GetCharacter ()->AddControllerPitchInput (value * GetWorld ()->DeltaTimeSeconds * 10.0f);
-		pitchDelta = value * _turnSpeed * GetWorld()->DeltaTimeSeconds;
+		if (_cruiseSpeed)
+			pitchDelta = value * (_turnSpeed / 4.0f) * GetWorld()->DeltaTimeSeconds;
+		else
+			pitchDelta = value * _turnSpeed * GetWorld()->DeltaTimeSeconds;
 	}
 
 	//Debug
@@ -153,7 +174,13 @@ void AMainPlayerController::Yaw (float value)
 	if (value != .0f)
 	{
 		//GetCharacter ()->AddControllerYawInput (value * GetWorld ()->DeltaTimeSeconds * 10.0f);
-		yawDelta = value * _turnSpeed * GetWorld()->DeltaTimeSeconds;
+		if (_cruiseSpeed)
+		{
+			yawDelta = value * (_turnSpeed / 4.0f) * GetWorld()->DeltaTimeSeconds;
+			rollDelta = value * (_rollSpeed / 15.0f) * GetWorld()->DeltaTimeSeconds;
+		}
+		else
+			yawDelta = value * _turnSpeed * GetWorld()->DeltaTimeSeconds;
 	}
 
 	//Debug
@@ -171,10 +198,10 @@ void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float r
 
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Black, FString::Printf(TEXT("Can move Bool: %s"), _character->GetCanMove() ? TEXT("true") : TEXT("false")));
 
-	//Make delta rotation in a Rotator and add it to the player delta rotation variable in MainCharacterController class
+	//Make delta rotation in a Rotator and add it to local rotation on client side, then update the charactercontroller on server side
 	FRotator newDeltaRotation = FRotator(pitch,yaw,roll);
-	GetCharacter()->AddActorLocalRotation(newDeltaRotation, false, 0, ETeleportType::None);
-	SetControlRotation (GetCharacter ()->GetActorRotation ());
+	_character->AddActorLocalRotation(newDeltaRotation, false, 0, ETeleportType::None);
+	SetControlRotation (_character->GetActorRotation ());
 
 	//Reset rotation values
 	yawDelta = .0f;
@@ -187,11 +214,20 @@ void AMainPlayerController::UpdateSpeed_Implementation (float value)
 	if (_character == nullptr || _UCharMoveComp == nullptr)
 		return;
 
-	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Current speed: " + FString::SanitizeFloat(_UCharMoveComp->MaxFlySpeed, 1));
+	GEngine->AddOnScreenDebugMessage(-1, .5f, FColor::Blue, "Current max speed: " + FString::SanitizeFloat(_UCharMoveComp->MaxFlySpeed, 1));
+
+
+	//If we have entered cruisespeed, set the speed accordingly
+	if (_cruiseSpeed)
+	{
+		_UCharMoveComp->MaxFlySpeed = _maxSpeed * 10.0f;
+		return;
+	}
+	else if (!_cruiseSpeed && _UCharMoveComp->MaxFlySpeed > _maxSpeed) _UCharMoveComp->MaxFlySpeed = _maxSpeed;
 
 	//If current speed is less or higher than max/min speed after last frame, set it to max/min
-	if (_UCharMoveComp->MaxFlySpeed > _maxSpeed) { _UCharMoveComp->MaxFlySpeed = _maxSpeed; return; }
-	else if (_UCharMoveComp->MaxFlySpeed < _minSpeed) { _UCharMoveComp->MaxFlySpeed = _minSpeed; return; }
+	if (_UCharMoveComp->MaxFlySpeed > _maxSpeed && !_cruiseSpeed) { _UCharMoveComp->MaxFlySpeed = _maxSpeed; return; }
+	else if (_UCharMoveComp->MaxFlySpeed < _minSpeed && !_cruiseSpeed) { _UCharMoveComp->MaxFlySpeed = _minSpeed; return; }
 
 	if (value != 0.0f) 
 	{
@@ -204,8 +240,8 @@ void AMainPlayerController::UpdateSpeed_Implementation (float value)
 
 		if (_UCharMoveComp->MaxFlySpeed <= _maxSpeed && _UCharMoveComp->MaxFlySpeed >= _minSpeed) 
 		{
-			_UCharMoveComp->MaxFlySpeed += value * _deltaAcceleration * GetWorld()->DeltaTimeSeconds;
-			//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Current speed: " + FString::SanitizeFloat(_UCharMoveComp->MaxFlySpeed, 1));
+			float deltaAcceleration = value * _acceleration * GetWorld()->DeltaTimeSeconds;
+			_UCharMoveComp->MaxFlySpeed += deltaAcceleration;
 		}
 	}
 }
@@ -214,6 +250,24 @@ void AMainPlayerController::UpdateSpeed_Implementation (float value)
 {
 	 return true;
 }
+
+ //Called when Cruise Speed button is pressed once
+ void AMainPlayerController::CruiseSpeed_Implementation ()
+ {
+	 _cruiseSpeed = !_cruiseSpeed;
+
+	 if (_cruiseSpeed)
+	 { 
+		 GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, "Cruise speed: true");
+		 UpdateSpeed_Implementation(1.0f);	//Call the update speed implementation which normally is called when scrolling mouse wheel
+	 }
+	 else GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, "Cruise speed: false");
+ }
+
+ bool AMainPlayerController::CruiseSpeed_Validate ()
+ {
+	 return true;
+ }
 
 void AMainPlayerController::RegisterPlayer_Implementation (const FString& playerName, int targetPlayerCount)
 {
@@ -227,6 +281,13 @@ bool AMainPlayerController::RegisterPlayer_Validate (const FString& playerName, 
 	return true;
 }
 
+
+void AMainPlayerController::GetLifetimeReplicatedProps(TArray <FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AMainPlayerController, _cruiseSpeed);
+}
+
 void AMainPlayerController::SetupInputComponent ()
 {
 	Super::SetupInputComponent ();
@@ -235,6 +296,9 @@ void AMainPlayerController::SetupInputComponent ()
 
 	if (InputComponent != NULL)
 	{
+		//Set up action binding
+		InputComponent->BindAction("CruiseSpeed", IE_Pressed, this, &AMainPlayerController::CruiseSpeed);
+
 		//Set up movement bindings
 		InputComponent->BindAxis ("MoveForward", this, &AMainPlayerController::MoveForward);
 		InputComponent->BindAxis ("Strafe", this, &AMainPlayerController::Strafe);
