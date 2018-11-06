@@ -25,6 +25,9 @@ public:
 	void AddPlayerKill (AMainPlayerController* playerController);
 	void UpdatePlayerLives (AMainPlayerController* playerController, int lives);
 
+	UFUNCTION (BlueprintCallable)
+	void SpawnFracturedSpaceship (TSubclassOf <AActor> fracturedSpaceshipBP, FTransform transform);
+
 	UPROPERTY (Replicated, BlueprintReadOnly) TArray <FString> playerNames;
 	UPROPERTY (Replicated, BlueprintReadOnly) TArray <int> playerKills;
 	UPROPERTY (Replicated, BlueprintReadOnly) TArray <int> playerLives;

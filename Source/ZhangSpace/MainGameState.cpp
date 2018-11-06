@@ -100,6 +100,17 @@ void AMainGameState::UpdatePlayerLives (AMainPlayerController* playerController,
 	playerLives [playerIndex] = lives;
 }
 
+void AMainGameState::SpawnFracturedSpaceship (TSubclassOf <AActor> fracturedSpaceshipBP, FTransform transform)
+{
+	//Declare spawn parameters
+	FActorSpawnParameters spawnParams;
+	FVector spawnPosition = transform.GetLocation ();
+	FRotator spawnRotation = transform.GetRotation ().Rotator ();
+
+	//Spawn fractured spaceship
+	GetWorld ()->SpawnActor <AActor> (fracturedSpaceshipBP, spawnPosition, spawnRotation, spawnParams);
+}
+
 void AMainGameState::GetLifetimeReplicatedProps (TArray <FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps (OutLifetimeProps);
