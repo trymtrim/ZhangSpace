@@ -5,7 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Projectile.h"
-#include "GameFramework/Character.h"
+#include "Components/ArrowComponent.h"
+#include "MainCharacterController.h"
 #include "SpaceshipAI.generated.h"
 
 UCLASS()
@@ -20,9 +21,14 @@ public:
 	//Called every frame
 	virtual void Tick (float DeltaTime) override;
 
+	UFUNCTION (BlueprintImplementableEvent, Category = "AI")
+	void DieBP ();
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay () override;
+
+	virtual float TakeDamage (float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 private:
 	void ServerUpdate (float deltaTime);
@@ -30,8 +36,10 @@ private:
 	void UpdateAttackState (float deltaTime);
 
 	bool CheckForAggro ();
+	bool IsAttackableInScope ();
 
 	void Shoot ();
+	void Die ();
 
 	enum State
 	{
@@ -41,14 +49,20 @@ private:
 	};
 
 	State _state = PATROL;
-	UPROPERTY (EditAnywhere)
-	ACharacter* _target;
+	AMainCharacterController* _target;
 
-	float _aggroRange = 1500.0f;
-	float _loseAggroRange = 3000.0f;
+	int _health = 200;
+
+	float _aggroRange = 12500.0f;
+	float _loseAggroRange = 15000.0f;
 	float _maxAttackCooldown = 0.5f;
 	float _currentAttackCooldown = 0.0f;
 
+	bool _gunPositionSwitch = true;
+	
+	UArrowComponent* gunPositionOne;
+	UArrowComponent* gunPositionTwo;
+	
 	UPROPERTY (EditAnywhere)
 	TSubclassOf <AProjectile> _projectileBP;
 };
