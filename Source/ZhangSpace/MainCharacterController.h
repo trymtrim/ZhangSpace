@@ -131,6 +131,8 @@ private:
 	//Passive abilities
 	bool _shieldReflect = false;
 
+	void DoTeleport ();
+
 	void InitializeAbilityCooldowns ();
 	void ChangeMesh (UStaticMesh* mesh);
 	void AddAvailableStats ();

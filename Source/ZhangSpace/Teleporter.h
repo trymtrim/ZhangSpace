@@ -18,8 +18,6 @@ public:
 	//Called every frame
 	virtual void Tick (float DeltaTime) override;
 
-	void SpawnSecondTeleporter ();
-
 	UFUNCTION (BlueprintCallable)
 	void TeleportPlayer (AActor* player);
 
@@ -31,6 +29,7 @@ protected:
 
 private:
 	void ServerUpdate (float deltaTime);
+	void SpawnSecondTeleporter ();
 
 	float _destroyTimer = 0.0f;
 

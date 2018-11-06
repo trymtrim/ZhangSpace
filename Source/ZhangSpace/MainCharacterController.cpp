@@ -8,6 +8,7 @@
 #include "GameFramework/PlayerStart.h"
 #include "Components/ArrowComponent.h"
 #include "MainGameState.h"
+#include "Teleporter.h"
 
 #include "Runtime/Engine/Public/DrawDebugHelpers.h"
 #include "Engine.h"
@@ -59,7 +60,6 @@ void AMainCharacterController::BeginPlay ()
 		}
 
 		//Debugging
-		/*AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
@@ -70,7 +70,8 @@ void AMainCharacterController::BeginPlay ()
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
-		AddExperience (100);*/
+		AddExperience (100);
+		AddExperience (100);
 		//AddAbility (4);
 		//AddAbility (7);
 	}
@@ -510,14 +511,24 @@ void AMainCharacterController::Shield ()
 
 void AMainCharacterController::Teleport ()
 {
+	FTimerHandle FPSTimerHandle;
+	GetWorld ()->GetTimerManager ().SetTimer (FPSTimerHandle, this, &AMainCharacterController::DoTeleport, 0.5f, false);
+}
+
+void AMainCharacterController::DoTeleport ()
+{
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
 	spawnParams.Owner = this;
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 5000.0f;
+
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector ();
 	FRotator spawnRotation = GetActorRotation ();
 
-	//Spawn projectile
-	GetWorld ()->SpawnActor <AActor> (_teleporterBP, spawnPosition, spawnRotation, spawnParams);
+	//Spawn teleporter
+	ATeleporter* teleporter = GetWorld ()->SpawnActor <ATeleporter> (_teleporterBP, spawnPosition, spawnRotation, spawnParams);
+
+	//Teleport player
+	teleporter->TeleportPlayer (this);
 }
 
 bool AMainCharacterController::GetShieldReflect ()
