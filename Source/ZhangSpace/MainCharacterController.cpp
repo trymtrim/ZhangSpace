@@ -6,9 +6,9 @@
 #include "UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
-#include "Components/ArrowComponent.h"
 #include "MainGameState.h"
 #include "Teleporter.h"
+#include "AI/SpaceshipAI.h"
 
 #include "Runtime/Engine/Public/DrawDebugHelpers.h"
 #include "Engine.h"
@@ -59,7 +59,20 @@ void AMainCharacterController::BeginPlay ()
 				_gameState = Cast <AMainGameState> (GetWorld ()->GetGameState ());
 		}
 
+		//Get references to the gun positions
+		TArray <UArrowComponent*> arrowComps;
+		GetComponents <UArrowComponent> (arrowComps);
+
+		for (int i = 0; i < arrowComps.Num (); i++)
+		{
+			if (arrowComps [i]->GetName () == "GunPosition1")
+				gunPositionOne = arrowComps [i];
+			else if (arrowComps [i]->GetName () == "GunPosition2")
+				gunPositionTwo = arrowComps [i];
+		}
+
 		//Debugging
+		/*AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
@@ -70,8 +83,7 @@ void AMainCharacterController::BeginPlay ()
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
+		AddExperience (100);*/
 		//AddAbility (4);
 		//AddAbility (7);
 	}
@@ -422,29 +434,16 @@ void AMainCharacterController::Shoot_Implementation (FVector cameraPosition, FVe
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
 	spawnParams.Owner = this;
-	FVector spawnPosition; // = GetActorLocation () + GetActorForwardVector () * 350.0f - GetActorUpVector () * 35.0f;
+	FVector spawnPosition;
 	FRotator spawnRotation;
 
 	//Spawn projectile at assigned gun position
-	TArray <UArrowComponent*> arrowComps;
-	GetComponents <UArrowComponent> (arrowComps);
-	
-	if (GetWorld ()->WorldType == EWorldType::Game)
-	{
-		if (gunPositionSwitch)
-			spawnPosition = arrowComps [0]->GetComponentLocation ();
-		else
-			spawnPosition = arrowComps [1]->GetComponentLocation ();
-	}
+	if (_gunPositionSwitch)
+		spawnPosition = gunPositionOne->GetComponentLocation ();
 	else
-	{
-		if (gunPositionSwitch)
-			spawnPosition = arrowComps [1]->GetComponentLocation ();
-		else
-			spawnPosition = arrowComps [2]->GetComponentLocation ();
-	}
+		spawnPosition = gunPositionTwo->GetComponentLocation ();
 		
-	gunPositionSwitch = !gunPositionSwitch;
+	_gunPositionSwitch = !_gunPositionSwitch;
 
 	//Check if line trace hits anything
     if (GetWorld ()->LineTraceSingleByChannel (hit, start, end, ECC_Visibility, traceParams))
@@ -496,7 +495,7 @@ bool AMainCharacterController::IsAttackableInScope ()
 	if (GetWorld ()->LineTraceSingleByChannel (hit, start, end, ECC_Visibility, traceParams))
 	{
 		//If line trace hits a projectile, spawn bullet with rotation towards the end of the line trace
-		if (hit.GetActor ()->ActorHasTag ("Player") || hit.GetActor ()->ActorHasTag ("Resource"))
+		if (hit.GetActor ()->ActorHasTag ("Player") || hit.GetActor ()->ActorHasTag ("Resource") || hit.GetActor ()->ActorHasTag ("AI"))
 			return true;
 	}
 
@@ -512,7 +511,7 @@ void AMainCharacterController::Shield ()
 void AMainCharacterController::Teleport ()
 {
 	FTimerHandle FPSTimerHandle;
-	GetWorld ()->GetTimerManager ().SetTimer (FPSTimerHandle, this, &AMainCharacterController::DoTeleport, 0.5f, false);
+	GetWorld ()->GetTimerManager ().SetTimer (FPSTimerHandle, this, &AMainCharacterController::DoTeleport, 0.1f, false); //Should be 0.5f
 }
 
 void AMainCharacterController::DoTeleport ()
@@ -562,14 +561,14 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 
 	if (shieldActive && !DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
 	{
-		shield->ApplyDamage (Damage);
+		shield->ApplyDamage (Damage / (_defensePower / 5));
 		ShieldTakeDamageBP ();
 
 		return 0.0f;
 	}
 	else
 	{
-		_currentHealth -= Damage;
+		_currentHealth -= Damage / (_defensePower / 2.5f);
 
 		if (DamageCauser != nullptr)
 		{
@@ -580,10 +579,14 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 
 				if (_currentHealth <= 0)
 				{
-					//Update kill in game state
-					AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser->GetOwner ());
-					AMainPlayerController* killPlayerController = Cast <AMainPlayerController> (killCharacter->GetController ());
-					_gameState->AddPlayerKill (killPlayerController);
+					//If the player didn't get killed by AI
+					if (!DamageCauser->GetOwner ()->GetClass ()->IsChildOf (ASpaceshipAI::StaticClass ()))
+					{
+						//Update kill in game state
+						AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser->GetOwner ());
+						AMainPlayerController* killPlayerController = Cast <AMainPlayerController> (killCharacter->GetController ());
+						_gameState->AddPlayerKill (killPlayerController);
+					}
 
 					Die ();
 				}

@@ -9,6 +9,7 @@
 #include "Camera/CameraComponent.h"
 #include "ShrinkingCircle.h"
 #include "Shield.h"
+#include "Components/ArrowComponent.h"
 #include "MainCharacterController.generated.h"
 
 class AMainGameState;
@@ -202,7 +203,10 @@ private:
 
 	UCameraComponent* _cameraComponent;
 
-	bool gunPositionSwitch = true;
+	bool _gunPositionSwitch = true;
+
+	UArrowComponent* gunPositionOne;
+	UArrowComponent* gunPositionTwo;
 
 	AMainGameState* _gameState = nullptr;
 
