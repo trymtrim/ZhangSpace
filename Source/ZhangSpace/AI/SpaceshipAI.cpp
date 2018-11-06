@@ -54,9 +54,6 @@ void ASpaceshipAI::ServerUpdate (float deltaTime)
 	case ATTACK:
 		UpdateAttackState (deltaTime);
 		break;
-	case DEAD:
-		
-		break;
 	}
 }
 
@@ -214,13 +211,10 @@ void ASpaceshipAI::Die ()
 
 float ASpaceshipAI::TakeDamage (float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	if (_state == DEAD)
-		return 0.0f;
-
 	_health -= Damage;
 
 	//If health is below zero, die
-	if (_health <= 0 && _state != DEAD)
+	if (_health <= 0)
 		Die ();
 
 	return Super::TakeDamage (Damage, DamageEvent, EventInstigator, DamageCauser);

@@ -44,8 +44,7 @@ private:
 	enum State
 	{
 		PATROL,
-		ATTACK,
-		DEAD
+		ATTACK
 	};
 
 	State _state = PATROL;

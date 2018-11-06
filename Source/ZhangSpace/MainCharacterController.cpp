@@ -72,7 +72,6 @@ void AMainCharacterController::BeginPlay ()
 		}
 
 		//Debugging
-		/*AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
@@ -83,7 +82,8 @@ void AMainCharacterController::BeginPlay ()
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
-		AddExperience (100);*/
+		AddExperience (100);
+		AddExperience (100);
 		//AddAbility (4);
 		//AddAbility (7);
 	}
@@ -287,13 +287,15 @@ void AMainCharacterController::AddStat_Implementation (int statIndex)
 	if (_availableStats == 0)
 		return;
 
-	_availableStats--;
-
 	switch (statIndex)
 	{
 	case 1: //Attack
+		if (_attackPower == _maxStatPower)
+			return;
+
 		_attackPower++;
 
+		//Decrease shooting cooldown
 		_maxShootingCooldown -= _maxShootingCooldown * 0.1f;
 
 		//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, FString::SanitizeFloat (_maxShootingCooldown));
@@ -302,23 +304,40 @@ void AMainCharacterController::AddStat_Implementation (int statIndex)
 			_attackUpgradesAvailable++;
 		break;
 	case 2: //Defense
+		if (_defensePower == _maxStatPower)
+			return;
+
 		_defensePower++;
+
+		//Decrease shield cooldown
+		_abilityMaxCooldowns [0] -= _abilityMaxCooldowns [0] * 0.1f;
+		ClientChangeShieldCooldown (_abilityMaxCooldowns [0]);
 
 		if (_defensePower == 3 || _defensePower == 6 || _defensePower == 10)
 			_defenseUpgradesAvailable++;
 		break;
 	case 3: //Mobility
+		if (_mobilityPower == _maxStatPower)
+			return;
+
 		_mobilityPower++;
 
 		if (_mobilityPower == 3 || _mobilityPower == 6 || _mobilityPower == 10)
 			_mobilityUpgradesAvailable++;
 		break;
 	}
+
+	_availableStats--;
 }
 
 bool AMainCharacterController::AddStat_Validate (int statIndex)
 {
 	return true;
+}
+
+void AMainCharacterController::ClientChangeShieldCooldown_Implementation (int cooldown)
+{
+	_abilityMaxCooldowns [0] = cooldown;
 }
 
 void AMainCharacterController::UseAbilityInput (int abilityIndex)
@@ -337,6 +356,20 @@ void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVec
 	if (!_abilities.Contains (abilityIndex) || !gameStarted || _dead)
 		return;
 
+	//Use ability based on ability index
+	switch (abilityIndex)
+	{
+	case 0:
+		if (shieldActive)
+			return;
+
+		Shield ();
+		break;
+	case 7:
+		Teleport ();
+		break;
+	}
+
 	//Put ability on cooldown
 	for (int i = 0; i < _abilities.Num (); i++)
 	{
@@ -345,21 +378,9 @@ void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVec
 			if (_abilityCooldowns [i] > 0.0f)
 				return;
 
-
 			_abilityCooldowns [i] = _abilityMaxCooldowns [abilityIndex];
 			break;
 		}
-	}
-
-	//Use ability based on ability index
-	switch (abilityIndex)
-	{
-	case 0:
-		Shield ();
-		break;
-	case 7:
-		Teleport ();
-		break;
 	}
 }
 
@@ -559,23 +580,27 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 	if (_dead)
 		return 0.0f;
 
+	int finalDamage = 0;
+
 	if (shieldActive && !DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
 	{
-		shield->ApplyDamage (Damage / (_defensePower / 5));
+		finalDamage = Damage - Damage * (_defensePower * 8.0f / 100.0f);
+		shield->ApplyDamage (finalDamage);
 		ShieldTakeDamageBP ();
 
 		return 0.0f;
 	}
 	else
 	{
-		_currentHealth -= Damage / (_defensePower / 2.5f);
+		finalDamage = Damage - Damage * (_defensePower * 8.0f / 100.0f);
+		_currentHealth -= finalDamage;
 
 		if (DamageCauser != nullptr)
 		{
 			if (DamageCauser->GetName ().Contains ("Projectile"))
 			{
 				FString damageType = "Projectile";
-				TakeDamageBP ((int) Damage, damageType);
+				TakeDamageBP ((int) finalDamage, damageType);
 
 				if (_currentHealth <= 0)
 				{

@@ -161,6 +161,9 @@ private:
 		AddStat (index);
 	}
 
+	UFUNCTION (Client, Reliable)
+	void ClientChangeShieldCooldown (int cooldown);
+
 	//Player stats
 	UPROPERTY (Replicated) int _maxHealth = 100;
 	UPROPERTY (Replicated) int _currentHealth = 100;
