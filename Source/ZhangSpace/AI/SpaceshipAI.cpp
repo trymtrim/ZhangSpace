@@ -78,7 +78,7 @@ void ASpaceshipAI::UpdateAttackState (float deltaTime)
 
 	//Rotate towards player target
 	//AddActorLocalRotation ((_target->GetActorLocation () - GetActorLocation ()).ToOrientationRotator ());
-	SetActorRotation (FMath::Lerp (GetActorRotation (), (_target->GetActorLocation () - GetActorLocation ()).ToOrientationRotator (), deltaTime * 3.0f));
+	SetActorRotation (FMath::Lerp (GetActorRotation (), (_target->GetActorLocation () - GetActorLocation ()).ToOrientationRotator (), deltaTime * 2.5f));
 	//Update attack cooldown
 	if (_currentAttackCooldown > 0.0f)
 		_currentAttackCooldown -= deltaTime;

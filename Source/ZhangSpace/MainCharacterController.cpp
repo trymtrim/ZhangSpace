@@ -72,6 +72,7 @@ void AMainCharacterController::BeginPlay ()
 		}
 
 		//Debugging
+		/*AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
@@ -82,8 +83,7 @@ void AMainCharacterController::BeginPlay ()
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
+		AddExperience (100);*/
 		//AddAbility (4);
 		//AddAbility (7);
 	}
@@ -511,7 +511,7 @@ void AMainCharacterController::Shield ()
 void AMainCharacterController::Teleport ()
 {
 	FTimerHandle FPSTimerHandle;
-	GetWorld ()->GetTimerManager ().SetTimer (FPSTimerHandle, this, &AMainCharacterController::DoTeleport, 0.5f, false);
+	GetWorld ()->GetTimerManager ().SetTimer (FPSTimerHandle, this, &AMainCharacterController::DoTeleport, 0.1f, false); //Should be 0.5f
 }
 
 void AMainCharacterController::DoTeleport ()
@@ -561,14 +561,14 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 
 	if (shieldActive && !DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
 	{
-		shield->ApplyDamage (Damage);
+		shield->ApplyDamage (Damage / (_defensePower / 5));
 		ShieldTakeDamageBP ();
 
 		return 0.0f;
 	}
 	else
 	{
-		_currentHealth -= Damage;
+		_currentHealth -= Damage / (_defensePower / 2.5f);
 
 		if (DamageCauser != nullptr)
 		{
