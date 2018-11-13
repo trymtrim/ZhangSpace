@@ -65,6 +65,9 @@ public:
 	UPROPERTY(BlueprintReadOnly) float yawDelta = .0f;
 	float rollDelta = .0f;
 
+	UPROPERTY (BlueprintReadOnly) float _maxDeltaValue = .5f;				//Used to clamp cruise speed delta values
+	UPROPERTY (BlueprintReadOnly) float _minDeltaValue = .1f;
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -76,10 +79,9 @@ private:
 	float const _maxSpeed = 10000.0f;		//Used as the default max speed
 	float _acceleration = 5000.0f;			//The rate at which the speed increases when scrolling, is multiplied with scroll axis value (Not in cruise speed)
 	float _sensitivityScaler = 20.0f;		//Used to scale sensitivity with mouse input
-	float _maxDeltaValue = .5f;				//Used to clamp cruise speed delta values
 	float _turnSpeed = 20.0f;					//Determines the rotation speed when using the mouse to rotate the ship based on delta values, when not in cruise speed
 	float _defaultAcceleration = 2000.0f;		//Default acceleration in general settings in movementcomp when not in cruise speedw
-	float _cruiseSpeedAcceleration = 20000.0f;	//Acceleration when using cruise speed
+	float _cruiseSpeedAcceleration = 10000.0f;	//Acceleration when using cruise speed
 
 	//Pointer reference to the character class and its CharacterMovementComponent
 	AMainCharacterController* _character = nullptr;

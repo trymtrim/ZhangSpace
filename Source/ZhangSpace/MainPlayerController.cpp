@@ -219,6 +219,12 @@ void AMainPlayerController::Yaw (float value)
 
 void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float roll) 
 {
+	if (_cruiseSpeed)
+	{
+		if (FMath::Abs (pitch) < _minDeltaValue && FMath::Abs (yaw) < _minDeltaValue)
+			return;
+	}
+
 	//If _character doesn't have a pointer, get one and wait a frame
 	if (_character == nullptr) 
 	{
