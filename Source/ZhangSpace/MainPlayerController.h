@@ -22,6 +22,11 @@ public:
 
 	void UpdatePlayerRotation (float pitch, float yaw, float roll);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void UpdateAcceleration(float value);
+	UFUNCTION(Client, Reliable)
+	void ClientUpdateAcceleration(float value);
+
 	//Handles input for moving forward and backward
 	UFUNCTION ()
 	void MoveForward (float value);
@@ -53,6 +58,13 @@ public:
 	UFUNCTION (Server, Reliable, WithValidation)
 	void RegisterPlayer (const FString& playerName, int targetPlayerCount);
 
+	UPROPERTY(Replicated, BlueprintReadOnly) bool _cruiseSpeed = false;				//Determines if player has entered cruise speed or not
+
+	//----------- ROTATION VALUES ----------//
+	UPROPERTY(BlueprintReadOnly) float pitchDelta = .0f;
+	UPROPERTY(BlueprintReadOnly) float yawDelta = .0f;
+	float rollDelta = .0f;
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -64,12 +76,6 @@ private:
 	float const _maxSpeed = 10000.0f;		//Used as the default max speed
 	float _acceleration = 3000.0f;			//The rate at which the speed increases, is multiplied with scroll axis value
 
-	UPROPERTY (Replicated) bool _cruiseSpeed = false;				//Determines if player has entered cruise speed or not
-
-	//----------- ROTATION VALUES ----------//
-	float pitchDelta = .0f;
-	float yawDelta = .0f;
-	float rollDelta = .0f;
 
 	float _turnSpeed = 20.0f;				//Determines the rotation speed when using the mouse to rotate the ship based on delta values
 

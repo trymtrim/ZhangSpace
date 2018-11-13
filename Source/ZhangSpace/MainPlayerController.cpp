@@ -42,6 +42,7 @@ void AMainPlayerController::BeginPlay()
 
 	//To get mobility power (values = 1-10):
 	//_character->GetMobilityPower ();
+
 }
 
 //Called every frame
@@ -66,7 +67,6 @@ void AMainPlayerController::Tick(float DeltaTime)
 		_character->AddMovementInput(GetCharacter()->GetActorForwardVector(), 1.0f);
 		
 	}
-
 
 	//---------- DEBUG ---------//
 	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "HIGH SCROLL VALUE: " + FString::SanitizeFloat(_highScroll, 1) + "\nLOW SCROLL VALUE: " + FString::SanitizeFloat(_lowScroll, 1));
@@ -130,13 +130,21 @@ void AMainPlayerController::Roll (float value)
 			return;
 	}
 
-	if (_cruiseSpeed) return;
+	if (_cruiseSpeed) 
+	{ 
+		rollDelta = FMath::FInterpTo(rollDelta, .0f, GetWorld()->DeltaTimeSeconds, 2.0f); 
+		return;
+	}
 
 	if (value != .0f)
 	{
 		//GetCharacter ()->AddControllerRollInput (value * GetWorld ()->DeltaTimeSeconds * 50.0f);
+
 		rollDelta = value * _rollSpeed * GetWorld()->DeltaTimeSeconds;
 	}
+	
+	if (rollDelta > .0f || rollDelta < .0f)
+		rollDelta = FMath::FInterpTo(rollDelta, .0f, GetWorld()->DeltaTimeSeconds, 2.0f);
 
 	//Debug
 	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Roll Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaRoll value = " + FString::SanitizeFloat(rollDelta, 2));
@@ -153,14 +161,21 @@ void AMainPlayerController::Pitch (float value)
 	if (value != .0f)
 	{
 		//GetCharacter ()->AddControllerPitchInput (value * GetWorld ()->DeltaTimeSeconds * 10.0f);
-		if (_cruiseSpeed)
-			pitchDelta = value * (_turnSpeed / 4.0f) * GetWorld()->DeltaTimeSeconds;
+		if (_cruiseSpeed) 
+		{
+			pitchDelta += value;// * (_turnSpeed / 4.0f) * GetWorld()->DeltaTimeSeconds;
+
+			if (pitchDelta >= .5f)
+				pitchDelta = .5f;
+			else if (pitchDelta <= -.5f)
+				pitchDelta = -.5f;
+		}
 		else
 			pitchDelta = value * _turnSpeed * GetWorld()->DeltaTimeSeconds;
 	}
 
 	//Debug
-	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Pitch Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaPitch value = " + FString::SanitizeFloat(pitchDelta, 2));
+	GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Pitch Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaPitch value = " + FString::SanitizeFloat(pitchDelta, 2));
 }
 
 void AMainPlayerController::Yaw (float value)
@@ -173,18 +188,29 @@ void AMainPlayerController::Yaw (float value)
 
 	if (value != .0f)
 	{
+
 		//GetCharacter ()->AddControllerYawInput (value * GetWorld ()->DeltaTimeSeconds * 10.0f);
 		if (_cruiseSpeed)
 		{
-			yawDelta = value * (_turnSpeed / 4.0f) * GetWorld()->DeltaTimeSeconds;
-			rollDelta = value * (_rollSpeed / 15.0f) * GetWorld()->DeltaTimeSeconds;
+			yawDelta += value;// *(_turnSpeed / 4.0f) * GetWorld()->DeltaTimeSeconds;
+			rollDelta += value / 4;// *(_rollSpeed / 15.0f) * GetWorld()->DeltaTimeSeconds;
+
+			if (yawDelta >= .5f)
+				yawDelta = .5f;
+			else if (yawDelta <= -.5f)
+				yawDelta = -.5f;
+
+			if (rollDelta >= .5f / 4)
+				rollDelta = .5f / 4;
+			else if (rollDelta <= -(.5f / 4))
+				rollDelta = -(.5f / 4);
 		}
 		else
 			yawDelta = value * _turnSpeed * GetWorld()->DeltaTimeSeconds;
 	}
 
 	//Debug
-	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Yaw Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaYaw value = " + FString::SanitizeFloat(yawDelta, 2));
+	GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Yaw Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaYaw value = " + FString::SanitizeFloat(yawDelta, 2));
 }
 
 void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float roll) 
@@ -203,10 +229,32 @@ void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float r
 	_character->AddActorLocalRotation(newDeltaRotation, false, 0, ETeleportType::None);
 	SetControlRotation (_character->GetActorRotation ());
 
+	if (_cruiseSpeed) return;
+
 	//Reset rotation values
 	yawDelta = .0f;
 	pitchDelta = .0f;
-	rollDelta = .0f;
+	//rollDelta = .0f;
+}
+
+void AMainPlayerController::UpdateAcceleration_Implementation(float value) 
+{
+	if (_UCharMoveComp != nullptr) {
+		_UCharMoveComp->MaxAcceleration = value;
+		ClientUpdateAcceleration(value);
+	}
+}
+
+bool AMainPlayerController::UpdateAcceleration_Validate(float value)
+{
+	return true;
+}
+
+void AMainPlayerController::ClientUpdateAcceleration_Implementation(float value)
+{
+	if (_UCharMoveComp != nullptr) {
+		_UCharMoveComp->MaxAcceleration = value;
+	}
 }
 
 void AMainPlayerController::UpdateSpeed_Implementation (float value) 
@@ -214,16 +262,23 @@ void AMainPlayerController::UpdateSpeed_Implementation (float value)
 	if (_character == nullptr || _UCharMoveComp == nullptr)
 		return;
 
-	GEngine->AddOnScreenDebugMessage(-1, .5f, FColor::Blue, "Current max speed: " + FString::SanitizeFloat(_UCharMoveComp->MaxFlySpeed, 1));
+	//GEngine->AddOnScreenDebugMessage(-1, .5f, FColor::Blue, "Current max speed: " + FString::SanitizeFloat(_UCharMoveComp->MaxFlySpeed, 1));
+	//GEngine->AddOnScreenDebugMessage(-1, .5f, FColor::Blue, "Current max acceleration: " + FString::SanitizeFloat(_UCharMoveComp->MaxAcceleration, 1));
 
 
 	//If we have entered cruisespeed, set the speed accordingly
 	if (_cruiseSpeed)
 	{
 		_UCharMoveComp->MaxFlySpeed = _maxSpeed * 10.0f;
+		//_UCharMoveComp->MaxAcceleration = 50000.0f;
+		UpdateAcceleration(35000.0f);
 		return;
 	}
-	else if (!_cruiseSpeed && _UCharMoveComp->MaxFlySpeed > _maxSpeed) _UCharMoveComp->MaxFlySpeed = _maxSpeed;
+	else if (!_cruiseSpeed && _UCharMoveComp->MaxFlySpeed > _maxSpeed)
+	{
+		_UCharMoveComp->MaxFlySpeed = _maxSpeed;
+		_UCharMoveComp->MaxAcceleration = 2000.0f;
+	}
 
 	//If current speed is less or higher than max/min speed after last frame, set it to max/min
 	if (_UCharMoveComp->MaxFlySpeed > _maxSpeed && !_cruiseSpeed) { _UCharMoveComp->MaxFlySpeed = _maxSpeed; return; }
@@ -237,7 +292,7 @@ void AMainPlayerController::UpdateSpeed_Implementation (float value)
 		else if (value < 0.0f)
 			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Mouse wheel DOWN! Value: " + FString::SanitizeFloat(value, 1));
 		*/
-
+		//_UCharMoveComp->MaxAcceleration = 50000.0f;
 		if (_UCharMoveComp->MaxFlySpeed <= _maxSpeed && _UCharMoveComp->MaxFlySpeed >= _minSpeed) 
 		{
 			float deltaAcceleration = value * _acceleration * GetWorld()->DeltaTimeSeconds;
@@ -287,6 +342,8 @@ void AMainPlayerController::GetLifetimeReplicatedProps(TArray <FLifetimeProperty
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AMainPlayerController, _cruiseSpeed);
 }
+
+
 
 void AMainPlayerController::SetupInputComponent ()
 {
