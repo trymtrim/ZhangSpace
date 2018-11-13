@@ -18,9 +18,9 @@ public:
 	void SetShowPing (bool status);
 
 	UPROPERTY (BlueprintReadOnly)
-	bool showFPS;
+	bool showFPS = false;
 	UPROPERTY (BlueprintReadOnly)
-	bool showPing;
+	bool showPing = false;
 
 	UFUNCTION (BlueprintCallable)
 	void SetTargetPlayerCount (int targetPlayerCount);

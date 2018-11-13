@@ -55,6 +55,10 @@ void ASpaceshipAI::ServerUpdate (float deltaTime)
 		UpdateAttackState (deltaTime);
 		break;
 	}
+
+	//Update "attack player out of range" timer
+	if (_shootOutOfRangeTimer > 0.0f)
+		_shootOutOfRangeTimer -= deltaTime;
 }
 
 void ASpaceshipAI::UpdatePatrolState (float deltaTime)
@@ -94,7 +98,7 @@ void ASpaceshipAI::UpdateAttackState (float deltaTime)
 	}
 	
 	//If target is out of lose-aggro range, change to patrol state
-	if (FVector::Distance (GetActorLocation (), _target->GetActorLocation ()) > _loseAggroRange || _target->GetIsDead ())
+	if (FVector::Distance (GetActorLocation (), _target->GetActorLocation ()) > _loseAggroRange && _shootOutOfRangeTimer <= 0.0f || _target->GetIsDead ())
 	{
 		_target = nullptr;
 		_state = PATROL;
@@ -117,6 +121,8 @@ bool ASpaceshipAI::CheckForAggro ()
 	//If a player is within aggro range, set that player as target
 	for (int i = 0; i < players.Num (); i++)
 	{
+		//MIGHT CRASH GAME HERE!
+
 		AMainCharacterController* player = players [i];
 
 		if (FVector::Distance (GetActorLocation (), player->GetActorLocation ()) <= _aggroRange && !player->GetIsDead ())
@@ -212,6 +218,14 @@ void ASpaceshipAI::Die ()
 float ASpaceshipAI::TakeDamage (float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	_health -= Damage;
+
+	if (DamageCauser->GetOwner ()->ActorHasTag ("Player"))
+	{
+		_target = Cast <AMainCharacterController> (DamageCauser->GetOwner ());
+
+		_state = ATTACK;
+		_shootOutOfRangeTimer = 5.0f;
+	}
 
 	//If health is below zero, die
 	if (_health <= 0)

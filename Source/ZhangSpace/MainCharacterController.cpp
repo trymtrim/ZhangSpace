@@ -72,6 +72,7 @@ void AMainCharacterController::BeginPlay ()
 		}
 
 		//Debugging
+		/*AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
@@ -82,8 +83,7 @@ void AMainCharacterController::BeginPlay ()
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
+		AddExperience (100);*/
 		//AddAbility (4);
 		//AddAbility (7);
 	}
@@ -356,6 +356,21 @@ void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVec
 	if (!_abilities.Contains (abilityIndex) || !gameStarted || _dead)
 		return;
 
+	//Get ability index, if ability is on cooldown, return
+	int actualAbilityIndex = 0;
+
+	for (int i = 0; i < _abilities.Num (); i++)
+	{
+		if (_abilities [i] == abilityIndex)
+		{
+			if (_abilityCooldowns [i] > 0.0f)
+				return;
+
+			actualAbilityIndex = i;
+			break;
+		}
+	}
+
 	//Use ability based on ability index
 	switch (abilityIndex)
 	{
@@ -371,17 +386,7 @@ void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVec
 	}
 
 	//Put ability on cooldown
-	for (int i = 0; i < _abilities.Num (); i++)
-	{
-		if (_abilities [i] == abilityIndex)
-		{
-			if (_abilityCooldowns [i] > 0.0f)
-				return;
-
-			_abilityCooldowns [i] = _abilityMaxCooldowns [abilityIndex];
-			break;
-		}
-	}
+	_abilityCooldowns [actualAbilityIndex] = _abilityMaxCooldowns [abilityIndex];
 }
 
 bool AMainCharacterController::UseAbility_Validate (int abilityIndex, FVector cameraPosition)

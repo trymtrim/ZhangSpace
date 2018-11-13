@@ -58,6 +58,8 @@ private:
 	float _currentAttackCooldown = 0.0f;
 
 	bool _gunPositionSwitch = true;
+
+	float _shootOutOfRangeTimer = 0.0f;
 	
 	UArrowComponent* gunPositionOne;
 	UArrowComponent* gunPositionTwo;
