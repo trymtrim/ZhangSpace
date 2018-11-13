@@ -74,10 +74,12 @@ private:
 	float _rollSpeed = 80.0f;				//Used to determine roll speed
 	float const _minSpeed = 1500.0f;		//Used as the lowest possible speed when flying
 	float const _maxSpeed = 10000.0f;		//Used as the default max speed
-	float _acceleration = 3000.0f;			//The rate at which the speed increases, is multiplied with scroll axis value
-
-
-	float _turnSpeed = 20.0f;				//Determines the rotation speed when using the mouse to rotate the ship based on delta values
+	float _acceleration = 5000.0f;			//The rate at which the speed increases when scrolling, is multiplied with scroll axis value (Not in cruise speed)
+	float _sensitivityScaler = 20.0f;		//Used to scale sensitivity with mouse input
+	float _maxDeltaValue = .5f;				//Used to clamp cruise speed delta values
+	float _turnSpeed = 20.0f;					//Determines the rotation speed when using the mouse to rotate the ship based on delta values, when not in cruise speed
+	float _defaultAcceleration = 2000.0f;		//Default acceleration in general settings in movementcomp when not in cruise speedw
+	float _cruiseSpeedAcceleration = 20000.0f;	//Acceleration when using cruise speed
 
 	//Pointer reference to the character class and its CharacterMovementComponent
 	AMainCharacterController* _character = nullptr;

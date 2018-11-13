@@ -132,7 +132,7 @@ void AMainPlayerController::Roll (float value)
 
 	if (_cruiseSpeed) 
 	{ 
-		rollDelta = FMath::FInterpTo(rollDelta, .0f, GetWorld()->DeltaTimeSeconds, 2.0f); 
+		//rollDelta = FMath::FInterpTo(rollDelta, .0f, GetWorld()->DeltaTimeSeconds, 2.0f); 
 		return;
 	}
 
@@ -160,15 +160,14 @@ void AMainPlayerController::Pitch (float value)
 
 	if (value != .0f)
 	{
-		//GetCharacter ()->AddControllerPitchInput (value * GetWorld ()->DeltaTimeSeconds * 10.0f);
 		if (_cruiseSpeed) 
 		{
-			pitchDelta += value;// * (_turnSpeed / 4.0f) * GetWorld()->DeltaTimeSeconds;
+			pitchDelta += value / _sensitivityScaler;
 
-			if (pitchDelta >= .5f)
-				pitchDelta = .5f;
-			else if (pitchDelta <= -.5f)
-				pitchDelta = -.5f;
+			if (pitchDelta >= _maxDeltaValue)
+				pitchDelta = _maxDeltaValue;
+			else if (pitchDelta <= -_maxDeltaValue)
+				pitchDelta = -_maxDeltaValue;
 		}
 		else
 			pitchDelta = value * _turnSpeed * GetWorld()->DeltaTimeSeconds;
@@ -192,21 +191,26 @@ void AMainPlayerController::Yaw (float value)
 		//GetCharacter ()->AddControllerYawInput (value * GetWorld ()->DeltaTimeSeconds * 10.0f);
 		if (_cruiseSpeed)
 		{
-			yawDelta += value;// *(_turnSpeed / 4.0f) * GetWorld()->DeltaTimeSeconds;
-			rollDelta += value / 4;// *(_rollSpeed / 15.0f) * GetWorld()->DeltaTimeSeconds;
+			//Add value to yaw and roll constantly
+			yawDelta += value / (_sensitivityScaler);
+			rollDelta += value;				
 
-			if (yawDelta >= .5f)
-				yawDelta = .5f;
-			else if (yawDelta <= -.5f)
-				yawDelta = -.5f;
+			//If the yaw and roll delta values are higher or lower than the defined sensitivity, clamp value
+			if (yawDelta >= _maxDeltaValue)
+				yawDelta = _maxDeltaValue;
+			else if (yawDelta <= -_maxDeltaValue)
+				yawDelta = -_maxDeltaValue;
 
-			if (rollDelta >= .5f / 4)
-				rollDelta = .5f / 4;
-			else if (rollDelta <= -(.5f / 4))
-				rollDelta = -(.5f / 4);
+			if (rollDelta >= _maxDeltaValue / 2.0f)
+				rollDelta = _maxDeltaValue / 2.0f;
+			else if (rollDelta <= -(_maxDeltaValue / 2.0f))
+				rollDelta = -(_maxDeltaValue / 2.0f);
 		}
 		else
+		{
+			//Do normal delta calculation based on turnSpeed when not in cruise speed
 			yawDelta = value * _turnSpeed * GetWorld()->DeltaTimeSeconds;
+		}
 	}
 
 	//Debug
@@ -229,9 +233,9 @@ void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float r
 	_character->AddActorLocalRotation(newDeltaRotation, false, 0, ETeleportType::None);
 	SetControlRotation (_character->GetActorRotation ());
 
-	if (_cruiseSpeed) return;
+	if (_cruiseSpeed) return; //Do not reset values if in cruise speed
 
-	//Reset rotation values
+	//Reset rotation values, this makes the aiming when not in cruise speed to simulate smooth fps controls
 	yawDelta = .0f;
 	pitchDelta = .0f;
 	//rollDelta = .0f;
@@ -270,17 +274,16 @@ void AMainPlayerController::UpdateSpeed_Implementation (float value)
 	if (_cruiseSpeed)
 	{
 		_UCharMoveComp->MaxFlySpeed = _maxSpeed * 10.0f;
-		//_UCharMoveComp->MaxAcceleration = 50000.0f;
-		UpdateAcceleration(35000.0f);
+		UpdateAcceleration(_cruiseSpeedAcceleration);
 		return;
 	}
 	else if (!_cruiseSpeed && _UCharMoveComp->MaxFlySpeed > _maxSpeed)
 	{
 		_UCharMoveComp->MaxFlySpeed = _maxSpeed;
-		_UCharMoveComp->MaxAcceleration = 2000.0f;
+		UpdateAcceleration(_defaultAcceleration);
 	}
 
-	//If current speed is less or higher than max/min speed after last frame, set it to max/min
+	//If current speed is less or higher than max/min speed after last frame, set it to max/min, preventing infintiely increase/decrease of speed when scrolling
 	if (_UCharMoveComp->MaxFlySpeed > _maxSpeed && !_cruiseSpeed) { _UCharMoveComp->MaxFlySpeed = _maxSpeed; return; }
 	else if (_UCharMoveComp->MaxFlySpeed < _minSpeed && !_cruiseSpeed) { _UCharMoveComp->MaxFlySpeed = _minSpeed; return; }
 
@@ -292,7 +295,7 @@ void AMainPlayerController::UpdateSpeed_Implementation (float value)
 		else if (value < 0.0f)
 			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Mouse wheel DOWN! Value: " + FString::SanitizeFloat(value, 1));
 		*/
-		//_UCharMoveComp->MaxAcceleration = 50000.0f;
+
 		if (_UCharMoveComp->MaxFlySpeed <= _maxSpeed && _UCharMoveComp->MaxFlySpeed >= _minSpeed) 
 		{
 			float deltaAcceleration = value * _acceleration * GetWorld()->DeltaTimeSeconds;
@@ -313,10 +316,10 @@ void AMainPlayerController::UpdateSpeed_Implementation (float value)
 
 	 if (_cruiseSpeed)
 	 { 
-		 GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, "Cruise speed: true");
-		 UpdateSpeed_Implementation(1.0f);	//Call the update speed implementation which normally is called when scrolling mouse wheel
+		 //GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, "Cruise speed: true");
+		 UpdateSpeed_Implementation(1.0f);	//Call the update speed implementation which normally is called when scrolling mouse wheel, pass 1 as argument to simulate button press
 	 }
-	 else GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, "Cruise speed: false");
+	 //else GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, "Cruise speed: false");
  }
 
  bool AMainPlayerController::CruiseSpeed_Validate ()
