@@ -585,7 +585,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 	if (_dead)
 		return 0.0f;
 
-	int finalDamage = 0;
+	int finalDamage = Damage;
 
 	if (shieldActive && !DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
 	{
@@ -597,8 +597,10 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 	}
 	else
 	{
-		finalDamage = Damage - Damage * (_defensePower * 8.0f / 100.0f);
-		_currentHealth -= finalDamage;
+		if (!DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
+			finalDamage = Damage - Damage * (_defensePower * 8.0f / 100.0f);
+
+			_currentHealth -= finalDamage;
 
 		if (DamageCauser != nullptr)
 		{
@@ -612,7 +614,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 					//If the player didn't get killed by AI
 					if (!DamageCauser->GetOwner ()->GetClass ()->IsChildOf (ASpaceshipAI::StaticClass ()))
 					{
-						//Update kill in game state
+						//Register kill in game state
 						AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser->GetOwner ());
 						AMainPlayerController* killPlayerController = Cast <AMainPlayerController> (killCharacter->GetController ());
 						_gameState->AddPlayerKill (killPlayerController);
