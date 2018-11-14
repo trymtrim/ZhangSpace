@@ -36,12 +36,9 @@ void AMainPlayerController::BeginPlay()
 	PlayerCameraManager->ViewRollMax = 359.998993f;
 	PlayerCameraManager->ViewRollMin = 0.0f;
 
-	//Register 
+	//Register player for game state
 	if (!GetWorld ()->IsServer ())
 		RegisterPlayer (ConfigManager::GetConfig ("Player_Name"), Cast <USettingsManager> (GetWorld ()->GetGameInstance ())->GetTargetPlayerCount ());
-
-	//To get mobility power (values = 1-10):
-	//_character->GetMobilityPower ();
 
 }
 
@@ -50,6 +47,7 @@ void AMainPlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//Always look for a reference to the player 
 	if (_character == nullptr) 
 	{
 		_character = Cast <AMainCharacterController>(GetCharacter());
@@ -65,7 +63,13 @@ void AMainPlayerController::Tick(float DeltaTime)
 	if (_cruiseSpeed)
 	{
 		_character->AddMovementInput(GetCharacter()->GetActorForwardVector(), 1.0f);
-		
+	}
+
+	if (_currentMobilityStat != _character->GetMobilityPower() && _character != nullptr) 
+	{
+		//To update mobility power (values = 1-10):
+		_currentMobilityStat = _character->GetMobilityPower();
+		UpdateSpeedAndAcceleration(_currentMobilityStat);
 	}
 
 	//---------- DEBUG ---------//
@@ -80,8 +84,7 @@ void AMainPlayerController::MoveForward (float value)
 			return;
 	}
 
-	if (_cruiseSpeed)
-		return;
+	if (_cruiseSpeed) return;		//If in cruise speed, do not update movement based on input
 
 	if (value != .0f )
 	{
@@ -98,7 +101,7 @@ void AMainPlayerController::Strafe (float value)
 			return;
 	}
 	
-	if (_cruiseSpeed) return;
+	if (_cruiseSpeed) return;		//If in cruise speed, do not update movement based on input
 
 	if (value != .0f)
 	{
@@ -219,6 +222,7 @@ void AMainPlayerController::Yaw (float value)
 
 void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float roll) 
 {
+	//Deadzone for registering input when in cruise speed
 	if (_cruiseSpeed)
 	{
 		if (FMath::Abs (pitch) < _minDeltaValue && FMath::Abs (yaw) < _minDeltaValue)
@@ -237,11 +241,13 @@ void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float r
 	//Make delta rotation in a Rotator and add it to local rotation on client side, then update the charactercontroller on server side
 	FRotator newDeltaRotation = FRotator(pitch,yaw,roll);
 	_character->AddActorLocalRotation(newDeltaRotation, false, 0, ETeleportType::None);
+
+	//Update the controller server side
 	SetControlRotation (_character->GetActorRotation ());
 
 	if (_cruiseSpeed) return; //Do not reset values if in cruise speed
 
-	//Reset rotation values, this makes the aiming when not in cruise speed to simulate smooth fps controls
+	//Reset rotation values, this simulates fps controls when not in cruise speed
 	yawDelta = .0f;
 	pitchDelta = .0f;
 	//rollDelta = .0f;
@@ -249,7 +255,8 @@ void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float r
 
 void AMainPlayerController::UpdateAcceleration_Implementation(float value) 
 {
-	if (_UCharMoveComp != nullptr) {
+	if (_UCharMoveComp != nullptr) 
+	{
 		_UCharMoveComp->MaxAcceleration = value;
 		ClientUpdateAcceleration(value);
 	}
@@ -267,7 +274,7 @@ void AMainPlayerController::ClientUpdateAcceleration_Implementation(float value)
 	}
 }
 
-void AMainPlayerController::UpdateSpeed_Implementation (float value) 
+void AMainPlayerController::IncreaseSpeed_Implementation (float value)
 {
 	if (_character == nullptr || _UCharMoveComp == nullptr)
 		return;
@@ -302,6 +309,7 @@ void AMainPlayerController::UpdateSpeed_Implementation (float value)
 			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Mouse wheel DOWN! Value: " + FString::SanitizeFloat(value, 1));
 		*/
 
+		//Update speed based on input
 		if (_UCharMoveComp->MaxFlySpeed <= _maxSpeed && _UCharMoveComp->MaxFlySpeed >= _minSpeed) 
 		{
 			float deltaAcceleration = value * _acceleration * GetWorld()->DeltaTimeSeconds;
@@ -310,7 +318,7 @@ void AMainPlayerController::UpdateSpeed_Implementation (float value)
 	}
 }
 
- bool AMainPlayerController::UpdateSpeed_Validate (float value)
+ bool AMainPlayerController::IncreaseSpeed_Validate (float value)
 {
 	 return true;
 }
@@ -323,7 +331,7 @@ void AMainPlayerController::UpdateSpeed_Implementation (float value)
 	 if (_cruiseSpeed)
 	 { 
 		 //GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, "Cruise speed: true");
-		 UpdateSpeed_Implementation(1.0f);	//Call the update speed implementation which normally is called when scrolling mouse wheel, pass 1 as argument to simulate button press
+		 IncreaseSpeed_Implementation(1.0f);	//Call the update speed implementation which normally is called when scrolling mouse wheel, pass 1 as argument to simulate button press
 	 }
 	 //else GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, "Cruise speed: false");
  }
@@ -343,6 +351,33 @@ void AMainPlayerController::RegisterPlayer_Implementation (const FString& player
 bool AMainPlayerController::RegisterPlayer_Validate (const FString& playerName, int targetPlayerCount)
 {
 	return true;
+}
+
+void AMainPlayerController::UpdateSpeedAndAcceleration(int mobilityPower) 
+{
+	/*
+		_minSpeed = 1500f
+		_maxSpeed = 10000f
+		default acceleration = 2000f
+		acceleration is very fast at 10000f
+	
+	*/
+
+	//Increase acceleration and speed thresholds based on mobility stat
+	switch (mobilityPower)
+	{
+		case 1: { _maxSpeed = 5000.0f; UpdateAcceleration(2000.0f); break; }
+		case 2: { _maxSpeed = 5000.0f; UpdateAcceleration(3000.0f); break; }
+		case 3: { _maxSpeed = 6000.0f; UpdateAcceleration(4000.0f); break; }
+		case 4: { _maxSpeed = 6000.0f; UpdateAcceleration(5000.0f); break; }
+		case 5: { _maxSpeed = 7000.0f; UpdateAcceleration(6000.0f); break; }
+		case 6: { _maxSpeed = 7000.0f; UpdateAcceleration(7000.0f); break; }
+		case 7: { _maxSpeed = 8000.0f; UpdateAcceleration(8000.0f); break; }
+		case 8: { _maxSpeed = 8000.0f; UpdateAcceleration(9000.0f); break; }
+		case 9: { _maxSpeed = 9000.0f; UpdateAcceleration(9500.0f); break; }
+		case 10: { _maxSpeed = 10000.0f; UpdateAcceleration(10000.0f); break; }
+		default: { _minSpeed = 1500.0f; _maxSpeed = 5000.0f; UpdateAcceleration(2000.0f);  break; }
+	}
 }
 
 
@@ -374,6 +409,6 @@ void AMainPlayerController::SetupInputComponent ()
 		InputComponent->BindAxis ("Yaw", this, &AMainPlayerController::Yaw);
 		InputComponent->BindAxis ("Pitch", this, &AMainPlayerController::Pitch);
 		InputComponent->BindAxis ("Roll", this, &AMainPlayerController::Roll);
-		InputComponent->BindAxis ("UpdateSpeed",this,&AMainPlayerController::UpdateSpeed);
+		InputComponent->BindAxis ("UpdateSpeed",this,&AMainPlayerController::IncreaseSpeed);
 	}
 }
