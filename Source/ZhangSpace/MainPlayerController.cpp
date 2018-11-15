@@ -65,11 +65,14 @@ void AMainPlayerController::Tick(float DeltaTime)
 		_character->AddMovementInput(GetCharacter()->GetActorForwardVector(), 1.0f);
 	}
 
-	if (_currentMobilityStat != _character->GetMobilityPower() && _character != nullptr) 
+	if (_character != nullptr)
 	{
-		//To update mobility power (values = 1-10):
-		_currentMobilityStat = _character->GetMobilityPower();
-		UpdateSpeedAndAcceleration(_currentMobilityStat);
+		if (_currentMobilityStat != _character->GetMobilityPower()) 
+		{
+			//To update mobility power (values = 1-10):
+			_currentMobilityStat = _character->GetMobilityPower();
+			UpdateSpeedAndAcceleration(_currentMobilityStat);
+		}
 	}
 
 	//---------- DEBUG ---------//

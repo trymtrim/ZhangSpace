@@ -140,6 +140,9 @@ public:
 	int gameServerCount;
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
 	TArray <FString> gameServerIpAddresses;
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, meta = (ExposeOnSpawn = true), Category = MessageObjects)
+	TArray <FString> playerCounts;
+
 };
 
 UCLASS(BlueprintType, Blueprintable)

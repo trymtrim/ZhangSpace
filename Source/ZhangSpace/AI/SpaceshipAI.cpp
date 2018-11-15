@@ -121,7 +121,7 @@ bool ASpaceshipAI::CheckForAggro ()
 	//If a player is within aggro range, set that player as target
 	for (int i = 0; i < players.Num (); i++)
 	{
-		//MIGHT CRASH GAME HERE!
+		//GAME MIGHT CRASH HERE!
 
 		AMainCharacterController* player = players [i];
 
