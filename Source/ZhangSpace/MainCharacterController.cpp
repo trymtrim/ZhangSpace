@@ -72,7 +72,6 @@ void AMainCharacterController::BeginPlay ()
 		}
 
 		//Debugging
-		/*AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
@@ -83,7 +82,8 @@ void AMainCharacterController::BeginPlay ()
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
-		AddExperience (100);*/
+		AddExperience (100);
+		AddExperience (100);
 		//AddAbility (4);
 		//AddAbility (7);
 	}
@@ -911,6 +911,10 @@ void AMainCharacterController::SetupPlayerInputComponent (UInputComponent* Playe
 	PlayerInputComponent->BindAction ("Ability2", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <2>);
 	PlayerInputComponent->BindAction ("Ability3", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <3>);
 	PlayerInputComponent->BindAction ("Ability4", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <4>);
+	PlayerInputComponent->BindAction ("Ability5", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <5>);
+	PlayerInputComponent->BindAction ("Ability6", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <6>);
+	PlayerInputComponent->BindAction ("Ability7", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <7>);
+	PlayerInputComponent->BindAction ("Ability8", IE_Pressed, this, &AMainCharacterController::UseAbilityInput <8>);
 
 	//Set up mouse cursor bindings
 	PlayerInputComponent->BindAction ("ShowMouseCursor", IE_Pressed, this, &AMainCharacterController::EnableMouseCursor);
