@@ -10,6 +10,7 @@
 #include "ShrinkingCircle.h"
 #include "Shield.h"
 #include "Components/ArrowComponent.h"
+#include "Runtime/UMG/Public/Components/PanelWidget.h"
 #include "MainCharacterController.generated.h"
 
 class AMainGameState;
@@ -52,6 +53,10 @@ public:
 	void ShootBP ();
 	UFUNCTION (BlueprintCallable)
 	void UpdateHotkeyBar (TArray <int> abilities);
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void UpdateHotkeyBarBP (const TArray <int>& hotkeyAbilities);
+	UFUNCTION (BlueprintCallable)
+	void ReplacePanelChild (UWidget* newWidget, UPanelWidget* panel, int index);
 	UFUNCTION (BlueprintCallable)
 	void OpenSettingsMenu (bool open);
 
@@ -92,9 +97,6 @@ public:
 	//These variables are set by the shield script
 	UPROPERTY (Replicated, BlueprintReadOnly) bool shieldActive = false;
 	AShield* shield = nullptr;
-
-	//Temp for midterm
-	UPROPERTY (BlueprintReadOnly) bool teleportUnlocked = false;
 
 protected:
 	//Called when the game starts or when spawned

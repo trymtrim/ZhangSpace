@@ -45,9 +45,6 @@ void AMainCharacterController::BeginPlay ()
 
 		//Add shield ability
 		AddAbility (0);
-
-		//Temp
-		//AddAbility (7);
 	}
 
 	if (GetWorld ()->IsServer ())
@@ -125,10 +122,18 @@ void AMainCharacterController::Tick (float DeltaTime)
 void AMainCharacterController::InitializeAbilityCooldowns ()
 {
 	_abilityMaxCooldowns.Add (0, 60.0f); //Shield
+	_abilityMaxCooldowns.Add (1, 10.0f); //Attack 1
+	_abilityMaxCooldowns.Add (2, 10.0f); //Attack 2
+	_abilityMaxCooldowns.Add (3, 10.0f); //Attack 3
+	_abilityMaxCooldowns.Add (4, 10.0f); //Defense 1
+	_abilityMaxCooldowns.Add (5, 10.0f); //Defense 2
+	_abilityMaxCooldowns.Add (6, 10.0f); //Defense 3
 	_abilityMaxCooldowns.Add (7, 15.0f); //Teleport
+	_abilityMaxCooldowns.Add (8, 10.0f); //Mobility 2
+	_abilityMaxCooldowns.Add (9, 10.0f); //Mobility 3
 
-	//Add shield ability to hotkey bar //TEMP
-	_hotkeyBarAbilities.Add (0); //Probably not temp
+	//Add shield ability to hotkey bar
+	_hotkeyBarAbilities.Add (0);
 }
 
 void AMainCharacterController::ChangeMesh (UStaticMesh* mesh)
@@ -231,13 +236,6 @@ void AMainCharacterController::AddExperience (int experience)
 void AMainCharacterController::AddAbility (int abilityIndex)
 {
 	ServerAddAbility (abilityIndex);
-
-	//Temp for midterm
-	if (abilityIndex == 7)
-	{
-		teleportUnlocked = true;
-		_hotkeyBarAbilities.Add (7);
-	}
 }
 
 void AMainCharacterController::ServerAddAbility_Implementation (int abilityIndex)
@@ -693,6 +691,12 @@ void AMainCharacterController::UpdateStatsUI ()
 void AMainCharacterController::UpdateHotkeyBar (TArray <int> abilities)
 {
 	_hotkeyBarAbilities = abilities;
+	UpdateHotkeyBarBP (_hotkeyBarAbilities);
+}
+
+void AMainCharacterController::ReplacePanelChild (UWidget* newWidget, UPanelWidget* panel, int index)
+{
+	panel->ReplaceChildAt (index, newWidget);
 }
 
 void AMainCharacterController::EnableMouseCursor ()
