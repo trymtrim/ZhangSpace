@@ -58,6 +58,8 @@ public:
 	UFUNCTION (BlueprintCallable)
 	void ReplacePanelChild (UWidget* newWidget, UPanelWidget* panel, int index);
 	UFUNCTION (BlueprintCallable)
+	void SwitchPanelPosition (UWidget* widgetOne, UWidget* widgetTwo, UPanelWidget* panel);
+	UFUNCTION (BlueprintCallable)
 	void OpenSettingsMenu (bool open);
 
 	bool GetCanMove ();

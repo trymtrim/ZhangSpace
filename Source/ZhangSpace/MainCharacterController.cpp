@@ -673,6 +673,8 @@ void AMainCharacterController::UpdateStatsUI ()
 				int abilityCooldownIndex = _abilities [j];
 				cooldownPercentages [i] = _abilityCooldowns [j] / _abilityMaxCooldowns [abilityCooldownIndex];
 			}
+			else if (abilityIndex == -1)
+				cooldownPercentages [i] = 0.0f;
 		}
 	}
 
@@ -697,6 +699,15 @@ void AMainCharacterController::UpdateHotkeyBar (TArray <int> abilities)
 void AMainCharacterController::ReplacePanelChild (UWidget* newWidget, UPanelWidget* panel, int index)
 {
 	panel->ReplaceChildAt (index, newWidget);
+}
+
+void AMainCharacterController::SwitchPanelPosition (UWidget* widgetOne, UWidget* widgetTwo, UPanelWidget* panel)
+{
+	UUserWidget* newWidget = CreateWidget (panel, widgetTwo->GetClass ());
+	int childIndex = panel->GetChildIndex (widgetOne);
+
+	panel->ReplaceChild (widgetTwo, widgetOne);
+	panel->ReplaceChildAt (childIndex, newWidget);
 }
 
 void AMainCharacterController::EnableMouseCursor ()
