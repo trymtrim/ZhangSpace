@@ -108,6 +108,8 @@ void AMainGameMode::RegisterPlayer (AMainPlayerController* playerController, int
 	//Add player to the list of connected players
 	_connectedPlayers.Add (playerController);
 
+	Cast <AMainCharacterController> (playerController->GetCharacter ())->playerID = _connectedPlayers.Num ();
+
 	//If all players have connected, start game
 	if (!_gameStarted && _connectedPlayers.Num () == _targetPlayerCount || _targetPlayerCount == 0)
 		StartGame ();

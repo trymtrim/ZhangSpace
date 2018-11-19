@@ -125,7 +125,7 @@ void AMainCharacterController::InitializeAbilityCooldowns ()
 	_abilityMaxCooldowns.Add (1, 10.0f); //Attack 1
 	_abilityMaxCooldowns.Add (2, 10.0f); //Attack 2
 	_abilityMaxCooldowns.Add (3, 10.0f); //Attack 3
-	_abilityMaxCooldowns.Add (4, 10.0f); //Defense 1
+	_abilityMaxCooldowns.Add (4, 30.0f); //Cloak
 	_abilityMaxCooldowns.Add (5, 10.0f); //Defense 2
 	_abilityMaxCooldowns.Add (6, 10.0f); //Defense 3
 	_abilityMaxCooldowns.Add (7, 15.0f); //Teleport
@@ -156,6 +156,8 @@ void AMainCharacterController::Die ()
 	_lives--;
 	_currentHealth = 0;
 	_dead = true;
+
+	cloakActive = false;
 
 	DieBP ();
 
@@ -211,6 +213,8 @@ void AMainCharacterController::Respawn ()
 
 void AMainCharacterController::GameOver ()
 {
+	_gameOver = true;
+
 	//Do stuff
 }
 
@@ -241,11 +245,11 @@ void AMainCharacterController::AddAbility (int abilityIndex)
 void AMainCharacterController::ServerAddAbility_Implementation (int abilityIndex)
 {
 	//If the ability is a passive, enable the respective bool, otherwise add it the the ability list
-	if (abilityIndex == 4) //||...)
+	if (abilityIndex == 5) //||...)
 	{
 		switch (abilityIndex)
 		{
-		case 4: //Shield reflect
+		case 5: //Shield reflect
 			_shieldReflect = true;
 			break;
 		}
@@ -340,7 +344,7 @@ void AMainCharacterController::ClientChangeShieldCooldown_Implementation (int co
 
 void AMainCharacterController::UseAbilityInput (int abilityIndex)
 {
-	if (!gameStarted || _dead || _showCursor || _hotkeyBarAbilities.Num () < abilityIndex)
+	if (!gameStarted || _dead || _inSettingsMenu || _hotkeyBarAbilities.Num () < abilityIndex)
 		return;
 
 	FVector cameraPosition = _cameraComponent->GetComponentLocation ();
@@ -377,6 +381,9 @@ void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVec
 			return;
 
 		Shield ();
+		break;
+	case 4:
+		Cloak ();
 		break;
 	case 7:
 		Teleport ();
@@ -530,6 +537,14 @@ void AMainCharacterController::Shield ()
 {
 	//Spawn shield
 	SpawnShieldBP ();
+}
+
+void AMainCharacterController::Cloak ()
+{
+	cloakActive = true;
+	CloakBP ();
+
+	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Using cloak");
 }
 
 void AMainCharacterController::Teleport ()
@@ -687,7 +702,7 @@ void AMainCharacterController::UpdateStatsUI ()
 			respawnText = "Respawning in " + FString::FromInt ((int) (_maxDeadTimer - _currentDeadTimer) + 1);
 	}
 	else
-		respawnText = "Game over!";
+		respawnText = "Game over!\n\nLeft click to spectate other players.";
 }
 
 void AMainCharacterController::UpdateHotkeyBar (TArray <int> abilities)
@@ -703,11 +718,19 @@ void AMainCharacterController::ReplacePanelChild (UWidget* newWidget, UPanelWidg
 
 void AMainCharacterController::SwitchPanelPosition (UWidget* widgetOne, UWidget* widgetTwo, UPanelWidget* panel)
 {
-	UUserWidget* newWidget = CreateWidget (panel, widgetTwo->GetClass ());
-	int childIndex = panel->GetChildIndex (widgetOne);
+	UUserWidget* newWidgetOne = CreateWidget (panel, widgetOne->GetClass ());
+	UUserWidget* newWidgetTwo = CreateWidget (panel, widgetTwo->GetClass ());
 
-	panel->ReplaceChild (widgetTwo, widgetOne);
-	panel->ReplaceChildAt (childIndex, newWidget);
+	int childOneIndex = panel->GetChildIndex (widgetOne);
+	int childTwoIndex = panel->GetChildIndex (widgetTwo);
+
+	panel->ReplaceChildAt (childOneIndex, newWidgetTwo);
+	panel->ReplaceChildAt (childTwoIndex, newWidgetOne);
+}
+
+int AMainCharacterController::GetPlayerID ()
+{
+	return playerID;
 }
 
 void AMainCharacterController::EnableMouseCursor ()
@@ -773,6 +796,17 @@ bool AMainCharacterController::SetShowCursor_Validate (bool show)
 
 void AMainCharacterController::MouseClick ()
 {
+	if (_gameOver)
+	{
+		if (!isSpectating)
+		{
+			StartSpectatingBP ();
+			isSpectating = true;
+		}
+		else
+			ChangeSpectateTargetBP ();
+	}
+
 	if (!_showCursor)
 		return;
 
@@ -899,11 +933,13 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 
 	DOREPLIFETIME (AMainCharacterController, _currentDeadTimer);
 	DOREPLIFETIME (AMainCharacterController, _lives);
+	DOREPLIFETIME (AMainCharacterController, _gameOver);
 
 	DOREPLIFETIME (AMainCharacterController, _showCursor);
 
 	DOREPLIFETIME (AMainCharacterController, shieldActive);
 
+	DOREPLIFETIME (AMainCharacterController, playerID);
 	DOREPLIFETIME (AMainCharacterController, gameStarted);
 }
 

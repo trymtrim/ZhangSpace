@@ -132,6 +132,9 @@ void AMainPlayerController::Roll (float value)
 {
 	if (_character != nullptr)			//If we have a reference to the character pointer
 	{
+		if (_character->isSpectating)
+			_character->SpectateRotateBP ("Roll", value);
+
 		if (_character->GetIsDead ())	//And the player is dead, don't do anything
 			return;
 	}
@@ -160,6 +163,9 @@ void AMainPlayerController::Pitch (float value)
 {
 	if (_character != nullptr)			//If we have a reference to the character pointer
 	{
+		if (_character->isSpectating)
+			_character->SpectateRotateBP ("Pitch", value);
+
 		//If player is using the mouse to click on spaceship UI, prevent rotation based on mouse axis value
 		if (!_character->GetCanMove ()) return;
 	}
@@ -187,6 +193,9 @@ void AMainPlayerController::Yaw (float value)
 {
 	if (_character != nullptr)			//If we have a reference to the character pointer
 	{
+		if (_character->isSpectating)
+			_character->SpectateRotateBP ("Yaw", value);
+
 		//If player is using the mouse to click on spaceship UI, prevent rotation based on mouse axis value
 		if (!_character->GetCanMove ()) return;
 	}

@@ -51,6 +51,8 @@ public:
 	void ShieldTakeDamageBP ();
 	UFUNCTION(BlueprintImplementableEvent, Category = "Character Controller")
 	void ShootBP ();
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void CloakBP ();
 	UFUNCTION (BlueprintCallable)
 	void UpdateHotkeyBar (TArray <int> abilities);
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
@@ -61,6 +63,20 @@ public:
 	void SwitchPanelPosition (UWidget* widgetOne, UWidget* widgetTwo, UPanelWidget* panel);
 	UFUNCTION (BlueprintCallable)
 	void OpenSettingsMenu (bool open);
+
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void StartSpectatingBP ();
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void ChangeSpectateTargetBP ();
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void SpectateRotateBP (const FString& rotateType, float value);
+
+	UPROPERTY (BlueprintReadOnly) bool isSpectating = false;
+
+	UFUNCTION (BlueprintCallable)
+	int GetPlayerID ();
+
+	UPROPERTY (Replicated) int playerID = -1;
 
 	bool GetCanMove ();
 	bool GetIsDead ();
@@ -95,6 +111,8 @@ public:
 	UPROPERTY (BlueprintReadOnly) int lives;
 	UPROPERTY (BlueprintReadOnly) TArray <float> cooldownPercentages {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 	UPROPERTY (BlueprintReadOnly) FString FPSText;
+
+	UPROPERTY (BlueprintReadOnly) bool cloakActive = false;
 
 	//These variables are set by the shield script
 	UPROPERTY (Replicated, BlueprintReadOnly) bool shieldActive = false;
@@ -131,6 +149,7 @@ private:
 
 	//Abilities
 	void Shield ();
+	void Cloak ();
 	void Teleport ();
 
 	//Passive abilities
@@ -207,6 +226,8 @@ private:
 
 	int FPS = 0;
 	void UpdateFPS ();
+
+	UPROPERTY (Replicated) bool _gameOver = false;
 
 	UCameraComponent* _cameraComponent;
 
