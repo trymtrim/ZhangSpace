@@ -245,11 +245,14 @@ void AMainCharacterController::AddAbility (int abilityIndex)
 void AMainCharacterController::ServerAddAbility_Implementation (int abilityIndex)
 {
 	//If the ability is a passive, enable the respective bool, otherwise add it the the ability list
-	if (abilityIndex == 5) //||...)
+	if (abilityIndex == 5 || abilityIndex == 6)
 	{
 		switch (abilityIndex)
 		{
-		case 5: //Shield reflect
+		case 5: //Shield Ram
+			shieldRam = true;
+			break;
+		case 6: //Shield Reflect
 			_shieldReflect = true;
 			break;
 		}
@@ -600,9 +603,17 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 
 	int finalDamage = Damage;
 
+	if (finalDamage > 800)
+	{
+		_currentHealth -= finalDamage;
+	}
 	if (shieldActive && !DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
 	{
 		finalDamage = Damage - Damage * (_defensePower * 8.0f / 100.0f);
+
+		if (_shieldReflect)
+			shield->OnHitByProjectile (DamageCauser->GetOwner (), Damage);
+
 		shield->ApplyDamage (finalDamage);
 		ShieldTakeDamageBP ();
 

@@ -19,6 +19,7 @@ public:
 	virtual void Tick (float DeltaTime) override;
 
 	void SetDamage (float projectileDamage);
+	void SetFollowTarget (AActor* target);
 
 protected:
 	//Called when the game starts or when spawned
@@ -26,6 +27,8 @@ protected:
 
 	UPROPERTY (BlueprintReadOnly)
 	float damage = 0.0f;
+	UPROPERTY (BlueprintReadOnly)
+	AActor* followTarget = nullptr;
 
 private:
 	void ServerUpdate (float deltaTime);

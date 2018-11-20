@@ -88,6 +88,8 @@ public:
 	//Passive ability getters
 	bool GetShieldReflect ();
 
+	UPROPERTY (BlueprintReadOnly) bool shieldRam;
+
 	FVector2D GetViewportSize (); //Returns the size of the clients viewport as a 2d vector
 
 	//Called from the server when the game starts

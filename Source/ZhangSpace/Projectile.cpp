@@ -38,3 +38,8 @@ void AProjectile::SetDamage (float projectileDamage)
 {
 	damage = projectileDamage;
 }
+
+void AProjectile::SetFollowTarget (AActor* target)
+{
+	followTarget = target;
+}

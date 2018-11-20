@@ -38,10 +38,7 @@ void AShield::BeginPlay ()
 		parentPlayer = Cast <AMainCharacterController> (GetParentActor ());
 
 		if (parentPlayer->GetShieldReflect ())
-		{
 			shieldReflect = true;
-			GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Has shield reflect");
-		}
 
 		//Tell character controller that shield is active
 		parentPlayer->shieldActive = true;
@@ -58,21 +55,20 @@ void AShield::Tick (float DeltaTime)
 		ServerUpdate (DeltaTime);
 }
 
-void AShield::OnHitByProjectile (FRotator bulletRotation)
+void AShield::OnHitByProjectile (AActor* targetToFollow, int damage)
 {
 	if (shieldReflect)
 	{
-		GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, bulletRotation.ToString ());
-
 		//Declare spawn parameters
 		FActorSpawnParameters spawnParams;
-		FVector spawnPosition = GetActorLocation () - bulletRotation.Vector () * 500.0f;
-		FRotator spawnRotation = (-bulletRotation.Vector ()).Rotation ();
+		FVector spawnPosition = GetActorLocation ();// + GetActorForwardVector () * 1000.0f;
+		FRotator spawnRotation = GetActorRotation ();
+		spawnParams.Owner = parentPlayer;
 
 		//Spawn projectile
-		GetWorld ()->SpawnActor <AActor> (_projectileBP, spawnPosition, spawnRotation, spawnParams);
-
-		GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Shield hit by projectile");
+		AProjectile* projectile = GetWorld ()->SpawnActor <AProjectile> (_projectileBP, spawnPosition, spawnRotation, spawnParams);
+		projectile->SetDamage (damage);
+		projectile->SetFollowTarget (targetToFollow);
 	}
 
 	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Shield hit by projectile");

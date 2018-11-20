@@ -75,7 +75,7 @@ protected:
 private:
 	//---------- MOVEMENT VALUES ----------//
 	float _rollSpeed = 80.0f;				//Used to determine roll speed
-	float _minSpeed = 1500.0f;		//Used as the lowest possible speed when flying
+	float _minSpeed = 5000.0f;		//Used as the lowest possible speed when flying
 	float _maxSpeed = 10000.0f;		//Used as the default max speed
 	float _acceleration = 5000.0f;			//The rate at which the speed increases when scrolling, is multiplied with scroll axis value (Not in cruise speed)
 	float _sensitivityScaler = 20.0f;		//Used to scale sensitivity with mouse input

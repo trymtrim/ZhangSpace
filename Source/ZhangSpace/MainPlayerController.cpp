@@ -71,8 +71,11 @@ void AMainPlayerController::Tick(float DeltaTime)
 		{
 			//To update mobility power (values = 1-10):
 			_currentMobilityStat = _character->GetMobilityPower();
-			UpdateSpeedAndAcceleration(_currentMobilityStat);
 		}
+
+		UpdateSpeedAndAcceleration(_currentMobilityStat);
+
+		GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Speed: " + FString::SanitizeFloat (_UCharMoveComp->MaxFlySpeed));
 	}
 
 	//---------- DEBUG ---------//
@@ -298,14 +301,15 @@ void AMainPlayerController::IncreaseSpeed_Implementation (float value)
 	//If we have entered cruisespeed, set the speed accordingly
 	if (_cruiseSpeed)
 	{
-		_UCharMoveComp->MaxFlySpeed = _maxSpeed * 10.0f;
-		UpdateAcceleration(_cruiseSpeedAcceleration);
+		_UCharMoveComp->MaxFlySpeed = _maxSpeed * 5.0f;
+		UpdateAcceleration(_UCharMoveComp->MaxAcceleration * 5);
 		return;
 	}
-	else if (!_cruiseSpeed && _UCharMoveComp->MaxFlySpeed > _maxSpeed)
+	else
 	{
 		_UCharMoveComp->MaxFlySpeed = _maxSpeed;
-		UpdateAcceleration(_defaultAcceleration);
+		UpdateAcceleration(_UCharMoveComp->MaxAcceleration / 5);
+		return;
 	}
 
 	//If current speed is less or higher than max/min speed after last frame, set it to max/min, preventing infintiely increase/decrease of speed when scrolling
@@ -343,7 +347,7 @@ void AMainPlayerController::IncreaseSpeed_Implementation (float value)
 	 if (_cruiseSpeed)
 	 { 
 		 //GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, "Cruise speed: true");
-		 IncreaseSpeed_Implementation(1.0f);	//Call the update speed implementation which normally is called when scrolling mouse wheel, pass 1 as argument to simulate button press
+		  //IncreaseSpeed_Implementation(1.0f);	//Call the update speed implementation which normally is called when scrolling mouse wheel, pass 1 as argument to simulate button press
 	 }
 	 //else GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, "Cruise speed: false");
  }
@@ -378,17 +382,29 @@ void AMainPlayerController::UpdateSpeedAndAcceleration(int mobilityPower)
 	//Increase acceleration and speed thresholds based on mobility stat
 	switch (mobilityPower)
 	{
-		case 1: { _maxSpeed = 5000.0f; UpdateAcceleration(2000.0f); break; }
-		case 2: { _maxSpeed = 5000.0f; UpdateAcceleration(3000.0f); break; }
-		case 3: { _maxSpeed = 6000.0f; UpdateAcceleration(4000.0f); break; }
-		case 4: { _maxSpeed = 6000.0f; UpdateAcceleration(5000.0f); break; }
-		case 5: { _maxSpeed = 7000.0f; UpdateAcceleration(6000.0f); break; }
-		case 6: { _maxSpeed = 7000.0f; UpdateAcceleration(7000.0f); break; }
-		case 7: { _maxSpeed = 8000.0f; UpdateAcceleration(8000.0f); break; }
-		case 8: { _maxSpeed = 8000.0f; UpdateAcceleration(9000.0f); break; }
-		case 9: { _maxSpeed = 9000.0f; UpdateAcceleration(9500.0f); break; }
-		case 10: { _maxSpeed = 10000.0f; UpdateAcceleration(10000.0f); break; }
-		default: { _minSpeed = 1500.0f; _maxSpeed = 5000.0f; UpdateAcceleration(2000.0f);  break; }
+		case 1: { _maxSpeed = 5000.0f; _acceleration = 4000.0f; break; }
+		case 2: { _maxSpeed = 6000.0f; _acceleration = 6000.0f; break; }
+		case 3: { _maxSpeed = 7000.0f; _acceleration = 8000.0f; break; }
+		case 4: { _maxSpeed = 8000.0f; _acceleration = 10000.0f; break; }
+		case 5: { _maxSpeed = 9000.0f; _acceleration = 12000.0f; break; }
+		case 6: { _maxSpeed = 10000.0f; _acceleration = 14000.0f; break; }
+		case 7: { _maxSpeed = 11000.0f; _acceleration = 16000.0f; break; }
+		case 8: { _maxSpeed = 12000.0f; _acceleration = 18000.0f; break; }
+		case 9: { _maxSpeed = 13000.0f; _acceleration = 1900.0f; break; }
+		case 10: { _maxSpeed = 14000.0f; _acceleration = 20000.0f; break; }
+		default: { _maxSpeed = 5000.0f; _acceleration = 4000.0f;  break; }
+	}
+
+	if (_cruiseSpeed)
+	{
+		_UCharMoveComp->MaxFlySpeed = _maxSpeed * 2.5f;
+		_UCharMoveComp->MaxAcceleration = _acceleration * 5.0f;
+	}
+	else
+	{
+		_UCharMoveComp->MaxFlySpeed = _maxSpeed;
+		_UCharMoveComp->MaxAcceleration = _acceleration;
+
 	}
 }
 
@@ -398,8 +414,6 @@ void AMainPlayerController::GetLifetimeReplicatedProps(TArray <FLifetimeProperty
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AMainPlayerController, _cruiseSpeed);
 }
-
-
 
 void AMainPlayerController::SetupInputComponent ()
 {
@@ -421,6 +435,6 @@ void AMainPlayerController::SetupInputComponent ()
 		InputComponent->BindAxis ("Yaw", this, &AMainPlayerController::Yaw);
 		InputComponent->BindAxis ("Pitch", this, &AMainPlayerController::Pitch);
 		InputComponent->BindAxis ("Roll", this, &AMainPlayerController::Roll);
-		InputComponent->BindAxis ("UpdateSpeed",this,&AMainPlayerController::IncreaseSpeed);
+		//InputComponent->BindAxis ("UpdateSpeed",this,&AMainPlayerController::IncreaseSpeed);
 	}
 }

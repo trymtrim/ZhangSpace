@@ -21,8 +21,7 @@ public:
 	//Called every frame
 	virtual void Tick (float DeltaTime) override;
 
-	UFUNCTION (BlueprintCallable)
-	void OnHitByProjectile (FRotator bulletRotation);
+	void OnHitByProjectile (AActor* targetToFollow, int damage);
 
 	UPROPERTY (BlueprintReadOnly) bool shieldReflect;
 
