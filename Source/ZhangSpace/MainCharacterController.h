@@ -21,7 +21,7 @@ class ZHANGSPACE_API AMainCharacterController : public ACharacter
 	GENERATED_BODY ()
 
 public:
-	AMainCharacterController ();	//Cuntstroker...
+	AMainCharacterController ();
 
 	//Called every frame
 	virtual void Tick (float DeltaTime) override;
@@ -71,6 +71,9 @@ public:
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void SpectateRotateBP (const FString& rotateType, float value);
 
+	UFUNCTION (Client, Reliable)
+	void SetShieldHealth (int health);
+
 	UPROPERTY (BlueprintReadOnly) bool isSpectating = false;
 
 	UFUNCTION (BlueprintCallable)
@@ -86,6 +89,7 @@ public:
 	bool IsAttackableInScope ();
 
 	//Passive ability getters
+	UFUNCTION (BlueprintCallable) 
 	bool GetShieldReflect ();
 
 	UPROPERTY (BlueprintReadOnly) bool shieldRam;
@@ -113,6 +117,7 @@ public:
 	UPROPERTY (BlueprintReadOnly) int lives;
 	UPROPERTY (BlueprintReadOnly) TArray <float> cooldownPercentages {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 	UPROPERTY (BlueprintReadOnly) FString FPSText;
+	UPROPERTY (BlueprintReadOnly) int shieldHealth;
 
 	UPROPERTY (BlueprintReadOnly) bool cloakActive = false;
 

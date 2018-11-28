@@ -39,7 +39,6 @@ void AMainPlayerController::BeginPlay()
 	//Register player for game state
 	if (!GetWorld ()->IsServer ())
 		RegisterPlayer (ConfigManager::GetConfig ("Player_Name"), Cast <USettingsManager> (GetWorld ()->GetGameInstance ())->GetTargetPlayerCount ());
-
 }
 
 //Called every frame
@@ -59,21 +58,42 @@ void AMainPlayerController::Tick(float DeltaTime)
 	if (!GetWorld ()->IsServer ())
 		UpdatePlayerRotation (pitchDelta, yawDelta, rollDelta);
 
-	//Normally the movement is done when pressing down a button, when in cruise speed we want constant movement forward
-	if (_cruiseSpeed)
+	if (_character != nullptr)
 	{
-		_character->AddMovementInput(GetCharacter()->GetActorForwardVector(), 1.0f);
+		if (!_character->GetIsDead ())
+		{
+			//Normally the movement is done when pressing down a button, when in cruise speed we want constant movement forward
+			if (_cruiseSpeed)
+			{
+				_character->AddMovementInput(GetCharacter()->GetActorForwardVector(), 1.0f);
+			}
+		}
 	}
 
 	if (_character != nullptr)
 	{
-		if (_currentMobilityStat != _character->GetMobilityPower()) 
+		if (GetWorld ()->IsServer ())
 		{
-			//To update mobility power (values = 1-10):
-			_currentMobilityStat = _character->GetMobilityPower();
+			if (_currentMobilityStat != _character->GetMobilityPower()) 
+			{
+				//To update mobility power (values = 1-10):
+				_currentMobilityStat = _character->GetMobilityPower();
+
+				UpdateSpeedAndAcceleration(_currentMobilityStat);
+			}
 		}
 
-		UpdateSpeedAndAcceleration(_currentMobilityStat);
+		//Update the speed and acceleration depending on whether or not we are in cruise speed
+		if (_cruiseSpeed)
+		{
+			_UCharMoveComp->MaxFlySpeed = _maxSpeed * 2.5f;
+			_UCharMoveComp->MaxAcceleration = _acceleration * 5.0f;
+		}
+		else
+		{
+			_UCharMoveComp->MaxFlySpeed = _maxSpeed;
+			_UCharMoveComp->MaxAcceleration = _acceleration;
+		}
 
 		GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Speed: " + FString::SanitizeFloat (_UCharMoveComp->MaxFlySpeed));
 	}
@@ -342,6 +362,12 @@ void AMainPlayerController::IncreaseSpeed_Implementation (float value)
  //Called when Cruise Speed button is pressed once
  void AMainPlayerController::CruiseSpeed_Implementation ()
  {
+	 if (_character != nullptr)			//If we have a reference to the character pointer
+	 {
+		 if (_character->GetIsDead ())	//And the player is dead, don't do anything
+			 return;
+	 }
+
 	 _cruiseSpeed = !_cruiseSpeed;
 
 	 if (_cruiseSpeed)
@@ -394,25 +420,14 @@ void AMainPlayerController::UpdateSpeedAndAcceleration(int mobilityPower)
 		case 10: { _maxSpeed = 14000.0f; _acceleration = 20000.0f; break; }
 		default: { _maxSpeed = 5000.0f; _acceleration = 4000.0f;  break; }
 	}
-
-	if (_cruiseSpeed)
-	{
-		_UCharMoveComp->MaxFlySpeed = _maxSpeed * 2.5f;
-		_UCharMoveComp->MaxAcceleration = _acceleration * 5.0f;
-	}
-	else
-	{
-		_UCharMoveComp->MaxFlySpeed = _maxSpeed;
-		_UCharMoveComp->MaxAcceleration = _acceleration;
-
-	}
 }
-
 
 void AMainPlayerController::GetLifetimeReplicatedProps(TArray <FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AMainPlayerController, _cruiseSpeed);
+	DOREPLIFETIME(AMainPlayerController, _maxSpeed);
+	DOREPLIFETIME(AMainPlayerController, _acceleration);
 }
 
 void AMainPlayerController::SetupInputComponent ()

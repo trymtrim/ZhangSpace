@@ -69,6 +69,7 @@ void AMainCharacterController::BeginPlay ()
 		}
 
 		//Debugging
+		/*AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
@@ -79,8 +80,7 @@ void AMainCharacterController::BeginPlay ()
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
+		AddExperience (100);*/
 		//AddAbility (4);
 		//AddAbility (7);
 	}
@@ -239,6 +239,20 @@ void AMainCharacterController::AddExperience (int experience)
 
 void AMainCharacterController::AddAbility (int abilityIndex)
 {
+	//If the ability is a passive, enable the respective bool client-side
+	if (abilityIndex == 5 || abilityIndex == 6)
+	{
+		switch (abilityIndex)
+		{
+		case 5: //Shield Ram
+			shieldRam = true;
+			break;
+		case 6: //Shield Reflect
+			_shieldReflect = true;
+			break;
+		}
+	}
+
 	ServerAddAbility (abilityIndex);
 }
 
@@ -898,6 +912,11 @@ bool AMainCharacterController::GetIsDead ()
 int AMainCharacterController::GetMobilityPower ()
 {
 	return _mobilityPower;
+}
+
+void AMainCharacterController::SetShieldHealth_Implementation (int health)
+{
+	shieldHealth = health;
 }
 
 //Returns the viewport of the client
