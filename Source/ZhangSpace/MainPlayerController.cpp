@@ -62,7 +62,7 @@ void AMainPlayerController::Tick(float DeltaTime)
 	{
 		if (!_character->GetIsDead ())
 		{
-			//Normally the movement is done when pressing down a button, when in cruise speed we want constant movement forward
+			//Normally the movement is done when pressing down a button, when in cruise speed we want constant movement forward, so 1.0f as scale
 			if (_cruiseSpeed)
 			{
 				_character->AddMovementInput(GetCharacter()->GetActorForwardVector(), 1.0f);
@@ -81,25 +81,73 @@ void AMainPlayerController::Tick(float DeltaTime)
 
 				UpdateSpeedAndAcceleration(_currentMobilityStat);
 			}
+
+			_chargeRatio = _CSChargeCD / CS_CHARGE_TIME;
+			_cooldownRatio = _CSCooldown / CS_CD;
+		}
+
+		//If charging and not in cruise speed
+		if (_charge && !_cruiseSpeed) 
+		{
+			if (_CSChargeCD <= CS_CHARGE_TIME && _CSCooldown == .0f) 
+			{	
+				_CSChargeCD += GetWorld()->DeltaTimeSeconds;	//Increase charge cooldown
+			}
+			else if (_CSChargeCD > CS_CHARGE_TIME) 
+			{
+				_CSChargeCD = CS_CHARGE_TIME;	//Set max value so it doesn't go above max
+				_charge = false;
+				_cruiseSpeed = true;	//Enter cruise speed when fully charged
+			}
+		}
+		else if (!_charge && !_cruiseSpeed)		//If we release charge button before entering cruise speed
+		{
+			if (_CSChargeCD > .0f)
+				_CSChargeCD -= GetWorld ()->DeltaTimeSeconds;	//Decrease charge cooldown
+			else if (_CSChargeCD < .0f)
+				_CSChargeCD = .0f;				//If less than zero, clamp to zero 
 		}
 
 		//Update the speed and acceleration depending on whether or not we are in cruise speed
 		if (_cruiseSpeed)
 		{
+			//Update max speed and acceleration accordingly, current mobility determines max speed and acceleration, which again is factored
 			_UCharMoveComp->MaxFlySpeed = _maxSpeed * 2.5f;
 			_UCharMoveComp->MaxAcceleration = _acceleration * 5.0f;
 		}
-		else
+		else if (_UCharMoveComp->MaxFlySpeed != _maxSpeed && _UCharMoveComp->MaxAcceleration != _acceleration)
 		{
 			_UCharMoveComp->MaxFlySpeed = _maxSpeed;
 			_UCharMoveComp->MaxAcceleration = _acceleration;
 		}
 
-		GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Speed: " + FString::SanitizeFloat (_UCharMoveComp->MaxFlySpeed));
+		if (!_cruiseSpeed && _CSCooldown > .0f)	//We have exited cruise speed and cooldown is set
+		{
+			_CSCooldown -= GetWorld()->DeltaTimeSeconds;	//Decrease cooldown timer
+		}
+		else if (!_cruiseSpeed && _CSCooldown < .0f)	//We have exited cruise speed and cooldown is done
+		{
+			_CSCooldown = .0f; //Reset cooldown
+		}
+
+
+		//Apply braking if we're not in cruise speed
+		if (_braking && !_cruiseSpeed) 
+		{	
+			
+			//_UCharMoveComp->ApplyVelocityBraking(GetWorld()->DeltaTimeSeconds, 5.0f, _acceleration);
+			_UCharMoveComp->CalcVelocity(GetWorld()->DeltaTimeSeconds, .5f, false, .0f);
+			//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Braking: true");
+		}
+		//else GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Braking: false");
+		
+		//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Charge value: " + FString::SanitizeFloat (_CSChargeCD));
+		//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Cruise speed CD value: " + FString::SanitizeFloat (_CSCooldown));
 	}
 
-	//---------- DEBUG ---------//
-	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "HIGH SCROLL VALUE: " + FString::SanitizeFloat(_highScroll, 1) + "\nLOW SCROLL VALUE: " + FString::SanitizeFloat(_lowScroll, 1));
+	
+	GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Charge ratio: " + FString::SanitizeFloat (_chargeRatio));
+	GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Cooldown ratio: " + FString::SanitizeFloat (_cooldownRatio));
 }
 
 void AMainPlayerController::MoveForward (float value)
@@ -110,7 +158,7 @@ void AMainPlayerController::MoveForward (float value)
 			return;
 	}
 
-	if (_cruiseSpeed) return;		//If in cruise speed, do not update movement based on input
+	if (_cruiseSpeed || _braking) return;		//If in cruise speed, do not update movement based on input
 
 	if (value != .0f )
 	{
@@ -127,7 +175,7 @@ void AMainPlayerController::Strafe (float value)
 			return;
 	}
 	
-	if (_cruiseSpeed) return;		//If in cruise speed, do not update movement based on input
+	if (_cruiseSpeed || _braking) return;		//If in cruise speed, do not update movement based on input
 
 	if (value != .0f)
 	{
@@ -143,7 +191,7 @@ void AMainPlayerController::VerticalStrafe (float value)
 		if (_character->GetIsDead())	//And the player is dead, don't do anything
 			return;
 	}
-	if (_cruiseSpeed) return;
+	if (_cruiseSpeed || _braking) return;
 
 	if (value != .0f)
 	{
@@ -162,16 +210,14 @@ void AMainPlayerController::Roll (float value)
 			return;
 	}
 
-	if (_cruiseSpeed) 
+	/*if (_cruiseSpeed) 
 	{ 
 		//rollDelta = FMath::FInterpTo(rollDelta, .0f, GetWorld()->DeltaTimeSeconds, 2.0f); 
 		return;
-	}
+	}*/
 
 	if (value != .0f)
 	{
-		//GetCharacter ()->AddControllerRollInput (value * GetWorld ()->DeltaTimeSeconds * 50.0f);
-
 		rollDelta = value * _rollSpeed * GetWorld()->DeltaTimeSeconds;
 	}
 	
@@ -195,7 +241,7 @@ void AMainPlayerController::Pitch (float value)
 
 	if (value != .0f)
 	{
-		if (_cruiseSpeed) 
+		if (_cruiseSpeed) //Lower the pitch sensitivity and make it continously
 		{
 			pitchDelta += value / _sensitivityScaler;
 
@@ -204,12 +250,12 @@ void AMainPlayerController::Pitch (float value)
 			else if (pitchDelta <= -_maxDeltaValue)
 				pitchDelta = -_maxDeltaValue;
 		}
-		else
+		else //Make pitch like FPS controls
 			pitchDelta = value * _turnSpeed * GetWorld()->DeltaTimeSeconds;
 	}
 
 	//Debug
-	GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Pitch Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaPitch value = " + FString::SanitizeFloat(pitchDelta, 2));
+	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Pitch Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaPitch value = " + FString::SanitizeFloat(pitchDelta, 2));
 }
 
 void AMainPlayerController::Yaw (float value)
@@ -252,7 +298,7 @@ void AMainPlayerController::Yaw (float value)
 	}
 
 	//Debug
-	GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Yaw Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaYaw value = " + FString::SanitizeFloat(yawDelta, 2));
+	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Yaw Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaYaw value = " + FString::SanitizeFloat(yawDelta, 2));
 }
 
 void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float roll) 
@@ -309,6 +355,7 @@ void AMainPlayerController::ClientUpdateAcceleration_Implementation(float value)
 	}
 }
 
+//---------- NOT USED ----------//
 void AMainPlayerController::IncreaseSpeed_Implementation (float value)
 {
 	if (_character == nullptr || _UCharMoveComp == nullptr)
@@ -359,8 +406,7 @@ void AMainPlayerController::IncreaseSpeed_Implementation (float value)
 	 return true;
 }
 
- //Called when Cruise Speed button is pressed once
- void AMainPlayerController::CruiseSpeed_Implementation ()
+ void AMainPlayerController::Brake_Implementation() 
  {
 	 if (_character != nullptr)			//If we have a reference to the character pointer
 	 {
@@ -368,17 +414,75 @@ void AMainPlayerController::IncreaseSpeed_Implementation (float value)
 			 return;
 	 }
 
-	 _cruiseSpeed = !_cruiseSpeed;
+	 if (_cruiseSpeed) _cruiseSpeed = false;
 
+	 _braking = true;
+ }
+
+ bool AMainPlayerController::Brake_Validate() 
+ {
+	 return true;
+ }
+
+ void AMainPlayerController::StopBrake_Implementation ()
+ {
+	 _braking = false;
+ }
+
+ bool AMainPlayerController::StopBrake_Validate ()
+ {
+	 return true;
+ }
+
+
+
+ //Called when Cruise Speed button is pressed
+ void AMainPlayerController::ChargeCruiseSpeed_Implementation ()
+ {
+	 if (_character != nullptr)			//If we have a reference to the character pointer
+	 {
+		 if (_character->GetIsDead ())	//And the player is dead, don't do anything
+			 return;
+	 }
+
+	 if (_cruiseSpeed) 
+	 { 
+		 _cruiseSpeed = false; 			//Go out of cruise speed if we release the button while in cruisespeed
+		 _CSChargeCD = .0f;				//Reset charge value if we exit cruise speed, so that progress bar stays green
+
+		 //Set cooldown
+		 if (_CSCooldown == .0f)
+			 _CSCooldown = CS_CD;
+	 
+	 }
+	 else _charge = true;						//Continue charging
+
+	 /*
 	 if (_cruiseSpeed)
 	 { 
 		 //GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, "Cruise speed: true");
-		  //IncreaseSpeed_Implementation(1.0f);	//Call the update speed implementation which normally is called when scrolling mouse wheel, pass 1 as argument to simulate button press
+		  IncreaseSpeed_Implementation(1.0f);	//Call the update speed implementation which normally is called when scrolling mouse wheel, pass 1 as argument to simulate button press
 	 }
-	 //else GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, "Cruise speed: false");
+	 //else GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, "Cruise speed: false"); */
  }
 
- bool AMainPlayerController::CruiseSpeed_Validate ()
+ bool AMainPlayerController::ChargeCruiseSpeed_Validate ()
+ {
+	 return true;
+ }
+
+ void AMainPlayerController::StopChargeCruiseSpeed_Implementation ()
+ {
+	 if (_character != nullptr)			//If we have a reference to the character pointer
+	 {
+		 if (_character->GetIsDead ())	//And the player is dead, don't do anything
+			 return;
+	 }
+
+	 if (_charge) _charge = false;	//Stop charging if we release the button too early
+ }
+
+ bool AMainPlayerController::StopChargeCruiseSpeed_Validate ()
  {
 	 return true;
  }
@@ -425,9 +529,11 @@ void AMainPlayerController::UpdateSpeedAndAcceleration(int mobilityPower)
 void AMainPlayerController::GetLifetimeReplicatedProps(TArray <FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AMainPlayerController, _cruiseSpeed);
-	DOREPLIFETIME(AMainPlayerController, _maxSpeed);
-	DOREPLIFETIME(AMainPlayerController, _acceleration);
+	DOREPLIFETIME (AMainPlayerController, _cruiseSpeed);
+	DOREPLIFETIME (AMainPlayerController, _maxSpeed);
+	DOREPLIFETIME (AMainPlayerController, _acceleration);
+	DOREPLIFETIME (AMainPlayerController, _chargeRatio);
+	DOREPLIFETIME (AMainPlayerController, _cooldownRatio);
 }
 
 void AMainPlayerController::SetupInputComponent ()
@@ -439,7 +545,11 @@ void AMainPlayerController::SetupInputComponent ()
 	if (InputComponent != NULL)
 	{
 		//Set up action binding
-		InputComponent->BindAction("CruiseSpeed", IE_Pressed, this, &AMainPlayerController::CruiseSpeed);
+		InputComponent->BindAction ("CruiseSpeed", IE_Pressed, this, &AMainPlayerController::ChargeCruiseSpeed);
+		InputComponent->BindAction ("CruiseSpeed", IE_Released, this, &AMainPlayerController::StopChargeCruiseSpeed);
+
+		InputComponent->BindAction ("Brake", IE_Pressed, this, &AMainPlayerController::Brake);
+		InputComponent->BindAction ("Brake", IE_Released, this, &AMainPlayerController::StopBrake);
 
 		//Set up movement bindings
 		InputComponent->BindAxis ("MoveForward", this, &AMainPlayerController::MoveForward);

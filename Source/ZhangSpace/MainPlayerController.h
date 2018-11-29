@@ -49,7 +49,16 @@ public:
 
 	//Cruise speed
 	UFUNCTION(Server, Reliable, WithValidation)
-	void CruiseSpeed();
+	void ChargeCruiseSpeed ();
+	UFUNCTION (Server, Reliable, WithValidation)
+	void StopChargeCruiseSpeed ();
+
+	//Let's the player brake the spaceship to a full stop
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Brake();
+
+	UFUNCTION (Server, Reliable, WithValidation)
+	void StopBrake();
 
 	//Handles the change of speed
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -58,7 +67,9 @@ public:
 	UFUNCTION (Server, Reliable, WithValidation)
 	void RegisterPlayer (const FString& playerName, int targetPlayerCount);
 
-	UPROPERTY(Replicated, BlueprintReadOnly) bool _cruiseSpeed = false;				//Determines if player has entered cruise speed or not
+	UPROPERTY (Replicated, BlueprintReadOnly) bool _cruiseSpeed = false;				//Determines if player has entered cruise speed or not
+	UPROPERTY (Replicated, BlueprintReadOnly) float _chargeRatio = .0f;
+	UPROPERTY (Replicated, BlueprintReadOnly) float _cooldownRatio = .0f;
 
 	//----------- ROTATION VALUES ----------//
 	UPROPERTY(BlueprintReadOnly) float pitchDelta = .0f;
@@ -85,6 +96,15 @@ private:
 	float _defaultAcceleration = 2000.0f;		//Default acceleration in general settings in movementcomp when not in cruise speedw
 	float _cruiseSpeedAcceleration = 10000.0f;	//Acceleration when using cruise speed
 	
+	float _CSChargeCD = .0f;
+	float _CSCooldown = .0f;
+	float const CS_CHARGE_TIME = 3.0f;
+	float const CS_CD = 5.0f;
+
+	bool _braking = false;				//Used to braking the spaceship manually
+	bool _charge = false;				//Used to keep track of cruise speed charge up
+
+	//Local mobility stat
 	int  _currentMobilityStat = 1;
 
 	//Pointer reference to the character class and its CharacterMovementComponent
