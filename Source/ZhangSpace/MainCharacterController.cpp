@@ -69,7 +69,6 @@ void AMainCharacterController::BeginPlay ()
 		}
 
 		//Debugging
-		/*AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
@@ -80,9 +79,8 @@ void AMainCharacterController::BeginPlay ()
 		AddExperience (100);
 		AddExperience (100);
 		AddExperience (100);
-		AddExperience (100);*/
-		//AddAbility (4);
-		//AddAbility (7);
+		AddExperience (100);
+		AddExperience (100);
 	}
 }
 
