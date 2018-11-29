@@ -416,7 +416,7 @@ void AMainPlayerController::UpdateSpeedAndAcceleration(int mobilityPower)
 		case 6: { _maxSpeed = 10000.0f; _acceleration = 14000.0f; break; }
 		case 7: { _maxSpeed = 11000.0f; _acceleration = 16000.0f; break; }
 		case 8: { _maxSpeed = 12000.0f; _acceleration = 18000.0f; break; }
-		case 9: { _maxSpeed = 13000.0f; _acceleration = 1900.0f; break; }
+		case 9: { _maxSpeed = 13000.0f; _acceleration = 19000.0f; break; }
 		case 10: { _maxSpeed = 14000.0f; _acceleration = 20000.0f; break; }
 		default: { _maxSpeed = 5000.0f; _acceleration = 4000.0f;  break; }
 	}
