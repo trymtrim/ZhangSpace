@@ -71,6 +71,17 @@ void AMainGameState::DamagePlayersOutsideOfCircle ()
 	}
 }
 
+void AMainGameState::UpdateFeedText (FString feedText)
+{
+	for (FConstPlayerControllerIterator Iterator = GetWorld ()->GetPlayerControllerIterator (); Iterator; ++Iterator)
+	{
+		AMainPlayerController* playerController = Cast <AMainPlayerController> (*Iterator);
+
+		if (playerController)
+			Cast <AMainCharacterController> (playerController->GetCharacter ())->UpdateFeedText (feedText);
+	}
+}
+
 void AMainGameState::RegisterPlayer (AMainPlayerController* playerController, FString playerName, int targetPlayerCount)
 {
 	Cast <AMainGameMode> (GetWorld ()->GetAuthGameMode ())->RegisterPlayer (playerController, targetPlayerCount);

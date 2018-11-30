@@ -148,6 +148,11 @@ void AMainCharacterController::ChangeMesh (UStaticMesh* mesh)
 	meshComponent->SetStaticMesh (mesh);
 }
 
+void AMainCharacterController::UpdateFeedText_Implementation (const FString& feedText)
+{
+	AddFeedTextBP (feedText);
+}
+
 void AMainCharacterController::Die ()
 {
 	//Update lives and health
@@ -232,6 +237,8 @@ void AMainCharacterController::AddExperience (int experience)
 		_experienceToNextLevel = 80 + (_level * 20);
 
 		AddAvailableStats ();
+
+		systemLevel++;
 	}
 }
 
@@ -558,8 +565,6 @@ void AMainCharacterController::Cloak ()
 {
 	cloakActive = true;
 	CloakBP ();
-
-	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Using cloak");
 }
 
 void AMainCharacterController::Teleport ()
@@ -654,7 +659,42 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 						AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser->GetOwner ());
 						AMainPlayerController* killPlayerController = Cast <AMainPlayerController> (killCharacter->GetController ());
 						_gameState->AddPlayerKill (killPlayerController);
+						
+						_gameState->UpdateFeedText (_gameState->playerNames [killCharacter->playerID - 1] + " killed " +_gameState->playerNames [playerID - 1] + ".");
 					}
+
+					Die ();
+				}
+			}
+
+			if (DamageCauser->IsA (AMainCharacterController::StaticClass ()))
+			{
+				if (_currentHealth <= 0)
+				{
+					//Register kill in game state
+					AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser);
+					AMainPlayerController* killPlayerController = Cast <AMainPlayerController> (killCharacter->GetController ());
+					_gameState->AddPlayerKill (killPlayerController);
+
+					_gameState->UpdateFeedText (_gameState->playerNames [killCharacter->playerID - 1] + " killed " + _gameState->playerNames [playerID - 1] + ".");
+
+					Die ();
+				}
+			}
+			else if (DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
+			{
+				if (_currentHealth <= 0)
+				{
+					_gameState->UpdateFeedText (_gameState->playerNames [playerID - 1] + " died from being outside the force field.");
+
+					Die ();
+				}
+			}
+			else if (DamageCauser->GetOwner ()->GetClass ()->IsChildOf (ASpaceshipAI::StaticClass ()))
+			{
+				if (_currentHealth <= 0)
+				{
+					_gameState->UpdateFeedText (_gameState->playerNames[playerID - 1] + " was killed by a turret.");
 
 					Die ();
 				}
@@ -969,6 +1009,8 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 
 	DOREPLIFETIME (AMainCharacterController, playerID);
 	DOREPLIFETIME (AMainCharacterController, gameStarted);
+
+	DOREPLIFETIME (AMainCharacterController, systemLevel);
 }
 
 //Called to bind functionality to input

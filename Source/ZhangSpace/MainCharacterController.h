@@ -71,10 +71,18 @@ public:
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void SpectateRotateBP (const FString& rotateType, float value);
 
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void AddFeedTextBP (const FString& rotateType);
+	
+	UFUNCTION (Client, Reliable)
+	void UpdateFeedText (const FString& feedText);
+
 	UFUNCTION (Client, Reliable)
 	void SetShieldHealth (int health);
 
 	UPROPERTY (BlueprintReadOnly) bool isSpectating = false;
+
+	UPROPERTY (Replicated, BlueprintReadOnly) int systemLevel = 1;
 
 	UFUNCTION (BlueprintCallable)
 	int GetPlayerID ();
@@ -117,7 +125,7 @@ public:
 	UPROPERTY (BlueprintReadOnly) int lives;
 	UPROPERTY (BlueprintReadOnly) TArray <float> cooldownPercentages {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 	UPROPERTY (BlueprintReadOnly) FString FPSText;
-	UPROPERTY (BlueprintReadOnly) int shieldHealth;
+	UPROPERTY (BlueprintReadOnly) int shieldHealth = 50;
 
 	UPROPERTY (BlueprintReadOnly) bool cloakActive = false;
 
