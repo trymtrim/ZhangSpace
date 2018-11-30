@@ -74,6 +74,7 @@ void AMainPlayerController::Tick(float DeltaTime)
 	{
 		if (GetWorld ()->IsServer ())
 		{
+			//---------- UPDATE MOBILITYPOWER IF CHANGED ----------//
 			if (_currentMobilityStat != _character->GetMobilityPower()) 
 			{
 				//To update mobility power (values = 1-10):
@@ -82,45 +83,43 @@ void AMainPlayerController::Tick(float DeltaTime)
 				UpdateSpeedAndAcceleration(_currentMobilityStat);
 			}
 
-			_chargeRatio = _CSChargeCD / CS_CHARGE_TIME;
+			//Update charge and cd ratio on server
+			_chargeRatio = _currentCharge / _chargeTime;
 			_cooldownRatio = _CSCooldown / CS_CD;
 		}
 
-		//If charging and not in cruise speed
-		if (_charge && !_cruiseSpeed) 
+		//---------- KEEP TRACK OF CRUISE SPEED CHARGING ----------//
+
+		if (_charge && !_cruiseSpeed)	//If charging and not in cruise speed
 		{
-			if (_CSChargeCD <= CS_CHARGE_TIME && _CSCooldown == .0f) 
+			if (_currentCharge <= _chargeTime && _CSCooldown == .0f)
 			{	
-				_CSChargeCD += GetWorld()->DeltaTimeSeconds;	//Increase charge cooldown
+				_currentCharge += GetWorld()->DeltaTimeSeconds;	//Increase charge cooldown
 			}
-			else if (_CSChargeCD > CS_CHARGE_TIME) 
+			else if (_currentCharge > _chargeTime)
 			{
-				_CSChargeCD = CS_CHARGE_TIME;	//Set max value so it doesn't go above max
+				_currentCharge = _chargeTime;	//Set max value so it doesn't go above max
 				_charge = false;
 				_cruiseSpeed = true;	//Enter cruise speed when fully charged
 			}
 		}
 		else if (!_charge && !_cruiseSpeed)		//If we release charge button before entering cruise speed
 		{
-			if (_CSChargeCD > .0f)
-				_CSChargeCD -= GetWorld ()->DeltaTimeSeconds;	//Decrease charge cooldown
-			else if (_CSChargeCD < .0f)
-				_CSChargeCD = .0f;				//If less than zero, clamp to zero 
+			if (_currentCharge > .0f)
+				_currentCharge -= GetWorld ()->DeltaTimeSeconds;	//Decrease charge cooldown
+			else if (_currentCharge < .0f)
+				_currentCharge = .0f;				//If less than zero, clamp to zero 
 		}
 
 		//Update the speed and acceleration depending on whether or not we are in cruise speed
 		if (_cruiseSpeed)
 		{
 			//Update max speed and acceleration accordingly, current mobility determines max speed and acceleration, which again is factored
-			_UCharMoveComp->MaxFlySpeed = _maxSpeed * 2.5f;
-			_UCharMoveComp->MaxAcceleration = _acceleration * 5.0f;
+			SetCruiseValues();
 		}
-		else if (_UCharMoveComp->MaxFlySpeed != _maxSpeed && _UCharMoveComp->MaxAcceleration != _acceleration)
-		{
-			_UCharMoveComp->MaxFlySpeed = _maxSpeed;
-			_UCharMoveComp->MaxAcceleration = _acceleration;
-		}
+		else SetDefaultSpeedAndAcceleration ();	//Reset values to current values based on mobilitypower
 
+		//---------- KEEP TRACK OF COOLDOWN FOR CRUISE SPEED ----------//
 		if (!_cruiseSpeed && _CSCooldown > .0f)	//We have exited cruise speed and cooldown is set
 		{
 			_CSCooldown -= GetWorld()->DeltaTimeSeconds;	//Decrease cooldown timer
@@ -139,9 +138,14 @@ void AMainPlayerController::Tick(float DeltaTime)
 			_UCharMoveComp->CalcVelocity(GetWorld()->DeltaTimeSeconds, .5f, false, .0f);
 			//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Braking: true");
 		}
+		else if (false) //When charging up hyper beam, restrict movement
+		{
+			_braking = true;
+		}
+		else if (false && _braking) _braking = false;
 		//else GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Braking: false");
 		
-		//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Charge value: " + FString::SanitizeFloat (_CSChargeCD));
+		GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Charge value: " + FString::SanitizeFloat (_currentCharge));
 		//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Cruise speed CD value: " + FString::SanitizeFloat (_CSCooldown));
 	}
 
@@ -158,7 +162,7 @@ void AMainPlayerController::MoveForward (float value)
 			return;
 	}
 
-	if (_cruiseSpeed || _braking) return;		//If in cruise speed, do not update movement based on input
+	if (_cruiseSpeed || _braking) return;		//If in cruise speed or braking, do not update movement based on input
 
 	if (value != .0f )
 	{
@@ -175,7 +179,7 @@ void AMainPlayerController::Strafe (float value)
 			return;
 	}
 	
-	if (_cruiseSpeed || _braking) return;		//If in cruise speed, do not update movement based on input
+	if (_cruiseSpeed || _braking) return;		//If in cruise speed or braking, do not update movement based on input
 
 	if (value != .0f)
 	{
@@ -191,7 +195,7 @@ void AMainPlayerController::VerticalStrafe (float value)
 		if (_character->GetIsDead())	//And the player is dead, don't do anything
 			return;
 	}
-	if (_cruiseSpeed || _braking) return;
+	if (_cruiseSpeed || _braking) return; //If in cruise speed or braking, dont strafe up or down
 
 	if (value != .0f)
 	{
@@ -209,12 +213,6 @@ void AMainPlayerController::Roll (float value)
 		if (_character->GetIsDead ())	//And the player is dead, don't do anything
 			return;
 	}
-
-	/*if (_cruiseSpeed) 
-	{ 
-		//rollDelta = FMath::FInterpTo(rollDelta, .0f, GetWorld()->DeltaTimeSeconds, 2.0f); 
-		return;
-	}*/
 
 	if (value != .0f)
 	{
@@ -249,6 +247,10 @@ void AMainPlayerController::Pitch (float value)
 				pitchDelta = _maxDeltaValue;
 			else if (pitchDelta <= -_maxDeltaValue)
 				pitchDelta = -_maxDeltaValue;
+		}
+		else if (false) //When charging hyper beam, restrict sensitivity when pitching
+		{
+			pitchDelta = (value * _turnSpeed * GetWorld ()->DeltaTimeSeconds) / 5.0f;;
 		}
 		else //Make pitch like FPS controls
 			pitchDelta = value * _turnSpeed * GetWorld()->DeltaTimeSeconds;
@@ -289,6 +291,11 @@ void AMainPlayerController::Yaw (float value)
 				rollDelta = _maxDeltaValue / 2.0f;
 			else if (rollDelta <= -(_maxDeltaValue / 2.0f))
 				rollDelta = -(_maxDeltaValue / 2.0f);
+		}
+		else if (false) //When charging hyper beam
+		{
+			//Decrease yaw sensitivity
+			yawDelta = (value * _turnSpeed * GetWorld ()->DeltaTimeSeconds) / 5.0f;
 		}
 		else
 		{
@@ -381,7 +388,7 @@ void AMainPlayerController::IncreaseSpeed_Implementation (float value)
 
 	//If current speed is less or higher than max/min speed after last frame, set it to max/min, preventing infintiely increase/decrease of speed when scrolling
 	if (_UCharMoveComp->MaxFlySpeed > _maxSpeed && !_cruiseSpeed) { _UCharMoveComp->MaxFlySpeed = _maxSpeed; return; }
-	else if (_UCharMoveComp->MaxFlySpeed < _minSpeed && !_cruiseSpeed) { _UCharMoveComp->MaxFlySpeed = _minSpeed; return; }
+	else if (_UCharMoveComp->MaxFlySpeed < MINIMUM_SPEED && !_cruiseSpeed) { _UCharMoveComp->MaxFlySpeed = MINIMUM_SPEED; return; }
 
 	if (value != 0.0f) 
 	{
@@ -393,7 +400,7 @@ void AMainPlayerController::IncreaseSpeed_Implementation (float value)
 		*/
 
 		//Update speed based on input
-		if (_UCharMoveComp->MaxFlySpeed <= _maxSpeed && _UCharMoveComp->MaxFlySpeed >= _minSpeed) 
+		if (_UCharMoveComp->MaxFlySpeed <= _maxSpeed && _UCharMoveComp->MaxFlySpeed >= MINIMUM_SPEED)
 		{
 			float deltaAcceleration = value * _acceleration * GetWorld()->DeltaTimeSeconds;
 			_UCharMoveComp->MaxFlySpeed += deltaAcceleration;
@@ -448,7 +455,7 @@ void AMainPlayerController::IncreaseSpeed_Implementation (float value)
 	 if (_cruiseSpeed) 
 	 { 
 		 _cruiseSpeed = false; 			//Go out of cruise speed if we release the button while in cruisespeed
-		 _CSChargeCD = .0f;				//Reset charge value if we exit cruise speed, so that progress bar stays green
+		 _currentCharge = .0f;				//Reset charge value if we exit cruise speed, so that progress bar stays green
 
 		 //Set cooldown
 		 if (_CSCooldown == .0f)
@@ -501,28 +508,41 @@ bool AMainPlayerController::RegisterPlayer_Validate (const FString& playerName, 
 
 void AMainPlayerController::UpdateSpeedAndAcceleration(int mobilityPower) 
 {
-	/*
-		_minSpeed = 1500f
-		_maxSpeed = 10000f
-		default acceleration = 2000f
-		acceleration is very fast at 10000f
-	
-	*/
+	//---------- CALCULATE DIFFERENCE AND STEP FOR EACH LEVEL ----------//
+	//Increase acceleration and speed thresholds based on mobility stat and difference between each step. Linear behaviour
+	float difference = (MAXIMUM_SPEED - MINIMUM_SPEED) / 8;		//divided by 8 since first and last mobility level are preset to min/max constants
+	float chargeStep = (DEFAULT_CHARGE_TIME - MINIMUM_CHARGE_TIME) / 8;
+	float accelerationStep = (MAXIMUM_ACCEL - MINIMUM_ACCEL) / 8;
 
-	//Increase acceleration and speed thresholds based on mobility stat
 	switch (mobilityPower)
 	{
-		case 1: { _maxSpeed = 5000.0f; _acceleration = 4000.0f; break; }
-		case 2: { _maxSpeed = 6000.0f; _acceleration = 6000.0f; break; }
-		case 3: { _maxSpeed = 7000.0f; _acceleration = 8000.0f; break; }
-		case 4: { _maxSpeed = 8000.0f; _acceleration = 10000.0f; break; }
-		case 5: { _maxSpeed = 9000.0f; _acceleration = 12000.0f; break; }
-		case 6: { _maxSpeed = 10000.0f; _acceleration = 14000.0f; break; }
-		case 7: { _maxSpeed = 11000.0f; _acceleration = 16000.0f; break; }
-		case 8: { _maxSpeed = 12000.0f; _acceleration = 18000.0f; break; }
-		case 9: { _maxSpeed = 13000.0f; _acceleration = 19000.0f; break; }
-		case 10: { _maxSpeed = 14000.0f; _acceleration = 20000.0f; break; }
-		default: { _maxSpeed = 5000.0f; _acceleration = 4000.0f;  break; }
+		case 1: { _maxSpeed = MINIMUM_SPEED; _acceleration = MINIMUM_ACCEL; _chargeTime = DEFAULT_CHARGE_TIME; break; }
+		case 2: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; break; }
+		case 3: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; break; }
+		case 4: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; break; }
+		case 5: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; break; }
+		case 6: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; break; }
+		case 7: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; break; }
+		case 8: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; break; }
+		case 9: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; break; }
+		case 10: { _maxSpeed = MAXIMUM_SPEED; _acceleration = MAXIMUM_ACCEL; _chargeTime = MINIMUM_CHARGE_TIME; break; }
+		default: { _maxSpeed = MINIMUM_SPEED; _acceleration = MINIMUM_ACCEL; _chargeTime = DEFAULT_CHARGE_TIME; break; }
+	}
+}
+
+void AMainPlayerController::SetCruiseValues() 
+{
+	//Update max speed and acceleration accordingly, current mobility determines max speed and acceleration, which again is factored
+	_UCharMoveComp->MaxFlySpeed = _maxSpeed * 2.5f;
+	_UCharMoveComp->MaxAcceleration = _acceleration * 2.0f;
+}
+
+void AMainPlayerController::SetDefaultSpeedAndAcceleration () 
+{
+	if (_UCharMoveComp->MaxFlySpeed != _maxSpeed && _UCharMoveComp->MaxAcceleration != _acceleration)
+	{
+		_UCharMoveComp->MaxFlySpeed = _maxSpeed;
+		_UCharMoveComp->MaxAcceleration = _acceleration;
 	}
 }
 
@@ -534,6 +554,7 @@ void AMainPlayerController::GetLifetimeReplicatedProps(TArray <FLifetimeProperty
 	DOREPLIFETIME (AMainPlayerController, _acceleration);
 	DOREPLIFETIME (AMainPlayerController, _chargeRatio);
 	DOREPLIFETIME (AMainPlayerController, _cooldownRatio);
+	DOREPLIFETIME (AMainPlayerController, _braking);
 }
 
 void AMainPlayerController::SetupInputComponent ()

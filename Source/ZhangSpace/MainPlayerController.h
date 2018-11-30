@@ -67,16 +67,16 @@ public:
 	UFUNCTION (Server, Reliable, WithValidation)
 	void RegisterPlayer (const FString& playerName, int targetPlayerCount);
 
-	UPROPERTY (Replicated, BlueprintReadOnly) bool _cruiseSpeed = false;				//Determines if player has entered cruise speed or not
-	UPROPERTY (Replicated, BlueprintReadOnly) float _chargeRatio = .0f;
-	UPROPERTY (Replicated, BlueprintReadOnly) float _cooldownRatio = .0f;
+	UPROPERTY (Replicated, BlueprintReadOnly) bool _cruiseSpeed = false;	//Determines if player has entered cruise speed or not
+	UPROPERTY (Replicated, BlueprintReadOnly) float _chargeRatio = .0f;		//Accessed through blueprint for UI
+	UPROPERTY (Replicated, BlueprintReadOnly) float _cooldownRatio = .0f;	//Blueprint exposed
 
 	//----------- ROTATION VALUES ----------//
 	UPROPERTY(BlueprintReadOnly) float pitchDelta = .0f;
 	UPROPERTY(BlueprintReadOnly) float yawDelta = .0f;
 	float rollDelta = .0f;
 
-	UPROPERTY (BlueprintReadOnly) float _maxDeltaValue = .5f;				//Used to clamp cruise speed delta values
+	UPROPERTY (BlueprintReadOnly) float _maxDeltaValue = .5f;	//Used to clamp cruise speed delta values
 	UPROPERTY (BlueprintReadOnly) float _minDeltaValue = .1f;
 
 protected:
@@ -85,31 +85,38 @@ protected:
 
 private:
 	//---------- MOVEMENT VALUES ----------//
-	float _rollSpeed = 80.0f;				//Used to determine roll speed
-	float _minSpeed = 5000.0f;		//Used as the lowest possible speed when flying
-
-	UPROPERTY (Replicated) float _maxSpeed = 5000.0f;		//Used as the default max speed
-	UPROPERTY (Replicated) float _acceleration = 4000.0f;			//The rate at which the speed increases when scrolling, is multiplied with scroll axis value (Not in cruise speed)
-
-	float _sensitivityScaler = 20.0f;		//Used to scale sensitivity with mouse input
+	float _rollSpeed = 80.0f;					//Used to determine roll speed
+	float const MINIMUM_SPEED = 8000.0f;		//Used as the lowest possible speed when flying
+	float const MAXIMUM_SPEED = 14000.0f;
+	float const MINIMUM_ACCEL = 4000.0f;
+	float const MAXIMUM_ACCEL = 16000.0f;
+	UPROPERTY (Replicated) float _maxSpeed = 5000.0f;			//Used as the default max speed
+	UPROPERTY (Replicated) float _acceleration = 4000.0f;		//The rate at which the speed increases when scrolling, is multiplied with scroll axis value (Not in cruise speed)
+	UPROPERTY (Replicated) bool _braking = false;				//Used to braking the spaceship manually
+	float _sensitivityScaler = 20.0f;							//Used to scale sensitivity with mouse input
 	float _turnSpeed = 20.0f;					//Determines the rotation speed when using the mouse to rotate the ship based on delta values, when not in cruise speed
 	float _defaultAcceleration = 2000.0f;		//Default acceleration in general settings in movementcomp when not in cruise speedw
 	float _cruiseSpeedAcceleration = 10000.0f;	//Acceleration when using cruise speed
 	
-	float _CSChargeCD = .0f;
+	//---------- CRUISE SPEED CHARGE VALUES ----------//
+	float _currentCharge = .0f;
 	float _CSCooldown = .0f;
-	float const CS_CHARGE_TIME = 3.0f;
+	float _chargeTime = 3.0f;
 	float const CS_CD = 5.0f;
+	float const DEFAULT_CHARGE_TIME = 3.0f;
+	float const MINIMUM_CHARGE_TIME = 1.5f;
 
-	bool _braking = false;				//Used to braking the spaceship manually
 	bool _charge = false;				//Used to keep track of cruise speed charge up
 
-	//Local mobility stat
+	//Local mobility stat, updated through the server
 	int  _currentMobilityStat = 1;
 
 	//Pointer reference to the character class and its CharacterMovementComponent
 	AMainCharacterController* _character = nullptr;
 	UCharacterMovementComponent* _UCharMoveComp = nullptr;
 
+	//Private local scope functions
 	void UpdateSpeedAndAcceleration(int mobilityStat);
+	void SetCruiseValues();
+	void SetDefaultSpeedAndAcceleration();
 };
