@@ -22,11 +22,6 @@ public:
 
 	void UpdatePlayerRotation (float pitch, float yaw, float roll);
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void UpdateAcceleration(float value);
-	UFUNCTION(Client, Reliable)
-	void ClientUpdateAcceleration(float value);
-
 	//Handles input for moving forward and backward
 	UFUNCTION()
 	void MoveForward (float value);
@@ -59,10 +54,6 @@ public:
 
 	UFUNCTION (Server, Reliable, WithValidation)
 	void StopBrake();
-
-	//Handles the change of speed
-	UFUNCTION(Server, Reliable, WithValidation)
-	void IncreaseSpeed (float value);
 
 	UFUNCTION (Server, Reliable, WithValidation)
 	void RegisterPlayer (const FString& playerName, int targetPlayerCount);
@@ -107,7 +98,7 @@ private:
 	float const MINIMUM_CHARGE_TIME = 1.5f;
 
 	bool _charge = false;				//Used to keep track of cruise speed charge up
-
+	UPROPERTY (Replicated) bool _boost = false;				//Keep track whether the player is using the boost ability
 	//Local mobility stat, updated through the server
 	int  _currentMobilityStat = 1;
 

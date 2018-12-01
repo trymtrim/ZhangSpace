@@ -51,32 +51,42 @@ void AMainPlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//Always look for a reference to the player 
+	//Always look for a reference to the player and assign it
 	if (_character == nullptr) 
 	{
 		_character = Cast <AMainCharacterController>(GetCharacter());
 
 		if (_UCharMoveComp == nullptr && _character != nullptr)
 			_UCharMoveComp = _character->GetCharacterMovement();
+		return;
 	}
 
 	if (!GetWorld ()->IsServer ())
 		UpdatePlayerRotation (pitchDelta, yawDelta, rollDelta);
 
-	if (_character != nullptr)
+	if (_character != nullptr && _UCharMoveComp != nullptr)
 	{
 		if (!_character->GetIsDead ())
 		{
+			//--------------- ENTERING CRUISE SPEED ---------------//
 			//Normally the movement is done when pressing down a button, when in cruise speed we want constant movement forward, so 1.0f as scale
 			if (_cruiseSpeed)
 			{
 				_character->AddMovementInput(GetCharacter()->GetActorForwardVector(), 1.0f);
 			}
 		}
-	}
 
-	if (_character != nullptr)
-	{
+		//--------------- UPDATE CRUISE SPEED VALUES ---------------//
+		//Update the speed and acceleration depending on whether or not we are in cruise speed
+		if (_cruiseSpeed)
+		{
+			//Update max speed and acceleration accordingly, current mobility determines max speed and acceleration, which again is factored
+			SetCruiseValues ();
+		}
+		else
+			SetDefaultSpeedAndAcceleration ();	//Reset values to current values based on mobilitypower
+
+		//---------- SERVER ----------//
 		if (GetWorld ()->IsServer ())
 		{
 			//---------- UPDATE MOBILITYPOWER IF CHANGED ----------//
@@ -84,18 +94,20 @@ void AMainPlayerController::Tick(float DeltaTime)
 			{
 				//To update mobility power (values = 1-10):
 				_currentMobilityStat = _character->GetMobilityPower();
-
+				
 				UpdateSpeedAndAcceleration(_currentMobilityStat);
 			}
 
 			//Update charge and cd ratio on server
 			_chargeRatio = _currentCharge / _chargeTime;
 			_cooldownRatio = _CSCooldown / CS_CD;
+			_boost = _character->GetBoost ();
+
 		}
 
 		//---------- KEEP TRACK OF CRUISE SPEED CHARGING ----------//
 
-		if (_charge && !_cruiseSpeed)	//If charging and not in cruise speed
+		if (_charge && !_cruiseSpeed && !_character->GetChannelingBeam ())	//If charging and not in cruise speed
 		{
 			if (_currentCharge <= _chargeTime && _CSCooldown == .0f)
 			{	
@@ -116,14 +128,6 @@ void AMainPlayerController::Tick(float DeltaTime)
 				_currentCharge = .0f;				//If less than zero, clamp to zero 
 		}
 
-		//Update the speed and acceleration depending on whether or not we are in cruise speed
-		if (_cruiseSpeed)
-		{
-			//Update max speed and acceleration accordingly, current mobility determines max speed and acceleration, which again is factored
-			SetCruiseValues();
-		}
-		else SetDefaultSpeedAndAcceleration ();	//Reset values to current values based on mobilitypower
-
 		//---------- KEEP TRACK OF COOLDOWN FOR CRUISE SPEED ----------//
 		if (!_cruiseSpeed && _CSCooldown > .0f)	//We have exited cruise speed and cooldown is set
 		{
@@ -143,20 +147,24 @@ void AMainPlayerController::Tick(float DeltaTime)
 			_UCharMoveComp->CalcVelocity(GetWorld()->DeltaTimeSeconds, .5f, false, .0f);
 			//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Braking: true");
 		}
-		else if (false) //When charging up hyper beam, restrict movement
+		if (_character->GetChannelingBeam ()) //When charging up hyper beam, restrict movement
 		{
 			_braking = true;
+			_cruiseSpeed = false;
 		}
-		else if (false && _braking) _braking = false;
+		else _braking = false;	//If not channeling beam and braking is true, don't brake anymore
 		//else GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Braking: false");
 		
-		GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Charge value: " + FString::SanitizeFloat (_currentCharge));
+		//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Charge value: " + FString::SanitizeFloat (_currentCharge));
 		//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Cruise speed CD value: " + FString::SanitizeFloat (_CSCooldown));
+
+		//if (_boost) GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Boosting is true");
+		//else GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Boosting is false");
 	}
 
-	
-	GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Charge ratio: " + FString::SanitizeFloat (_chargeRatio));
-	GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Cooldown ratio: " + FString::SanitizeFloat (_cooldownRatio));
+	//---------- DEBUG MESSAGES ON SCREEN ----------//
+	//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Charge ratio: " + FString::SanitizeFloat (_chargeRatio));
+	//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Cooldown ratio: " + FString::SanitizeFloat (_cooldownRatio));
 }
 
 void AMainPlayerController::MoveForward (float value)
@@ -253,7 +261,7 @@ void AMainPlayerController::Pitch (float value)
 			else if (pitchDelta <= -_maxDeltaValue)
 				pitchDelta = -_maxDeltaValue;
 		}
-		else if (false) //When charging hyper beam, restrict sensitivity when pitching
+		else if (_character->GetChannelingBeam ()) //When charging hyper beam, restrict sensitivity when pitching
 		{
 			pitchDelta = (value * _turnSpeed * GetWorld ()->DeltaTimeSeconds) / 5.0f;;
 		}
@@ -297,7 +305,7 @@ void AMainPlayerController::Yaw (float value)
 			else if (rollDelta <= -(_maxDeltaValue / 2.0f))
 				rollDelta = -(_maxDeltaValue / 2.0f);
 		}
-		else if (false) //When charging hyper beam
+		else if (_character->GetChannelingBeam ()) //When charging hyper beam
 		{
 			//Decrease yaw sensitivity
 			yawDelta = (value * _turnSpeed * GetWorld ()->DeltaTimeSeconds) / 5.0f;
@@ -346,78 +354,6 @@ void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float r
 	//rollDelta = .0f;
 }
 
-void AMainPlayerController::UpdateAcceleration_Implementation(float value) 
-{
-	if (_UCharMoveComp != nullptr) 
-	{
-		_UCharMoveComp->MaxAcceleration = value;
-		ClientUpdateAcceleration(value);
-	}
-}
-
-bool AMainPlayerController::UpdateAcceleration_Validate(float value)
-{
-	return true;
-}
-
-void AMainPlayerController::ClientUpdateAcceleration_Implementation(float value)
-{
-	if (_UCharMoveComp != nullptr) {
-		_UCharMoveComp->MaxAcceleration = value;
-	}
-}
-
-//---------- NOT USED ----------//
-void AMainPlayerController::IncreaseSpeed_Implementation (float value)
-{
-	if (_character == nullptr || _UCharMoveComp == nullptr)
-		return;
-
-	//GEngine->AddOnScreenDebugMessage(-1, .5f, FColor::Blue, "Current max speed: " + FString::SanitizeFloat(_UCharMoveComp->MaxFlySpeed, 1));
-	//GEngine->AddOnScreenDebugMessage(-1, .5f, FColor::Blue, "Current max acceleration: " + FString::SanitizeFloat(_UCharMoveComp->MaxAcceleration, 1));
-
-
-	//If we have entered cruisespeed, set the speed accordingly
-	if (_cruiseSpeed)
-	{
-		_UCharMoveComp->MaxFlySpeed = _maxSpeed * 5.0f;
-		UpdateAcceleration(_UCharMoveComp->MaxAcceleration * 5);
-		return;
-	}
-	else
-	{
-		_UCharMoveComp->MaxFlySpeed = _maxSpeed;
-		UpdateAcceleration(_UCharMoveComp->MaxAcceleration / 5);
-		return;
-	}
-
-	//If current speed is less or higher than max/min speed after last frame, set it to max/min, preventing infintiely increase/decrease of speed when scrolling
-	if (_UCharMoveComp->MaxFlySpeed > _maxSpeed && !_cruiseSpeed) { _UCharMoveComp->MaxFlySpeed = _maxSpeed; return; }
-	else if (_UCharMoveComp->MaxFlySpeed < MINIMUM_SPEED && !_cruiseSpeed) { _UCharMoveComp->MaxFlySpeed = MINIMUM_SPEED; return; }
-
-	if (value != 0.0f) 
-	{
-		/*
-		if (value > 0.0f)
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Mouse wheel UP! Value: " + FString::SanitizeFloat(value, 1));
-		else if (value < 0.0f)
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Mouse wheel DOWN! Value: " + FString::SanitizeFloat(value, 1));
-		*/
-
-		//Update speed based on input
-		if (_UCharMoveComp->MaxFlySpeed <= _maxSpeed && _UCharMoveComp->MaxFlySpeed >= MINIMUM_SPEED)
-		{
-			float deltaAcceleration = value * _acceleration * GetWorld()->DeltaTimeSeconds;
-			_UCharMoveComp->MaxFlySpeed += deltaAcceleration;
-		}
-	}
-}
-
- bool AMainPlayerController::IncreaseSpeed_Validate (float value)
-{
-	 return true;
-}
-
  void AMainPlayerController::Brake_Implementation() 
  {
 	 if (_character != nullptr)			//If we have a reference to the character pointer
@@ -446,8 +382,6 @@ void AMainPlayerController::IncreaseSpeed_Implementation (float value)
 	 return true;
  }
 
-
-
  //Called when Cruise Speed button is pressed
  void AMainPlayerController::ChargeCruiseSpeed_Implementation ()
  {
@@ -468,14 +402,6 @@ void AMainPlayerController::IncreaseSpeed_Implementation (float value)
 	 
 	 }
 	 else _charge = true;						//Continue charging
-
-	 /*
-	 if (_cruiseSpeed)
-	 { 
-		 //GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, "Cruise speed: true");
-		  IncreaseSpeed_Implementation(1.0f);	//Call the update speed implementation which normally is called when scrolling mouse wheel, pass 1 as argument to simulate button press
-	 }
-	 //else GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, "Cruise speed: false"); */
  }
 
  bool AMainPlayerController::ChargeCruiseSpeed_Validate ()
@@ -544,10 +470,22 @@ void AMainPlayerController::SetCruiseValues()
 
 void AMainPlayerController::SetDefaultSpeedAndAcceleration () 
 {
+	//If the boost ability is used, update speed and acceleration to ludachris values instead...
+	if (_boost)
+	{
+		_UCharMoveComp->MaxFlySpeed = _maxSpeed * 5.0f;
+		_UCharMoveComp->MaxAcceleration = _acceleration * 5.0f;
+		//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Boost in running");
+		return;	//Dont update speed to default if boost is used and not in cruise speed
+	}
+	//else GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Boost in not running");
+
+
 	if (_UCharMoveComp->MaxFlySpeed != _maxSpeed && _UCharMoveComp->MaxAcceleration != _acceleration)
 	{
 		_UCharMoveComp->MaxFlySpeed = _maxSpeed;
 		_UCharMoveComp->MaxAcceleration = _acceleration;
+		//GEngine->AddOnScreenDebugMessage (-1, 2.0f, FColor::Red, "Set to default values");
 	}
 }
 
@@ -560,6 +498,7 @@ void AMainPlayerController::GetLifetimeReplicatedProps(TArray <FLifetimeProperty
 	DOREPLIFETIME (AMainPlayerController, _chargeRatio);
 	DOREPLIFETIME (AMainPlayerController, _cooldownRatio);
 	DOREPLIFETIME (AMainPlayerController, _braking);
+	DOREPLIFETIME (AMainPlayerController, _boost);
 }
 
 void AMainPlayerController::SetupInputComponent ()
@@ -586,6 +525,5 @@ void AMainPlayerController::SetupInputComponent ()
 		InputComponent->BindAxis ("Yaw", this, &AMainPlayerController::Yaw);
 		InputComponent->BindAxis ("Pitch", this, &AMainPlayerController::Pitch);
 		InputComponent->BindAxis ("Roll", this, &AMainPlayerController::Roll);
-		//InputComponent->BindAxis ("UpdateSpeed",this,&AMainPlayerController::IncreaseSpeed);
 	}
 }
