@@ -8,6 +8,9 @@ public class ZhangSpace : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
+		MinFilesUsingPrecompiledHeaderOverride = 1;
+        bFasterWithoutUnity = true;
+	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "UMG" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "Json", "JsonUtilities", "Slate", "SlateCore" });

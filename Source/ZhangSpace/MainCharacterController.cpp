@@ -433,11 +433,23 @@ void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVec
 			return;
 		}
 		break;
+	case 2:
+		Heatseeker ();
+		break;
+	case 3:
+		Shockwave ();
+		break;
 	case 4:
 		Cloak ();
 		break;
 	case 7:
 		Teleport ();
+		break;
+	case 8:
+		Afterburner ();
+		break;
+	case 9:
+		TrapShot ();
 		break;
 	}
 
@@ -544,7 +556,7 @@ void AMainCharacterController::Shoot_Implementation (FVector cameraPosition, FVe
 
 	//Set projectile damage
 	if (projectile->IsValidLowLevel () && projectile != nullptr)
-		projectile->SetDamage (10 + _attackPower * 3);
+		projectile->SetDamage (10 + _attackPower * 2);
 
 	//Spend power
 	_power -= _shootCost;
@@ -596,6 +608,43 @@ void AMainCharacterController::Cloak ()
 	CloakBP ();
 }
 
+void AMainCharacterController::Heatseeker ()
+{
+	AMainCharacterController* playerTarget = nullptr;
+
+	float distance = 0.0f;
+
+	for (FConstPlayerControllerIterator Iterator = GetWorld ()->GetPlayerControllerIterator (); Iterator; ++Iterator)
+	{
+		AMainPlayerController* playerController = Cast <AMainPlayerController> (*Iterator);
+
+		if (playerController)
+		{
+			AMainCharacterController* character = Cast <AMainCharacterController> (playerController->GetCharacter ());
+			
+			if (character->playerID != playerID && FVector::Distance (GetActorLocation (), character->GetActorLocation ()) > distance)
+				playerTarget = character;
+		}
+	}
+	
+	HeatseekerBP (playerTarget, 50 + _attackPower * 5); //Should probably change damage
+}
+
+void AMainCharacterController::Shockwave ()
+{
+	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Using Shockwave");
+}
+
+void AMainCharacterController::Afterburner ()
+{
+	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Using Afterburner");
+}
+
+void AMainCharacterController::TrapShot ()
+{
+	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Using Trap Shot");
+}
+
 void AMainCharacterController::HyperBeam ()
 {
 	StartHyperBeamBP ();
@@ -603,7 +652,7 @@ void AMainCharacterController::HyperBeam ()
 	_channelingBeam = true;
 
 	FTimerHandle hyperBeamTimerHandle;
-	GetWorld ()->GetTimerManager ().SetTimer (hyperBeamTimerHandle, this, &AMainCharacterController::CancelHyperBeam, 5.0f, false); //Should be 0.5f
+	GetWorld ()->GetTimerManager ().SetTimer (hyperBeamTimerHandle, this, &AMainCharacterController::CancelHyperBeam, 5.0f, false);
 }
 
 void AMainCharacterController::ChannelHyperBeam_Implementation (FVector cameraPosition, FVector forwardVector)
@@ -649,7 +698,10 @@ void AMainCharacterController::DealBeamDamage (float damage, AMainCharacterContr
 		_beamDamage -= 1.0f;
 
 		if (shieldActive)
+		{
 			shield->ApplyDamage (1);
+			player->UpdatePlayerHitText (player->playerID, 1);
+		}
 		else
 		{
 			_currentHealth -= 1;
@@ -751,11 +803,16 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 	if (_dead)
 		return 0.0f;
 
-	int finalDamage = Damage;
+	float finalDamage = Damage;
 
 	if (finalDamage > 800)
 	{
-		_currentHealth -= finalDamage;
+		_currentHealth -= (int) finalDamage;
+
+		shieldActive = false;
+
+		if (shield != nullptr)
+			shield->ApplyDamage ((int) finalDamage);
 	}
 	if (shieldActive && !DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
 	{
@@ -764,8 +821,33 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 		if (_shieldReflect && DamageCauser->GetName ().Contains ("Projectile"))
 			shield->OnHitByProjectile (DamageCauser->GetOwner (), Damage);
 
-		shield->ApplyDamage (finalDamage);
+		shield->ApplyDamage ((int) finalDamage);
 		ShieldTakeDamageBP ();
+
+		if (DamageCauser->GetName ().Contains ("Projectile"))
+		{
+			FString damageType = "Projectile";
+			TakeDamageBP ((int) finalDamage, damageType);
+
+			//If the player didn't get killed by AI
+			if (!DamageCauser->GetOwner ()->GetClass ()->IsChildOf (ASpaceshipAI::StaticClass ()))
+			{
+				//Register kill in game state
+				AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser->GetOwner ());
+
+				killCharacter->UpdatePlayerHitText (killCharacter->playerID, finalDamage);
+			}
+		}
+		else if (DamageCauser->IsA (AMainCharacterController::StaticClass ()))
+		{
+			//Register kill in game state
+			AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser);
+
+			if (finalDamage > 500)
+				killCharacter->UpdatePlayerHitText (killCharacter->playerID, 150);
+			else
+				killCharacter->UpdatePlayerHitText (killCharacter->playerID, finalDamage);
+		}
 
 		return 0.0f;
 	}

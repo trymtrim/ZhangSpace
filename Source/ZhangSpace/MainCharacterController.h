@@ -165,6 +165,9 @@ public:
 	UPROPERTY (Replicated, BlueprintReadOnly)
 	FVector beamTargetPosition;
 
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void HeatseekerBP (AMainCharacterController* playerTarget, int damage);
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay () override;
@@ -198,6 +201,11 @@ private:
 	void Shield ();
 	void Cloak ();
 	void Teleport ();
+	void HyperBeam ();
+	void Heatseeker ();
+	void Shockwave ();
+	void Afterburner ();
+	void TrapShot ();
 
 	//Passive abilities
 	bool _shieldReflect = false;
@@ -234,9 +242,7 @@ private:
 	UFUNCTION (Client, Reliable)
 	void ClientChangeShieldCooldown (int cooldown);
 
-	void HyperBeam ();
 	UFUNCTION (Server, Reliable, WithValidation)
-
 	void ChannelHyperBeam (FVector cameraPosition, FVector forwardVector);
 
 	void CancelHyperBeam ();
