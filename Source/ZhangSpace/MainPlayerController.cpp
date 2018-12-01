@@ -39,6 +39,11 @@ void AMainPlayerController::BeginPlay()
 	//Register player for game state
 	if (!GetWorld ()->IsServer ())
 		RegisterPlayer (ConfigManager::GetConfig ("Player_Name"), Cast <USettingsManager> (GetWorld ()->GetGameInstance ())->GetTargetPlayerCount ());
+
+	//Channeling beam
+	//_character->GetChannelingBeam ();
+	//Boost
+	//_character->GetBoost ();
 }
 
 //Called every frame

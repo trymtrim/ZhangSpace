@@ -161,6 +161,7 @@ public:
 	void DealBeamDamage (float damage, AMainCharacterController* player);
 
 	bool GetChannelingBeam ();
+	bool GetBoost ();
 
 	UPROPERTY (Replicated, BlueprintReadOnly)
 	FVector beamTargetPosition;
@@ -206,6 +207,8 @@ private:
 	void Shockwave ();
 	void Afterburner ();
 	void TrapShot ();
+
+	void CancelBoost ();
 
 	//Passive abilities
 	bool _shieldReflect = false;
@@ -275,6 +278,8 @@ private:
 	float _shootCost = 2.5f;
 
 	float _beamDamage = 0;
+
+	bool _isBoosting = false;
 
 	float _maxDeadTimer = 5.0f;
 	UPROPERTY (Replicated) float _currentDeadTimer = 0.0f;

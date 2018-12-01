@@ -637,12 +637,27 @@ void AMainCharacterController::Shockwave ()
 
 void AMainCharacterController::Afterburner ()
 {
+	_isBoosting = true;
+
+	FTimerHandle boostTimerHandle;
+	GetWorld ()->GetTimerManager ().SetTimer (boostTimerHandle, this, &AMainCharacterController::CancelBoost, 3.0f, false);
+
 	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Using Afterburner");
 }
 
 void AMainCharacterController::TrapShot ()
 {
 	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Using Trap Shot");
+}
+
+void AMainCharacterController::CancelBoost ()
+{
+	_isBoosting = false;
+}
+
+bool AMainCharacterController::GetBoost ()
+{
+	return _isBoosting;
 }
 
 void AMainCharacterController::HyperBeam ()
