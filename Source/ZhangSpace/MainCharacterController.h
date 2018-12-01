@@ -90,8 +90,13 @@ public:
 	UPROPERTY (Replicated) int playerID = -1;
 
 	bool GetCanMove ();
+
 	bool GetIsDead ();
+
 	int GetMobilityPower ();
+
+	UFUNCTION (BlueprintCallable)
+	bool GetGameOver ();
 
 	UFUNCTION (BlueprintCallable)
 	bool IsAttackableInScope ();
@@ -132,6 +137,33 @@ public:
 	//These variables are set by the shield script
 	UPROPERTY (Replicated, BlueprintReadOnly) bool shieldActive = false;
 	AShield* shield = nullptr;
+
+	//Hit indicator
+	UPROPERTY (Replicated, BlueprintReadOnly) FString playerHitText;
+	int lastPlayerHitID = 0;
+	int lastDamage = 0;
+
+	float resetPlayerHitTimer = 0.0f;
+
+	void UpdatePlayerHitText (int id, int damage);
+
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void ResetPlayerHitTextBP ();
+
+	UFUNCTION (BlueprintCallable)
+	void UpdatePlayerHitTextFromBP (int id, int damage);
+
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void StartHyperBeamBP ();
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void StopHyperBeamBP ();
+
+	void DealBeamDamage (float damage, AMainCharacterController* player);
+
+	bool GetChannelingBeam ();
+
+	UPROPERTY (Replicated, BlueprintReadOnly)
+	FVector beamTargetPosition;
 
 protected:
 	//Called when the game starts or when spawned
@@ -202,6 +234,15 @@ private:
 	UFUNCTION (Client, Reliable)
 	void ClientChangeShieldCooldown (int cooldown);
 
+	void HyperBeam ();
+	UFUNCTION (Server, Reliable, WithValidation)
+
+	void ChannelHyperBeam (FVector cameraPosition, FVector forwardVector);
+
+	void CancelHyperBeam ();
+
+	UPROPERTY (Replicated) bool _channelingBeam = false;
+
 	//Player stats
 	UPROPERTY (Replicated) int _maxHealth = 100;
 	UPROPERTY (Replicated) int _currentHealth = 100;
@@ -226,6 +267,8 @@ private:
 	UPROPERTY (Replicated) int _lives = 3;
 	int _maxStatPower = 10;
 	float _shootCost = 2.5f;
+
+	float _beamDamage = 0;
 
 	float _maxDeadTimer = 5.0f;
 	UPROPERTY (Replicated) float _currentDeadTimer = 0.0f;

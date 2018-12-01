@@ -67,20 +67,6 @@ void AMainCharacterController::BeginPlay ()
 			else if (arrowComps [i]->GetName () == "GunPosition2")
 				gunPositionTwo = arrowComps [i];
 		}
-
-		//Debugging
-		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
-		AddExperience (100);
 	}
 }
 
@@ -103,6 +89,10 @@ void AMainCharacterController::Tick (float DeltaTime)
 
 		if (_dead)
 			UpdateDeadState (DeltaTime);
+
+		if (resetPlayerHitTimer > 0.0f)
+			resetPlayerHitTimer -= DeltaTime;
+
 	}
 
 	//Update stats for the client's UI
@@ -112,6 +102,14 @@ void AMainCharacterController::Tick (float DeltaTime)
 
 		if (_shooting)
 			UpdateShooting ();
+
+		if (_channelingBeam)
+		{
+			FVector cameraPosition = _cameraComponent->GetComponentLocation ();
+			FVector cameraForward = _cameraComponent->GetForwardVector ();
+
+			ChannelHyperBeam (cameraPosition, cameraForward);
+		}
 
 		FPS++;
 	}
@@ -221,8 +219,16 @@ void AMainCharacterController::GameOver ()
 	//Do stuff
 }
 
+bool AMainCharacterController::GetGameOver ()
+{
+	return _gameOver;
+}
+
 void AMainCharacterController::AddExperience (int experience)
 {
+	if (systemLevel == 15)
+		return;
+
 	//Add the gained experience to the player
 	_experience += experience;
 
@@ -239,6 +245,17 @@ void AMainCharacterController::AddExperience (int experience)
 		AddAvailableStats ();
 
 		systemLevel++;
+
+		UpdatePlayerHitText (-2, 0);
+
+		if (systemLevel == 5 || systemLevel == 10 || systemLevel == 15)
+			_gameState->UpdateFeedText (_gameState->playerNames [playerID - 1] + " has reached system level " + FString::FromInt (systemLevel) + ".");
+
+		if (systemLevel == 15)
+		{
+			_experience = _experienceToNextLevel;
+			_availableStats--;
+		}
 	}
 }
 
@@ -404,6 +421,18 @@ void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVec
 
 		Shield ();
 		break;
+	case 1:
+		if (_channelingBeam)
+		{
+			_channelingBeam = false;
+			StopHyperBeamBP ();
+		}
+		else
+		{
+			HyperBeam ();
+			return;
+		}
+		break;
 	case 4:
 		Cloak ();
 		break;
@@ -567,6 +596,110 @@ void AMainCharacterController::Cloak ()
 	CloakBP ();
 }
 
+void AMainCharacterController::HyperBeam ()
+{
+	StartHyperBeamBP ();
+
+	_channelingBeam = true;
+
+	FTimerHandle hyperBeamTimerHandle;
+	GetWorld ()->GetTimerManager ().SetTimer (hyperBeamTimerHandle, this, &AMainCharacterController::CancelHyperBeam, 5.0f, false); //Should be 0.5f
+}
+
+void AMainCharacterController::ChannelHyperBeam_Implementation (FVector cameraPosition, FVector forwardVector)
+{
+	float damage = 60 * GetWorld ()->DeltaTimeSeconds;
+
+	//Line trace from camera to check if there is something in the crosshair's sight
+	FCollisionQueryParams traceParams = FCollisionQueryParams (FName (TEXT ("RV_Trace")), true, this);
+	traceParams.bTraceComplex = true;
+	traceParams.bReturnPhysicalMaterial = false;
+
+	FHitResult hit (ForceInit);
+
+	//Declare start and end position of the line trace based on camera position and rotation
+	FVector start = cameraPosition;
+	FVector end = cameraPosition + (forwardVector * 400000.0f);
+
+	//Check if line trace hits anything
+	if (GetWorld ()->LineTraceSingleByChannel (hit, start, end, ECC_Visibility, traceParams))
+	{
+		beamTargetPosition = hit.Location;
+
+		//If line trace hits a player, polymorph the target
+		if (hit.GetActor ()->ActorHasTag ("Player"))
+		{
+			AMainCharacterController* player = Cast <AMainCharacterController> (hit.GetActor ());
+			player->DealBeamDamage (damage, this);
+		}
+	}
+}
+
+bool AMainCharacterController::ChannelHyperBeam_Validate (FVector cameraPosition, FVector forwardVector)
+{
+	return true;
+}
+
+void AMainCharacterController::DealBeamDamage (float damage, AMainCharacterController* player)
+{
+	_beamDamage += damage;
+
+	if (_beamDamage > 1.0f)
+	{
+		_beamDamage -= 1.0f;
+
+		if (shieldActive)
+			shield->ApplyDamage (1);
+		else
+		{
+			_currentHealth -= 1;
+
+			player->UpdatePlayerHitText (player->playerID, 1);
+
+			//Register kill in game state
+			if (_currentHealth <= 0 && !_dead)
+			{
+				AMainPlayerController* killPlayerController = Cast <AMainPlayerController> (player->GetController ());
+				_gameState->AddPlayerKill (killPlayerController);
+
+				_gameState->UpdateFeedText (_gameState->playerNames [player->playerID - 1] + " killed " + _gameState->playerNames [playerID - 1] + ".");
+
+				Die ();
+			}
+		}
+	}
+}
+
+void AMainCharacterController::CancelHyperBeam ()
+{
+	if (!_channelingBeam)
+		return;
+
+	_channelingBeam = false;
+
+	StopHyperBeamBP ();
+
+	//Get ability index
+	int actualAbilityIndex = 0;
+
+	for (int i = 0; i < _abilities.Num (); i++)
+	{
+		if (_abilities [i] == 1)
+		{
+			actualAbilityIndex = i;
+			break;
+		}
+	}
+
+	//Put ability on cooldown
+	_abilityCooldowns [actualAbilityIndex] = _abilityMaxCooldowns [1];
+}
+
+bool AMainCharacterController::GetChannelingBeam ()
+{
+	return _channelingBeam;
+}
+
 void AMainCharacterController::Teleport ()
 {
 	FTimerHandle FPSTimerHandle;
@@ -628,7 +761,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 	{
 		finalDamage = Damage - Damage * (_defensePower * 8.0f / 100.0f);
 
-		if (_shieldReflect)
+		if (_shieldReflect && DamageCauser->GetName ().Contains ("Projectile"))
 			shield->OnHitByProjectile (DamageCauser->GetOwner (), Damage);
 
 		shield->ApplyDamage (finalDamage);
@@ -650,29 +783,37 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 				FString damageType = "Projectile";
 				TakeDamageBP ((int) finalDamage, damageType);
 
-				if (_currentHealth <= 0)
+				//If the player didn't get killed by AI
+				if (!DamageCauser->GetOwner ()->GetClass ()->IsChildOf (ASpaceshipAI::StaticClass ()))
 				{
-					//If the player didn't get killed by AI
-					if (!DamageCauser->GetOwner ()->GetClass ()->IsChildOf (ASpaceshipAI::StaticClass ()))
+					//Register kill in game state
+					AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser->GetOwner ());
+
+					killCharacter->UpdatePlayerHitText (killCharacter->playerID, finalDamage);
+
+					if (_currentHealth <= 0)
 					{
-						//Register kill in game state
-						AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser->GetOwner ());
 						AMainPlayerController* killPlayerController = Cast <AMainPlayerController> (killCharacter->GetController ());
 						_gameState->AddPlayerKill (killPlayerController);
 						
 						_gameState->UpdateFeedText (_gameState->playerNames [killCharacter->playerID - 1] + " killed " +_gameState->playerNames [playerID - 1] + ".");
-					}
 
-					Die ();
+						Die ();
+					}
 				}
 			}
-
-			if (DamageCauser->IsA (AMainCharacterController::StaticClass ()))
+			else if (DamageCauser->IsA (AMainCharacterController::StaticClass ()))
 			{
+				//Register kill in game state
+				AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser);
+
+				if (finalDamage > 500)
+					killCharacter->UpdatePlayerHitText (killCharacter->playerID, 150);
+				else
+					killCharacter->UpdatePlayerHitText (killCharacter->playerID, finalDamage);
+
 				if (_currentHealth <= 0)
 				{
-					//Register kill in game state
-					AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser);
 					AMainPlayerController* killPlayerController = Cast <AMainPlayerController> (killCharacter->GetController ());
 					_gameState->AddPlayerKill (killPlayerController);
 
@@ -694,7 +835,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 			{
 				if (_currentHealth <= 0)
 				{
-					_gameState->UpdateFeedText (_gameState->playerNames[playerID - 1] + " was killed by a turret.");
+					_gameState->UpdateFeedText (_gameState->playerNames [playerID - 1] + " was killed by a turret.");
 
 					Die ();
 				}
@@ -710,6 +851,35 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 	}
 
 	return Super::TakeDamage (Damage, DamageEvent, EventInstigator, DamageCauser);
+}
+
+void AMainCharacterController::UpdatePlayerHitText (int id, int damage)
+{
+	int damageToShow = damage;
+
+	if (id == lastPlayerHitID && resetPlayerHitTimer > 0.0f)
+		damageToShow += lastDamage;
+	else
+		lastDamage = 0;
+
+	if (id == 0)
+		playerHitText = "Turret\n- " + FString::FromInt (damageToShow);
+	else if (id >= 100)
+		playerHitText = "Resource Container\n- " + FString::FromInt (damageToShow);
+	else if (id == -2)
+		playerHitText = "Level Up!";
+	else
+		playerHitText = _gameState->playerNames [id - 1] + "\n- " + FString::FromInt (damageToShow);
+
+	lastPlayerHitID = id;
+	lastDamage = damageToShow;
+	resetPlayerHitTimer = 3.0f;
+	ResetPlayerHitTextBP ();
+}
+
+void AMainCharacterController::UpdatePlayerHitTextFromBP (int id, int damage)
+{
+	UpdatePlayerHitText (id, damage);
 }
 
 void AMainCharacterController::UpdateStatsUI ()
@@ -991,6 +1161,7 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 	DOREPLIFETIME (AMainCharacterController, _availableStats);
 	DOREPLIFETIME (AMainCharacterController, _shooting);
 	DOREPLIFETIME (AMainCharacterController, _currentShootingCooldown);
+	DOREPLIFETIME (AMainCharacterController, playerHitText);
 
 	DOREPLIFETIME (AMainCharacterController, _attackUpgradesAvailable);
 	DOREPLIFETIME (AMainCharacterController, _defenseUpgradesAvailable);
@@ -1011,6 +1182,9 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 	DOREPLIFETIME (AMainCharacterController, gameStarted);
 
 	DOREPLIFETIME (AMainCharacterController, systemLevel);
+
+	DOREPLIFETIME (AMainCharacterController, _channelingBeam);
+	DOREPLIFETIME (AMainCharacterController, beamTargetPosition);	
 }
 
 //Called to bind functionality to input

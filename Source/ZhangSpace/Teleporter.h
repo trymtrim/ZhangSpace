@@ -36,7 +36,7 @@ private:
 	UPROPERTY (EditAnywhere)
 	TSubclassOf <AActor> _secondTeleporterBP;
 	UPROPERTY (EditAnywhere)
-	float _duration = 10.0f;
+	float _duration = 5.0f;
 	UPROPERTY (EditAnywhere)
 	float _distance = 5000.0f;
 };

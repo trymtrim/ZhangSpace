@@ -225,6 +225,8 @@ float ASpaceshipAI::TakeDamage (float Damage, FDamageEvent const& DamageEvent, A
 
 		_state = ATTACK;
 		_shootOutOfRangeTimer = 5.0f;
+
+		_target->UpdatePlayerHitText (0, Damage);
 	}
 
 	//If health is below zero, die
