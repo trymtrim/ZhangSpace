@@ -73,6 +73,15 @@ public:
 
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void AddFeedTextBP (const FString& rotateType);
+
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void AfterburnerBP ();
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void ShockwaveBP ();
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void TrapShotBP (FVector hitPosition);
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void DetonateTrapShotBP ();
 	
 	UFUNCTION (Client, Reliable)
 	void UpdateFeedText (const FString& feedText);
@@ -91,6 +100,7 @@ public:
 
 	bool GetCanMove ();
 
+	UFUNCTION (BlueprintCallable)
 	bool GetIsDead ();
 
 	int GetMobilityPower ();
@@ -106,6 +116,14 @@ public:
 	bool GetShieldReflect ();
 
 	UPROPERTY (BlueprintReadOnly) bool shieldRam;
+
+	void Disarm ();
+
+	UFUNCTION (BlueprintCallable)
+	void StartTrapShotCooldown ();
+
+	UPROPERTY (Replicated, BlueprintReadOnly)
+	bool disarmed = false;
 
 	FVector2D GetViewportSize (); //Returns the size of the clients viewport as a 2d vector
 
@@ -206,8 +224,9 @@ private:
 	void Heatseeker ();
 	void Shockwave ();
 	void Afterburner ();
-	void TrapShot ();
+	void TrapShot (FVector cameraPosition);
 
+	void DetonateTrapShot ();
 	void CancelBoost ();
 
 	//Passive abilities
@@ -280,6 +299,9 @@ private:
 	float _beamDamage = 0;
 
 	bool _isBoosting = false;
+	bool _isUsingTrapShot = false;
+
+	void CancelDisarm ();
 
 	float _maxDeadTimer = 5.0f;
 	UPROPERTY (Replicated) float _currentDeadTimer = 0.0f;

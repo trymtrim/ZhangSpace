@@ -160,6 +160,14 @@ void AMainCharacterController::Die ()
 
 	cloakActive = false;
 
+	if (_channelingBeam)
+		CancelHyperBeam ();
+
+	if (_isBoosting)
+		CancelBoost ();
+
+	_isUsingTrapShot = false;
+
 	DieBP ();
 
 	//Stop movement
@@ -394,7 +402,7 @@ void AMainCharacterController::UseAbilityInput (int abilityIndex)
 
 void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVector cameraPosition)
 {
-	if (!_abilities.Contains (abilityIndex) || !gameStarted || _dead)
+	if (disarmed || !_abilities.Contains (abilityIndex) || !gameStarted || _dead)
 		return;
 
 	//Get ability index, if ability is on cooldown, return
@@ -449,7 +457,15 @@ void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVec
 		Afterburner ();
 		break;
 	case 9:
-		TrapShot ();
+		if (_isUsingTrapShot)
+		{
+			DetonateTrapShot ();
+		}
+		else
+		{
+			TrapShot (cameraPosition);
+			return;
+		}
 		break;
 	}
 
@@ -508,7 +524,7 @@ void AMainCharacterController::UpdateShootingCooldown (float deltaTime)
 
 void AMainCharacterController::Shoot_Implementation (FVector cameraPosition, FVector cameraForward)
 {
-	if (!gameStarted || _power < _shootCost || _dead || _currentShootingCooldown > 0.0f)
+	if (disarmed || _channelingBeam || !gameStarted || _power < _shootCost || _dead || _currentShootingCooldown > 0.0f)
 		return;
 
 	//Reset shootingCooldown
@@ -632,22 +648,115 @@ void AMainCharacterController::Heatseeker ()
 
 void AMainCharacterController::Shockwave ()
 {
-	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Using Shockwave");
+	ShockwaveBP ();
+
+	float hitDistance = 150.0f; //Meters
+
+	for (FConstPlayerControllerIterator Iterator = GetWorld ()->GetPlayerControllerIterator (); Iterator; ++Iterator)
+	{
+		AMainPlayerController* playerController = Cast <AMainPlayerController> (*Iterator);
+
+		if (playerController)
+		{
+			AMainCharacterController* character = Cast <AMainCharacterController> (playerController->GetCharacter ());
+
+			if (character->playerID != playerID && FVector::Distance (GetActorLocation (), character->GetActorLocation ()) <= hitDistance * 100.0f)
+				character->Disarm ();
+		}
+	}
+}
+
+void AMainCharacterController::Disarm ()
+{
+	disarmed = true;
+
+	FTimerHandle disarmTimerHandle;
+	GetWorld ()->GetTimerManager ().SetTimer (disarmTimerHandle, this, &AMainCharacterController::CancelDisarm, 3.0f, false);
+}
+
+void AMainCharacterController::CancelDisarm ()
+{
+	disarmed = false;
 }
 
 void AMainCharacterController::Afterburner ()
 {
+	AfterburnerBP ();
+
 	_isBoosting = true;
 
 	FTimerHandle boostTimerHandle;
 	GetWorld ()->GetTimerManager ().SetTimer (boostTimerHandle, this, &AMainCharacterController::CancelBoost, 3.0f, false);
-
-	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Using Afterburner");
 }
 
-void AMainCharacterController::TrapShot ()
+void AMainCharacterController::TrapShot (FVector cameraPosition)
 {
-	GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, "Using Trap Shot");
+	_isUsingTrapShot = true;
+
+	FVector hitPosition;
+
+	//Line trace from camera to check if there is something in the crosshair's sight
+	FCollisionQueryParams traceParams = FCollisionQueryParams (FName (TEXT ("RV_Trace")), true, this);
+	traceParams.bTraceComplex = true;
+	traceParams.bReturnPhysicalMaterial = false;
+
+	FHitResult hit (ForceInit);
+
+	//Declare start and end position of the line trace based on camera position and rotation
+	FVector start = cameraPosition;
+	FVector end = cameraPosition + (GetActorForwardVector () * 400000.0f);
+
+	//Check if line trace hits anything
+	if (GetWorld ()->LineTraceSingleByChannel (hit, start, end, ECC_Visibility, traceParams))
+		hitPosition = hit.ImpactPoint;
+	else
+		hitPosition = end;
+
+	TrapShotBP (hitPosition);
+}
+
+void AMainCharacterController::DetonateTrapShot ()
+{
+	_isUsingTrapShot = false;
+	DetonateTrapShotBP ();
+
+	//Get ability index
+	int actualAbilityIndex = 0;
+
+	for (int i = 0; i < _abilities.Num (); i++)
+	{
+		if (_abilities [i] == 9)
+		{
+			actualAbilityIndex = i;
+			break;
+		}
+	}
+
+	//Put ability on cooldown
+	_abilityCooldowns [actualAbilityIndex] = _abilityMaxCooldowns [9];
+}
+
+void AMainCharacterController::StartTrapShotCooldown ()
+{
+	if (!_isUsingTrapShot)
+		return;
+
+	_isUsingTrapShot = false;
+
+	//Get ability index
+	int actualAbilityIndex = 0;
+
+	for (int i = 0; i < _abilities.Num (); i++)
+	{
+		if (_abilities[i] == 9)
+		{
+			actualAbilityIndex = i;
+			break;
+		}
+	}
+
+	//Put ability on cooldown
+	_abilityCooldowns[actualAbilityIndex] = _abilityMaxCooldowns[9];
 }
 
 void AMainCharacterController::CancelBoost ()
@@ -1282,6 +1391,8 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 
 	DOREPLIFETIME (AMainCharacterController, _channelingBeam);
 	DOREPLIFETIME (AMainCharacterController, beamTargetPosition);	
+
+	DOREPLIFETIME (AMainCharacterController, disarmed);
 }
 
 //Called to bind functionality to input
