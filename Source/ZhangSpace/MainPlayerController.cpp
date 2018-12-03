@@ -546,6 +546,16 @@ void AMainPlayerController::SetDefaultSpeedAndAcceleration ()
 	float speed = _maxSpeed;
 	float acceleration = _acceleration;
 	//If the boost ability is used, update speed and acceleration to ludachris values instead...
+	if (_slowed)
+	{
+		float diffStep = (MAXIMUM_SPEED - MINIMUM_SPEED) / 10;
+		speed = ((speed / 3.0f) + (diffStep * (_currentMobilityStat / 2.0f)));
+
+
+		//_UCharMoveComp->MaxFlySpeed = (_maxSpeed / 3.0f) + (diffStep * (_currentMobilityStat / 2.0f)); // + diffStep * (_currentMobilityStat / 2.0f);
+		GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Magenta, "Slowed Speed: " + FString::SanitizeFloat (_UCharMoveComp->MaxFlySpeed));
+	}
+
 	if (_boost)
 	{
 		//_UCharMoveComp->MaxFlySpeed = _maxSpeed * 5.0f;
@@ -556,17 +566,6 @@ void AMainPlayerController::SetDefaultSpeedAndAcceleration ()
 
 	}
 	//else GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Boost in not running");
-
-	if (_slowed) 
-	{
-		float diffStep = (MAXIMUM_SPEED - MINIMUM_SPEED) / 10;
-		speed = ((speed / 3.0f) + (diffStep * (_currentMobilityStat / 2.0f));
-
-
-		//_UCharMoveComp->MaxFlySpeed = (_maxSpeed / 3.0f) + (diffStep * (_currentMobilityStat / 2.0f)); // + diffStep * (_currentMobilityStat / 2.0f);
-		GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Magenta, "Slowed Speed: " + FString::SanitizeFloat (_UCharMoveComp->MaxFlySpeed));
-	}
-
 
 	//if (_UCharMoveComp->MaxFlySpeed != _maxSpeed && _UCharMoveComp->MaxAcceleration != _acceleration)
 	//{
