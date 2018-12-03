@@ -526,36 +526,57 @@ void AMainPlayerController::SetIsBraking(bool state)
 void AMainPlayerController::SetCruiseValues() 
 {
 	//Update max speed and acceleration accordingly, current mobility determines max speed and acceleration, which again is factored
+	if (_slowed) 
+	{
+		float diffStep = (MAXIMUM_SPEED - MINIMUM_SPEED) / 10;
+		float cruiseMaxSpeed = _maxSpeed * 2.5f;
+
+		//Set slow values, scaled with mobility power
+		_UCharMoveComp->MaxFlySpeed = (cruiseMaxSpeed / 3.0f) + (diffStep * (_currentMobilityStat / 2.0f));
+		_UCharMoveComp->MaxAcceleration = _acceleration * 2.0f;
+		return;
+	}
+
 	_UCharMoveComp->MaxFlySpeed = _maxSpeed * 2.5f;
 	_UCharMoveComp->MaxAcceleration = _acceleration * 2.0f;
 }
 
 void AMainPlayerController::SetDefaultSpeedAndAcceleration () 
 {
+	float speed = _maxSpeed;
+	float acceleration = _acceleration;
 	//If the boost ability is used, update speed and acceleration to ludachris values instead...
 	if (_boost)
 	{
-		_UCharMoveComp->MaxFlySpeed = _maxSpeed * 5.0f;
-		_UCharMoveComp->MaxAcceleration = _acceleration * 5.0f;
+		//_UCharMoveComp->MaxFlySpeed = _maxSpeed * 5.0f;
+		//_UCharMoveComp->MaxAcceleration = _acceleration * 5.0f;
+		speed *= 5.0f;
+		acceleration *= 5.0f;
 		//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Boost in running");
-		return;	//Dont update speed to default if boost is used and not in cruise speed
+
 	}
 	//else GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Boost in not running");
 
 	if (_slowed) 
 	{
 		float diffStep = (MAXIMUM_SPEED - MINIMUM_SPEED) / 10;
-		_UCharMoveComp->MaxFlySpeed = (_maxSpeed / 3.0f) + (diffStep * (_currentMobilityStat / 2.0f)); // + diffStep * (_currentMobilityStat / 2.0f);
+		speed = ((speed / 3.0f) + (diffStep * (_currentMobilityStat / 2.0f));
+
+
+		//_UCharMoveComp->MaxFlySpeed = (_maxSpeed / 3.0f) + (diffStep * (_currentMobilityStat / 2.0f)); // + diffStep * (_currentMobilityStat / 2.0f);
 		GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Magenta, "Slowed Speed: " + FString::SanitizeFloat (_UCharMoveComp->MaxFlySpeed));
 	}
 
 
-	if (_UCharMoveComp->MaxFlySpeed != _maxSpeed && _UCharMoveComp->MaxAcceleration != _acceleration)
-	{
-		_UCharMoveComp->MaxFlySpeed = _maxSpeed;
-		_UCharMoveComp->MaxAcceleration = _acceleration;
+	//if (_UCharMoveComp->MaxFlySpeed != _maxSpeed && _UCharMoveComp->MaxAcceleration != _acceleration)
+	//{
+		//_UCharMoveComp->MaxFlySpeed = _maxSpeed;
+		//_UCharMoveComp->MaxAcceleration = _acceleration;
 		//GEngine->AddOnScreenDebugMessage (-1, 2.0f, FColor::Red, "Set to default values");
-	}
+	//}
+
+	_UCharMoveComp->MaxFlySpeed = speed;
+	_UCharMoveComp->MaxAcceleration = acceleration;
 }
 
 void AMainPlayerController::GetLifetimeReplicatedProps(TArray <FLifetimeProperty>& OutLifetimeProps) const
