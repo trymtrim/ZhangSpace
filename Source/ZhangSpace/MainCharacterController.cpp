@@ -118,15 +118,15 @@ void AMainCharacterController::Tick (float DeltaTime)
 void AMainCharacterController::InitializeAbilityCooldowns ()
 {
 	_abilityMaxCooldowns.Add (0, 60.0f); //Shield
-	_abilityMaxCooldowns.Add (1, 10.0f); //Attack 1
-	_abilityMaxCooldowns.Add (2, 10.0f); //Attack 2
-	_abilityMaxCooldowns.Add (3, 10.0f); //Attack 3
+	_abilityMaxCooldowns.Add (1, 10.0f); //Hyper Beam
+	_abilityMaxCooldowns.Add (2, 10.0f); //Heatseeker
+	_abilityMaxCooldowns.Add (3, 10.0f); //Shockwave
 	_abilityMaxCooldowns.Add (4, 30.0f); //Cloak
 	_abilityMaxCooldowns.Add (5, 10.0f); //Defense 2
 	_abilityMaxCooldowns.Add (6, 10.0f); //Defense 3
 	_abilityMaxCooldowns.Add (7, 15.0f); //Teleport
-	_abilityMaxCooldowns.Add (8, 10.0f); //Mobility 2
-	_abilityMaxCooldowns.Add (9, 10.0f); //Mobility 3
+	_abilityMaxCooldowns.Add (8, 10.0f); //Afterburner
+	_abilityMaxCooldowns.Add (9, 10.0f); //Immobilize Field
 
 	//Add shield ability to hotkey bar
 	_hotkeyBarAbilities.Add (0);
@@ -997,7 +997,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 				//Register kill in game state
 				AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser->GetOwner ());
 
-				killCharacter->UpdatePlayerHitText (killCharacter->playerID, finalDamage);
+				killCharacter->UpdatePlayerHitText (killCharacter->playerID, (int) finalDamage);
 			}
 		}
 		else if (DamageCauser->IsA (AMainCharacterController::StaticClass ()))
@@ -1008,7 +1008,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 			if (finalDamage > 500)
 				killCharacter->UpdatePlayerHitText (killCharacter->playerID, 150);
 			else
-				killCharacter->UpdatePlayerHitText (killCharacter->playerID, finalDamage);
+				killCharacter->UpdatePlayerHitText (killCharacter->playerID, (int) finalDamage);
 		}
 
 		return 0.0f;
@@ -1018,7 +1018,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 		if (!DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
 			finalDamage = Damage - Damage * (_defensePower * 8.0f / 100.0f);
 
-			_currentHealth -= finalDamage;
+			_currentHealth -= (int) finalDamage;
 
 		if (DamageCauser != nullptr)
 		{
@@ -1033,7 +1033,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 					//Register kill in game state
 					AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser->GetOwner ());
 
-					killCharacter->UpdatePlayerHitText (killCharacter->playerID, finalDamage);
+					killCharacter->UpdatePlayerHitText (killCharacter->playerID, (int) finalDamage);
 
 					if (_currentHealth <= 0)
 					{
@@ -1054,7 +1054,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 				if (finalDamage > 500)
 					killCharacter->UpdatePlayerHitText (killCharacter->playerID, 150);
 				else
-					killCharacter->UpdatePlayerHitText (killCharacter->playerID, finalDamage);
+					killCharacter->UpdatePlayerHitText (killCharacter->playerID, (int) finalDamage);
 
 				if (_currentHealth <= 0)
 				{
