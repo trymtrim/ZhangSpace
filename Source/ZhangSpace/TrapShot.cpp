@@ -35,9 +35,9 @@ void ATrapShot::ServerUpdate (float deltaTime)
 		if (playerController)
 		{
 			if (FVector::Distance (GetActorLocation (), playerController->GetCharacter ()->GetActorLocation ()) < 400.0f * 50.0f)
-				playerController->slowed = true;
+				playerController->_slowed = true;
 			else
-				playerController->slowed = false;
+				playerController->_slowed = false;
 		}
 	}
 }

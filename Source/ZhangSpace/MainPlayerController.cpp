@@ -156,16 +156,16 @@ void AMainPlayerController::Tick(float DeltaTime)
 		if (_braking && !_cruiseSpeed) 
 		{	
 			
-			//_UCharMoveComp->ApplyVelocityBraking(GetWorld()->DeltaTimeSeconds, 5.0f, _acceleration);
+			//_UCharMoveComp->ApplyVelocityBraking(GetWorld()->DeltaTimeSeconds, 5.0f, _acceleration); //It is protected....
 			_UCharMoveComp->CalcVelocity(GetWorld()->DeltaTimeSeconds, .5f, false, .0f);
-			//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Braking: true");
+			GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Braking: true");
 		}
 		if (_character->GetChannelingBeam ()) //When charging up hyper beam, restrict movement
 		{
 			_braking = true;
 			_cruiseSpeed = false;
 		}
-		else _braking = false;	//If not channeling beam and braking is true, don't brake anymore
+		//else if (!_character->GetChannelingBeam () && _braking && ) _braking = false;	//If not channeling beam and braking is true, don't brake anymore
 		//else GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Braking: false");
 		
 		//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Charge value: " + FString::SanitizeFloat (_currentCharge));
@@ -179,7 +179,7 @@ void AMainPlayerController::Tick(float DeltaTime)
 	//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Charge ratio: " + FString::SanitizeFloat (_chargeRatio));
 	//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Cooldown ratio: " + FString::SanitizeFloat (_cooldownRatio));
 
-	if (slowed)
+	if (_slowed)
 		GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Is slowed!");
 }
 
@@ -401,7 +401,16 @@ void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float r
 			 return;
 	 }
 
-	 if (_cruiseSpeed) _cruiseSpeed = false;
+	 if (_cruiseSpeed)
+	 {
+		 _cruiseSpeed = false; 			//Go out of cruise speed if we brake while in cruisespeed
+		 _currentCharge = .0f;				//Reset charge value if we exit cruise speed, so that progress bar stays green
+
+											//Set cooldown
+		 if (_CSCooldown == .0f)
+			 _CSCooldown = CS_CD;
+
+	 }
 
 	 _braking = true;
  }
@@ -489,9 +498,9 @@ void AMainPlayerController::UpdateSpeedAndAcceleration(int mobilityPower)
 {
 	//---------- CALCULATE DIFFERENCE AND STEP FOR EACH LEVEL ----------//
 	//Increase acceleration and speed thresholds based on mobility stat and difference between each step. Linear behaviour
-	float difference = (MAXIMUM_SPEED - MINIMUM_SPEED) / 8;		//divided by 8 since first and last mobility level are preset to min/max constants
-	float chargeStep = (DEFAULT_CHARGE_TIME - MINIMUM_CHARGE_TIME) / 8;
-	float accelerationStep = (MAXIMUM_ACCEL - MINIMUM_ACCEL) / 8;
+	float difference = (MAXIMUM_SPEED - MINIMUM_SPEED) / 9;		//divided by 9 since first and last mobility level are preset to max constant
+	float chargeStep = (DEFAULT_CHARGE_TIME - MINIMUM_CHARGE_TIME) / 9;
+	float accelerationStep = (MAXIMUM_ACCEL - MINIMUM_ACCEL) / 9;
 
 	switch (mobilityPower)
 	{
@@ -507,6 +516,11 @@ void AMainPlayerController::UpdateSpeedAndAcceleration(int mobilityPower)
 		case 10: { _maxSpeed = MAXIMUM_SPEED; _acceleration = MAXIMUM_ACCEL; _chargeTime = MINIMUM_CHARGE_TIME; break; }
 		default: { _maxSpeed = MINIMUM_SPEED; _acceleration = MINIMUM_ACCEL; _chargeTime = DEFAULT_CHARGE_TIME; break; }
 	}
+}
+
+void AMainPlayerController::SetIsBraking(bool state) 
+{
+	_braking = state;
 }
 
 void AMainPlayerController::SetCruiseValues() 
@@ -527,6 +541,13 @@ void AMainPlayerController::SetDefaultSpeedAndAcceleration ()
 		return;	//Dont update speed to default if boost is used and not in cruise speed
 	}
 	//else GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Boost in not running");
+
+	if (_slowed) 
+	{
+		float diffStep = (MAXIMUM_SPEED - MINIMUM_SPEED) / 10;
+		_UCharMoveComp->MaxFlySpeed = (_maxSpeed / 3.0f) + (diffStep * (_currentMobilityStat / 2.0f)); // + diffStep * (_currentMobilityStat / 2.0f);
+		GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Magenta, "Slowed Speed: " + FString::SanitizeFloat (_UCharMoveComp->MaxFlySpeed));
+	}
 
 
 	if (_UCharMoveComp->MaxFlySpeed != _maxSpeed && _UCharMoveComp->MaxAcceleration != _acceleration)
@@ -549,7 +570,7 @@ void AMainPlayerController::GetLifetimeReplicatedProps(TArray <FLifetimeProperty
 	DOREPLIFETIME (AMainPlayerController, _boost);
 
 	DOREPLIFETIME (AMainPlayerController, flyingIn);
-	DOREPLIFETIME (AMainPlayerController, slowed);
+	DOREPLIFETIME (AMainPlayerController, _slowed);
 }
 
 void AMainPlayerController::SetupInputComponent ()
