@@ -122,6 +122,35 @@ void AMainGameState::UpdatePlayerLives (AMainPlayerController* playerController,
 {
 	int playerIndex = _playerIndexes [playerController];
 	playerLives [playerIndex] = lives;
+
+	//Check for victory
+	int deadPlayers = 0;
+	FString winnerName = "";
+
+	for (int i = 0; i < playerLives.Num (); i++)
+	{
+		if (playerLives [i] == 0)
+			deadPlayers++;
+		else
+			winnerName = playerNames [i];
+	}
+
+	if (deadPlayers == playerLives.Num () - 1)
+		FinishGame (winnerName);
+}
+
+void AMainGameState::FinishGame (FString winnerName)
+{
+	for (int i = 0; i < playerLives.Num (); i++)
+	{
+		for (FConstPlayerControllerIterator Iterator = GetWorld ()->GetPlayerControllerIterator (); Iterator; ++Iterator)
+		{
+			AMainPlayerController* playerController = Cast <AMainPlayerController> (*Iterator);
+
+			if (playerController)
+				Cast <AMainCharacterController> (playerController->GetCharacter ())->FinishGame (winnerName);
+		}
+	}
 }
 
 void AMainGameState::SpawnFracturedSpaceship (TSubclassOf <AActor> fracturedSpaceshipBP, FTransform transform)

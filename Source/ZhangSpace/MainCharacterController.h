@@ -193,6 +193,11 @@ public:
 	UFUNCTION (BlueprintCallable)
 	void FinishFlyingIn ();
 
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void FinishGameBP (const FString& winnerName);
+
+	void FinishGame (FString winnerName);
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay () override;
@@ -323,6 +328,8 @@ private:
 
 	int FPS = 0;
 	void UpdateFPS ();
+
+	UPROPERTY (Replicated) bool _gameFinished = false;
 
 	UPROPERTY (Replicated) bool _gameOver = false;
 

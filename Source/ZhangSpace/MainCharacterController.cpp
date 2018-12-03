@@ -209,15 +209,53 @@ void AMainCharacterController::Respawn ()
 		_abilityCooldowns [i] = 0.0f;
 
 	//Set new location to a random player start
-	TArray <AActor*> playerStarts;
+	/*TArray <AActor*> playerStarts;
 	UGameplayStatics::GetAllActorsOfClass (GetWorld (), APlayerStart::StaticClass (), playerStarts);
 
 	int randomIndex = FMath::RandRange (0, playerStarts.Num () - 1);
-	SetActorLocation (playerStarts [randomIndex]->GetActorLocation ());
+	SetActorLocation (playerStarts [randomIndex]->GetActorLocation ());*/
+
+	int randomIndex = FMath::RandRange (0, 4);
+	
+	switch (randomIndex)
+	{
+	case 0:
+		SetActorLocation (FVector (-10000.0f, -4500.0f, 12400.0f));
+		break;
+	case 1:
+		SetActorLocation (FVector (15000.0f, -10900.0f, 1700.0f));
+		break;
+	case 2:
+		SetActorLocation (FVector (-2700.0f, 16000.0f, -6600.0f));
+		break;
+	case 3:
+		SetActorLocation (FVector (-1250.0f, 1600.0f, -3300.0f));
+		break;
+	}
 
 	RespawnBP ();
 
 	_dead = false;
+}
+
+void AMainCharacterController::FinishGame (FString winnerName)
+{
+	_gameFinished = true;
+
+	cloakActive = false;
+
+	if (_channelingBeam)
+		CancelHyperBeam ();
+
+	if (_isBoosting)
+		CancelBoost ();
+
+	_isUsingTrapShot = false;
+
+	//Stop movement
+	GetCharacterMovement ()->StopMovementImmediately ();
+
+	FinishGameBP (winnerName);
 }
 
 void AMainCharacterController::GameOver ()
@@ -402,7 +440,7 @@ void AMainCharacterController::UseAbilityInput (int abilityIndex)
 
 void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVector cameraPosition)
 {
-	if (disarmed || !_abilities.Contains (abilityIndex) || !gameStarted || flyingIn || _dead)
+	if (disarmed || !_abilities.Contains (abilityIndex) || !gameStarted || flyingIn || _dead || _gameFinished)
 		return;
 
 	//Get ability index, if ability is on cooldown, return
@@ -524,7 +562,7 @@ void AMainCharacterController::UpdateShootingCooldown (float deltaTime)
 
 void AMainCharacterController::Shoot_Implementation (FVector cameraPosition, FVector cameraForward)
 {
-	if (disarmed || _channelingBeam || !gameStarted || flyingIn || _power < _shootCost || _dead || _currentShootingCooldown > 0.0f)
+	if (disarmed || _channelingBeam || !gameStarted || flyingIn || _power < _shootCost || _dead || _currentShootingCooldown > 0.0f || _gameFinished)
 		return;
 
 	//Reset shootingCooldown
@@ -924,7 +962,7 @@ void AMainCharacterController::UpdateStats (float deltaTime)
 
 float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	if (_dead)
+	if (_dead || _gameFinished)
 		return 0.0f;
 
 	float finalDamage = Damage;
@@ -1235,6 +1273,9 @@ bool AMainCharacterController::SetShowCursor_Validate (bool show)
 
 void AMainCharacterController::MouseClick ()
 {
+	if (_gameFinished)
+		return;
+
 	if (_gameOver)
 	{
 		if (!isSpectating)
@@ -1309,7 +1350,7 @@ void AMainCharacterController::OpenSettingsMenu (bool open)
 
 bool AMainCharacterController::GetCanMove ()
 {
-	if (_dead || _showCursor || !gameStarted)
+	if (_dead || _showCursor || !gameStarted || _gameFinished)
 		return false;
 
 	return true;
@@ -1317,7 +1358,7 @@ bool AMainCharacterController::GetCanMove ()
 
 bool AMainCharacterController::GetIsDead ()
 {
-	if (!gameStarted || _dead)
+	if (!gameStarted || _dead || _gameFinished)
 		return true;
 
 	return _dead;
@@ -1401,6 +1442,7 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 	DOREPLIFETIME (AMainCharacterController, disarmed);
 
 	DOREPLIFETIME (AMainCharacterController, flyingIn);
+	DOREPLIFETIME (AMainCharacterController, _gameFinished);
 }
 
 //Called to bind functionality to input

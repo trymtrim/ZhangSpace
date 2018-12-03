@@ -129,7 +129,7 @@ void AMainGameMode::StartGame ()
 	_gameStarted = true;
 
 	FTimerHandle flyingInTimerHandle;
-	GetWorld ()->GetTimerManager ().SetTimer (flyingInTimerHandle, this, &AMainGameMode::FinishFlyingIn, 25.0f, false);
+	GetWorld ()->GetTimerManager ().SetTimer (flyingInTimerHandle, this, &AMainGameMode::FinishFlyingIn, 15.0f, false);
 }
 
 void AMainGameMode::FinishFlyingIn ()

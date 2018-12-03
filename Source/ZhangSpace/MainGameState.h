@@ -44,6 +44,8 @@ private:
 	void ServerUpdate (float deltaTime);
 	void DamagePlayersOutsideOfCircle ();
 
+	void FinishGame (FString winnerName);
+
 	float _damageInterval = 1.0f;
 	float _damageTimer = 0.0f;
 
