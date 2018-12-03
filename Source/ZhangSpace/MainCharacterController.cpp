@@ -402,7 +402,7 @@ void AMainCharacterController::UseAbilityInput (int abilityIndex)
 
 void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVector cameraPosition)
 {
-	if (disarmed || !_abilities.Contains (abilityIndex) || !gameStarted || _dead)
+	if (disarmed || !_abilities.Contains (abilityIndex) || !gameStarted || flyingIn || _dead)
 		return;
 
 	//Get ability index, if ability is on cooldown, return
@@ -524,7 +524,7 @@ void AMainCharacterController::UpdateShootingCooldown (float deltaTime)
 
 void AMainCharacterController::Shoot_Implementation (FVector cameraPosition, FVector cameraForward)
 {
-	if (disarmed || _channelingBeam || !gameStarted || _power < _shootCost || _dead || _currentShootingCooldown > 0.0f)
+	if (disarmed || _channelingBeam || !gameStarted || flyingIn || _power < _shootCost || _dead || _currentShootingCooldown > 0.0f)
 		return;
 
 	//Reset shootingCooldown
@@ -1328,6 +1328,12 @@ int AMainCharacterController::GetMobilityPower ()
 	return _mobilityPower;
 }
 
+void AMainCharacterController::FinishFlyingIn ()
+{
+	flyingIn = false;
+	Cast <AMainPlayerController> (GetController ())->flyingIn = false;
+}
+
 void AMainCharacterController::SetShieldHealth_Implementation (int health)
 {
 	shieldHealth = health;
@@ -1393,6 +1399,8 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 	DOREPLIFETIME (AMainCharacterController, beamTargetPosition);	
 
 	DOREPLIFETIME (AMainCharacterController, disarmed);
+
+	DOREPLIFETIME (AMainCharacterController, flyingIn);
 }
 
 //Called to bind functionality to input

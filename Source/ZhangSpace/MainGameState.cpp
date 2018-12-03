@@ -55,6 +55,9 @@ void AMainGameState::ServerUpdate (float deltaTime)
 
 void AMainGameState::DamagePlayersOutsideOfCircle ()
 {
+	if (!_gameStarted || flyingIn)
+		return;
+
 	for (FConstPlayerControllerIterator Iterator = GetWorld ()->GetPlayerControllerIterator (); Iterator; ++Iterator)
 	{
 		AMainPlayerController* playerController = Cast <AMainPlayerController> (*Iterator);
@@ -63,9 +66,19 @@ void AMainGameState::DamagePlayersOutsideOfCircle ()
 		{
 			if (FVector::Distance (_shrinkingCircle->GetActorLocation (), playerController->GetCharacter ()->GetActorLocation ()) > _shrinkingCircle->GetActorScale ().X * 50.0f)
 			{
-				float damage = 3.0f;
+				if (!playerController->flyingIn)
+				{
+					float damage = 3.0f;
 
-				UGameplayStatics::ApplyDamage (playerController->GetCharacter (), damage, nullptr, _shrinkingCircle, nullptr);
+					UGameplayStatics::ApplyDamage (playerController->GetCharacter (), damage, nullptr, _shrinkingCircle, nullptr);
+				}
+			}
+			else if (playerController->flyingIn)
+			{
+				playerController->flyingIn = false;
+
+				AMainCharacterController* characterController = Cast <AMainCharacterController> (playerController->GetCharacter ());
+				characterController->flyingIn = false;
 			}
 		}
 	}

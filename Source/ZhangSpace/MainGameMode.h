@@ -23,6 +23,7 @@ public:
 
 private:
 	void StartGame ();
+	void FinishFlyingIn ();
 
 	int _maxPlayers = 6;
 	int _playerCount = 0;

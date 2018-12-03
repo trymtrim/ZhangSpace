@@ -38,8 +38,6 @@ void AMainGameMode::Tick (float DeltaTime)
 			_canStopServer = true;
 	}
 
-	//TODO, start game after players have joined, keep track of all players
-
 	if (_playerCount > 0 || _canStopServer)
 	{
 		_connectedPlayersCheckTimer += DeltaTime;
@@ -129,4 +127,12 @@ void AMainGameMode::StartGame ()
 	
 	Cast <AMainGameState> (GameState)->StartGame ();
 	_gameStarted = true;
+
+	FTimerHandle flyingInTimerHandle;
+	GetWorld ()->GetTimerManager ().SetTimer (flyingInTimerHandle, this, &AMainGameMode::FinishFlyingIn, 25.0f, false);
+}
+
+void AMainGameMode::FinishFlyingIn ()
+{
+	Cast <AMainGameState> (GameState)->flyingIn = false;
 }

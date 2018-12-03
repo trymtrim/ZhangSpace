@@ -70,7 +70,7 @@ void AMainPlayerController::Tick(float DeltaTime)
 		{
 			//--------------- ENTERING CRUISE SPEED ---------------//
 			//Normally the movement is done when pressing down a button, when in cruise speed we want constant movement forward, so 1.0f as scale
-			if (_cruiseSpeed)
+			if (_cruiseSpeed || flyingIn)
 			{
 				_character->AddMovementInput(GetCharacter()->GetActorForwardVector(), 1.0f);
 			}
@@ -78,7 +78,7 @@ void AMainPlayerController::Tick(float DeltaTime)
 
 		//--------------- UPDATE CRUISE SPEED VALUES ---------------//
 		//Update the speed and acceleration depending on whether or not we are in cruise speed
-		if (_cruiseSpeed)
+		if (_cruiseSpeed || flyingIn)
 		{
 			//Update max speed and acceleration accordingly, current mobility determines max speed and acceleration, which again is factored
 			SetCruiseValues ();
@@ -90,7 +90,20 @@ void AMainPlayerController::Tick(float DeltaTime)
 		if (GetWorld ()->IsServer ())
 		{
 			//---------- UPDATE MOBILITYPOWER IF CHANGED ----------//
-			if (_currentMobilityStat != _character->GetMobilityPower()) 
+			if (flyingIn)
+			{
+				if (_flyingInSpeed < 10.0f)
+					_flyingInSpeed += DeltaTime;
+				else if (_flyingInSpeed > 10.0f)
+					_flyingInSpeed = 10.0f;
+
+				if (_flyingInSpeed > 0.0f && _flyingInSpeed <= 3.0f)
+				{
+					_maxSpeed = FMath::Lerp (MINIMUM_SPEED, MAXIMUM_SPEED, _flyingInSpeed / 3.0f);
+					_acceleration = FMath::Lerp (MINIMUM_ACCEL, MAXIMUM_ACCEL, _flyingInSpeed / 3.0f);
+				}
+			}
+			else if (_currentMobilityStat != _character->GetMobilityPower()) 
 			{
 				//To update mobility power (values = 1-10):
 				_currentMobilityStat = _character->GetMobilityPower();
@@ -169,6 +182,9 @@ void AMainPlayerController::Tick(float DeltaTime)
 
 void AMainPlayerController::MoveForward (float value)
 {
+	if (flyingIn)
+		return;
+
 	if (_character != nullptr)			//If we have a reference to the character pointer
 	{
 		if (_character->GetIsDead ())	//And the player is dead, don't do anything
@@ -218,6 +234,9 @@ void AMainPlayerController::VerticalStrafe (float value)
 
 void AMainPlayerController::Roll (float value)
 {
+	if (flyingIn)
+		return;
+
 	if (_character != nullptr)			//If we have a reference to the character pointer
 	{
 		if (_character->isSpectating)
@@ -241,6 +260,9 @@ void AMainPlayerController::Roll (float value)
 
 void AMainPlayerController::Pitch (float value)
 {
+	if (flyingIn)
+		return;
+
 	if (_character != nullptr)			//If we have a reference to the character pointer
 	{
 		if (_character->isSpectating)
@@ -275,6 +297,9 @@ void AMainPlayerController::Pitch (float value)
 
 void AMainPlayerController::Yaw (float value)
 {
+	if (flyingIn)
+		return;
+
 	if (_character != nullptr)			//If we have a reference to the character pointer
 	{
 		if (_character->isSpectating)
@@ -321,8 +346,16 @@ void AMainPlayerController::Yaw (float value)
 	//GEngine->AddOnScreenDebugMessage(-1, .005f, FColor::Yellow, "Yaw Input Value = " + FString::SanitizeFloat(value, 2) + ", deltaYaw value = " + FString::SanitizeFloat(yawDelta, 2));
 }
 
-void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float roll) 
+void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float roll)
 {
+	if (flyingIn)
+	{
+		_character->SetActorRotation ((FVector (0.0f, 0.0f, 0.0f) - _character->GetActorLocation ()).Rotation ());
+		SetControlRotation (_character->GetActorRotation ());
+
+		return;
+	}
+
 	//Deadzone for registering input when in cruise speed
 	if (_cruiseSpeed)
 	{
@@ -356,6 +389,9 @@ void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float r
 
  void AMainPlayerController::Brake_Implementation() 
  {
+	 if (flyingIn)
+		 return;
+
 	 if (_character != nullptr)			//If we have a reference to the character pointer
 	 {
 		 if (_character->GetIsDead ())	//And the player is dead, don't do anything
@@ -374,6 +410,9 @@ void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float r
 
  void AMainPlayerController::StopBrake_Implementation ()
  {
+	 if (flyingIn)
+		 return;
+
 	 _braking = false;
  }
 
@@ -385,6 +424,9 @@ void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float r
  //Called when Cruise Speed button is pressed
  void AMainPlayerController::ChargeCruiseSpeed_Implementation ()
  {
+	 if (flyingIn)
+		 return;
+
 	 if (_character != nullptr)			//If we have a reference to the character pointer
 	 {
 		 if (_character->GetIsDead ())	//And the player is dead, don't do anything
@@ -411,6 +453,9 @@ void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float r
 
  void AMainPlayerController::StopChargeCruiseSpeed_Implementation ()
  {
+	 if (flyingIn)
+		 return;
+
 	 if (_character != nullptr)			//If we have a reference to the character pointer
 	 {
 		 if (_character->GetIsDead ())	//And the player is dead, don't do anything
@@ -499,6 +544,8 @@ void AMainPlayerController::GetLifetimeReplicatedProps(TArray <FLifetimeProperty
 	DOREPLIFETIME (AMainPlayerController, _cooldownRatio);
 	DOREPLIFETIME (AMainPlayerController, _braking);
 	DOREPLIFETIME (AMainPlayerController, _boost);
+
+	DOREPLIFETIME (AMainPlayerController, flyingIn);
 }
 
 void AMainPlayerController::SetupInputComponent ()

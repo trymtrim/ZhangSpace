@@ -70,6 +70,8 @@ public:
 	UPROPERTY (BlueprintReadOnly) float _maxDeltaValue = .5f;	//Used to clamp cruise speed delta values
 	UPROPERTY (BlueprintReadOnly) float _minDeltaValue = .1f;
 
+	UPROPERTY (Replicated, BlueprintReadOnly) bool flyingIn = true;
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -77,7 +79,7 @@ protected:
 private:
 	//---------- MOVEMENT VALUES ----------//
 	float _rollSpeed = 80.0f;					//Used to determine roll speed
-	float const MINIMUM_SPEED = 8000.0f;		//Used as the lowest possible speed when flying
+	float const MINIMUM_SPEED = 5000.0f;		//Used as the lowest possible speed when flying
 	float const MAXIMUM_SPEED = 14000.0f;
 	float const MINIMUM_ACCEL = 4000.0f;
 	float const MAXIMUM_ACCEL = 16000.0f;
@@ -100,7 +102,7 @@ private:
 	bool _charge = false;				//Used to keep track of cruise speed charge up
 	UPROPERTY (Replicated) bool _boost = false;				//Keep track whether the player is using the boost ability
 	//Local mobility stat, updated through the server
-	int  _currentMobilityStat = 1;
+	int  _currentMobilityStat = 0;
 
 	//Pointer reference to the character class and its CharacterMovementComponent
 	AMainCharacterController* _character = nullptr;
@@ -110,4 +112,6 @@ private:
 	void UpdateSpeedAndAcceleration(int mobilityStat);
 	void SetCruiseValues();
 	void SetDefaultSpeedAndAcceleration();
+
+	float _flyingInSpeed = -1.0f;
 };

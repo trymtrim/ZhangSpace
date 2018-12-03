@@ -187,6 +187,12 @@ public:
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void HeatseekerBP (AMainCharacterController* playerTarget, int damage);
 
+	UPROPERTY (Replicated)
+	bool flyingIn = true;
+
+	UFUNCTION (BlueprintCallable)
+	void FinishFlyingIn ();
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay () override;
