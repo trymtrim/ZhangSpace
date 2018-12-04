@@ -89,6 +89,8 @@ private:
 	UPROPERTY (Replicated) float _maxSpeed = 5000.0f;			//Used as the default max speed
 	UPROPERTY (Replicated) float _acceleration = 4000.0f;		//The rate at which the speed increases when scrolling, is multiplied with scroll axis value (Not in cruise speed)
 	UPROPERTY (Replicated) bool _braking = false;				//Used to braking the spaceship manually
+	float _maxCruiseVelocity = 0.0f;
+	UPROPERTY (Replicated) float _cruiseVelocity = 0.0f;
 
 	float _sensitivityScaler = 20.0f;							//Used to scale sensitivity with mouse input
 	float _turnSpeed = 20.0f;					//Determines the rotation speed when using the mouse to rotate the ship based on delta values, when not in cruise speed
@@ -103,10 +105,13 @@ private:
 	float const DEFAULT_CHARGE_TIME = 3.0f;
 	float const MINIMUM_CHARGE_TIME = 1.5f;
 
-	bool _charge = false;				//Used to keep track of cruise speed charge up
+	UPROPERTY (Replicated) bool _charge = false;				//Used to keep track of cruise speed charge up
 	UPROPERTY (Replicated) bool _boost = false;				//Keep track whether the player is using the boost ability
 	//Local mobility stat, updated through the server
-	int  _currentMobilityStat = 0;
+	UPROPERTY (Replicated) int  _currentMobilityStat = 0;
+
+	UFUNCTION (Server, Reliable, WithValidation)
+	void UpdateCruiseVelocityServer(float value);
 
 	//Pointer reference to the character class and its CharacterMovementComponent
 	AMainCharacterController* _character = nullptr;
@@ -114,7 +119,7 @@ private:
 
 	//Private local scope functions
 	void UpdateSpeedAndAcceleration(int mobilityStat);
-	void SetCruiseValues();
+	void SetCruiseValues(float speed);
 	void SetDefaultSpeedAndAcceleration();
 
 	float _flyingInSpeed = -1.0f;

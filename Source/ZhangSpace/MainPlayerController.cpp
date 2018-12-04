@@ -81,7 +81,8 @@ void AMainPlayerController::Tick(float DeltaTime)
 		if (_cruiseSpeed || flyingIn)
 		{
 			//Update max speed and acceleration accordingly, current mobility determines max speed and acceleration, which again is factored
-			SetCruiseValues ();
+			
+			SetCruiseValues (_cruiseVelocity);
 		}
 		else
 			SetDefaultSpeedAndAcceleration ();	//Reset values to current values based on mobilitypower
@@ -89,7 +90,7 @@ void AMainPlayerController::Tick(float DeltaTime)
 		//---------- SERVER ----------//
 		if (GetWorld ()->IsServer ())
 		{
-			//---------- UPDATE MOBILITYPOWER IF CHANGED ----------//
+			//---------- Control intial in flight phase ----------//
 			if (flyingIn)
 			{
 				if (_flyingInSpeed < 10.0f)
@@ -103,6 +104,7 @@ void AMainPlayerController::Tick(float DeltaTime)
 					_acceleration = FMath::Lerp (MINIMUM_ACCEL, MAXIMUM_ACCEL, _flyingInSpeed / 3.0f);
 				}
 			}
+			//---------- UPDATE MOBILITYPOWER IF CHANGED ----------//
 			else if (_currentMobilityStat != _character->GetMobilityPower()) 
 			{
 				//To update mobility power (values = 1-10):
@@ -120,17 +122,19 @@ void AMainPlayerController::Tick(float DeltaTime)
 
 		//---------- KEEP TRACK OF CRUISE SPEED CHARGING ----------//
 
-		if (_charge && !_cruiseSpeed && !_character->GetChannelingBeam ())	//If charging and not in cruise speed
+		if (_charge && !_cruiseSpeed && !_character->GetChannelingBeam () && !_slowed)	//If charging and not in cruise speed
 		{
 			if (_currentCharge <= _chargeTime && _CSCooldown == .0f)
 			{	
 				_currentCharge += GetWorld()->DeltaTimeSeconds;	//Increase charge cooldown
 			}
-			else if (_currentCharge > _chargeTime)
+			else if (_currentCharge > _chargeTime) //fully charged cruisespeed
 			{
 				_currentCharge = _chargeTime;	//Set max value so it doesn't go above max
 				_charge = false;
 				_cruiseSpeed = true;	//Enter cruise speed when fully charged
+				_cruiseVelocity = _maxCruiseVelocity;	//Set to full cruise speed when initializing cruise speed
+				GEngine->AddOnScreenDebugMessage (-1, 1.0f, FColor::Yellow, "Setting initial cruice velocity!");
 			}
 		}
 		else if (!_charge && !_cruiseSpeed)		//If we release charge button before entering cruise speed
@@ -152,7 +156,7 @@ void AMainPlayerController::Tick(float DeltaTime)
 		}
 
 
-		//Apply braking if we're not in cruise speed
+		//Apply braking if we're not in cruise speed and brake button is pressed
 		if (_braking && !_cruiseSpeed) 
 		{	
 			
@@ -160,14 +164,15 @@ void AMainPlayerController::Tick(float DeltaTime)
 			_UCharMoveComp->CalcVelocity(GetWorld()->DeltaTimeSeconds, .5f, false, .0f);
 			GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Braking: true");
 		}
-		if (_character->GetChannelingBeam ()) //When charging up hyper beam, restrict movement
+		if (_character->GetChannelingBeam ()) //When charging up hyper beam, restrict movement, is set to false in CharacterController when player is not using ability anymore
 		{
 			_braking = true;
 			_cruiseSpeed = false;
 		}
-		//else if (!_character->GetChannelingBeam () && _braking && ) _braking = false;	//If not channeling beam and braking is true, don't brake anymore
+		
 		//else GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Braking: false");
 		
+		GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Cruise velocity: " + FString::SanitizeFloat (_cruiseVelocity));
 		//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Charge value: " + FString::SanitizeFloat (_currentCharge));
 		//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Cruise speed CD value: " + FString::SanitizeFloat (_CSCooldown));
 
@@ -179,8 +184,12 @@ void AMainPlayerController::Tick(float DeltaTime)
 	//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Charge ratio: " + FString::SanitizeFloat (_chargeRatio));
 	//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Cooldown ratio: " + FString::SanitizeFloat (_cooldownRatio));
 
-	if (_slowed)
+	//Go out of cruise speed if player is slowed
+	if (_slowed) 
+	{
+		_cruiseSpeed = false;
 		GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Is slowed!");
+	}
 }
 
 void AMainPlayerController::MoveForward (float value)
@@ -194,7 +203,19 @@ void AMainPlayerController::MoveForward (float value)
 			return;
 	}
 
-	if (_cruiseSpeed || _braking) return;		//If in cruise speed or braking, do not update movement based on input
+	if (_braking) return;		//If in cruise speed or braking, do not update movement based on input
+
+	if (_cruiseSpeed) //If we are in cruise speed, we can change the speed based on S key
+	{
+		if (value < 0.0f || value > 0.0f) //Decrease or increase cruise speed
+		{
+			UpdateCruiseVelocityServer(value);
+			return;
+			
+		}
+		//If we are not altering cruise speed, still return
+		return;
+	}
 
 	if (value != .0f )
 	{
@@ -362,8 +383,18 @@ void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float r
 	//Deadzone for registering input when in cruise speed
 	if (_cruiseSpeed)
 	{
-		if (FMath::Abs (pitch) < _minDeltaValue && FMath::Abs (yaw) < _minDeltaValue)
+		roll /= 2.0f;	//Half the roll speed when in cruise speed
+
+		if (FMath::Abs (pitch) < _minDeltaValue && FMath::Abs (yaw) < _minDeltaValue) 
+		{
+			//We still want the ability to roll when deadzone is registered
+			FRotator newDeltaRotation = FRotator (0.0f, 0.0f, roll);
+			_character->AddActorLocalRotation (newDeltaRotation, false, 0, ETeleportType::None);
+
+			//Update the controller server side
+			SetControlRotation (_character->GetActorRotation ());
 			return;
+		}
 	}
 
 	//If _character doesn't have a pointer, get one and wait a frame
@@ -448,14 +479,14 @@ void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float r
 	 if (_cruiseSpeed) 
 	 { 
 		 _cruiseSpeed = false; 			//Go out of cruise speed if we release the button while in cruisespeed
-		 _currentCharge = .0f;				//Reset charge value if we exit cruise speed, so that progress bar stays green
+		 _currentCharge = .0f;			//Reset charge value if we exit cruise speed, so that progress bar stays green
 
 		 //Set cooldown
 		 if (_CSCooldown == .0f)
 			 _CSCooldown = CS_CD;
 	 
 	 }
-	 else _charge = true;						//Continue charging
+	 else if (!_slowed) _charge = true;						//Continue charging if not slowed
  }
 
  bool AMainPlayerController::ChargeCruiseSpeed_Validate ()
@@ -494,6 +525,42 @@ bool AMainPlayerController::RegisterPlayer_Validate (const FString& playerName, 
 	return true;
 }
 
+void AMainPlayerController::UpdateCruiseVelocityServer_Implementation(float value)
+{
+	float difference = (MAXIMUM_SPEED - MINIMUM_SPEED) / 9;
+	float lowestThreshold = MINIMUM_SPEED * 3.0f;
+
+	if (value < 0.0f)	//Decrease cruise speed
+	{
+		if (_cruiseVelocity < lowestThreshold) //So we can't decrease below minimum cruise speed value
+		{
+			_cruiseVelocity = lowestThreshold;
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Decreasing speed!");
+			_cruiseVelocity = FMath::Lerp (_cruiseVelocity, lowestThreshold, GetWorld ()->DeltaTimeSeconds); //Shouldn't use deltatime here, should use percentage for a linear interpolation!
+		}
+	}
+	else if (value > 0.0f)	//Inicrease cruise speed
+	{
+		if (_cruiseVelocity > _maxCruiseVelocity) //So we can't decrease below minimum cruise speed value
+		{
+			_cruiseVelocity = _maxCruiseVelocity;
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Increasing speed!");
+			_cruiseVelocity = FMath::Lerp (_cruiseVelocity, _maxCruiseVelocity, GetWorld ()->DeltaTimeSeconds); //Shouldn't use deltatime here, should use percentage for a linear interpolation!
+		}
+	}
+}
+
+bool AMainPlayerController::UpdateCruiseVelocityServer_Validate(float value)
+{
+	return true;
+}
+
 void AMainPlayerController::UpdateSpeedAndAcceleration(int mobilityPower) 
 {
 	//---------- CALCULATE DIFFERENCE AND STEP FOR EACH LEVEL ----------//
@@ -504,17 +571,17 @@ void AMainPlayerController::UpdateSpeedAndAcceleration(int mobilityPower)
 
 	switch (mobilityPower)
 	{
-		case 1: { _maxSpeed = MINIMUM_SPEED; _acceleration = MINIMUM_ACCEL; _chargeTime = DEFAULT_CHARGE_TIME; break; }
-		case 2: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; break; }
-		case 3: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; break; }
-		case 4: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; break; }
-		case 5: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; break; }
-		case 6: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; break; }
-		case 7: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; break; }
-		case 8: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; break; }
-		case 9: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; break; }
-		case 10: { _maxSpeed = MAXIMUM_SPEED; _acceleration = MAXIMUM_ACCEL; _chargeTime = MINIMUM_CHARGE_TIME; break; }
-		default: { _maxSpeed = MINIMUM_SPEED; _acceleration = MINIMUM_ACCEL; _chargeTime = DEFAULT_CHARGE_TIME; break; }
+		case 1: { _maxSpeed = MINIMUM_SPEED; _acceleration = MINIMUM_ACCEL; _chargeTime = DEFAULT_CHARGE_TIME; _maxCruiseVelocity = _maxSpeed * 3.0f; break; }
+		case 2: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; _maxCruiseVelocity = _maxSpeed * 3.0f;  break; }
+		case 3: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; _maxCruiseVelocity = _maxSpeed * 3.0f;  break; }
+		case 4: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; _maxCruiseVelocity = _maxSpeed * 3.0f;  break; }
+		case 5: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; _maxCruiseVelocity = _maxSpeed * 3.0f;  break; }
+		case 6: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; _maxCruiseVelocity = _maxSpeed * 3.0f;  break; }
+		case 7: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; _maxCruiseVelocity = _maxSpeed * 3.0f;  break; }
+		case 8: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; _maxCruiseVelocity = _maxSpeed * 3.0f;  break; }
+		case 9: { _maxSpeed += difference; _acceleration += accelerationStep; _chargeTime -= chargeStep; _maxCruiseVelocity = _maxSpeed * 3.0f;  break; }
+		case 10: { _maxSpeed = MAXIMUM_SPEED; _acceleration = MAXIMUM_ACCEL; _chargeTime = MINIMUM_CHARGE_TIME; _maxCruiseVelocity = _maxSpeed * 3.0f;  break; }
+		default: { _maxSpeed = MINIMUM_SPEED; _acceleration = MINIMUM_ACCEL; _chargeTime = DEFAULT_CHARGE_TIME; _maxCruiseVelocity = _maxSpeed * 3.0f; break; }
 	}
 }
 
@@ -523,10 +590,10 @@ void AMainPlayerController::SetIsBraking(bool state)
 	_braking = state;
 }
 
-void AMainPlayerController::SetCruiseValues() 
+void AMainPlayerController::SetCruiseValues(float speed) 
 {
 	//Update max speed and acceleration accordingly, current mobility determines max speed and acceleration, which again is factored
-	if (_slowed) 
+	/*if (_slowed) 
 	{
 		float diffStep = (MAXIMUM_SPEED - MINIMUM_SPEED) / 10;
 		float cruiseMaxSpeed = _maxSpeed * 2.5f;
@@ -535,9 +602,9 @@ void AMainPlayerController::SetCruiseValues()
 		_UCharMoveComp->MaxFlySpeed = (cruiseMaxSpeed / 3.0f) + (diffStep * (_currentMobilityStat / 2.0f));
 		_UCharMoveComp->MaxAcceleration = _acceleration * 2.0f;
 		return;
-	}
-
-	_UCharMoveComp->MaxFlySpeed = _maxSpeed * 2.5f;
+	}*/
+	//_cruiseVelocity = _maxSpeed * 3.0f;
+	_UCharMoveComp->MaxFlySpeed = speed;
 	_UCharMoveComp->MaxAcceleration = _acceleration * 2.0f;
 }
 
@@ -548,8 +615,8 @@ void AMainPlayerController::SetDefaultSpeedAndAcceleration ()
 	//If the boost ability is used, update speed and acceleration to ludachris values instead...
 	if (_slowed)
 	{
-		float diffStep = (MAXIMUM_SPEED - MINIMUM_SPEED) / 10;
-		speed = ((speed / 3.0f) + (diffStep * (_currentMobilityStat / 2.0f)));
+		float diffStep = (MAXIMUM_SPEED - MINIMUM_SPEED) / 20.0f;
+		speed = ((speed / 5.0f) + (diffStep * (_currentMobilityStat / 2.0f)));
 
 
 		//_UCharMoveComp->MaxFlySpeed = (_maxSpeed / 3.0f) + (diffStep * (_currentMobilityStat / 2.0f)); // + diffStep * (_currentMobilityStat / 2.0f);
@@ -590,7 +657,10 @@ void AMainPlayerController::GetLifetimeReplicatedProps(TArray <FLifetimeProperty
 	DOREPLIFETIME (AMainPlayerController, _boost);
 
 	DOREPLIFETIME (AMainPlayerController, flyingIn);
-	DOREPLIFETIME (AMainPlayerController, _slowed);
+	DOREPLIFETIME (AMainPlayerController, _slowed);	
+	DOREPLIFETIME (AMainPlayerController, _cruiseVelocity);
+	DOREPLIFETIME (AMainPlayerController, _currentMobilityStat);
+	DOREPLIFETIME (AMainPlayerController, _charge);
 }
 
 void AMainPlayerController::SetupInputComponent ()
