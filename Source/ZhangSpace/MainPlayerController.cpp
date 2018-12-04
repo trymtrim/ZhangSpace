@@ -178,6 +178,9 @@ void AMainPlayerController::Tick(float DeltaTime)
 	//---------- DEBUG MESSAGES ON SCREEN ----------//
 	//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Charge ratio: " + FString::SanitizeFloat (_chargeRatio));
 	//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Cooldown ratio: " + FString::SanitizeFloat (_cooldownRatio));
+
+	if (slowed)
+		GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Is slowed!");
 }
 
 void AMainPlayerController::MoveForward (float value)
@@ -546,6 +549,7 @@ void AMainPlayerController::GetLifetimeReplicatedProps(TArray <FLifetimeProperty
 	DOREPLIFETIME (AMainPlayerController, _boost);
 
 	DOREPLIFETIME (AMainPlayerController, flyingIn);
+	DOREPLIFETIME (AMainPlayerController, slowed);
 }
 
 void AMainPlayerController::SetupInputComponent ()

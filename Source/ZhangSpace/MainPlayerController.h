@@ -72,6 +72,8 @@ public:
 
 	UPROPERTY (Replicated, BlueprintReadOnly) bool flyingIn = true;
 
+	UPROPERTY (Replicated) bool slowed = false;
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay() override;
