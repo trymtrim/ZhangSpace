@@ -9,6 +9,8 @@
 #include "MainCharacterController.h"
 #include "SpaceshipAI.generated.h"
 
+AMainGameState;
+
 UCLASS()
 class ZHANGSPACE_API ASpaceshipAI : public AActor
 {
@@ -23,6 +25,8 @@ public:
 
 	UFUNCTION (BlueprintImplementableEvent, Category = "AI")
 	void DieBP ();
+
+	void DealBeamDamage (int damage, AMainCharacterController* player);
 
 protected:
 	//Called when the game starts or when spawned
@@ -63,6 +67,10 @@ private:
 	
 	UArrowComponent* gunPositionOne;
 	UArrowComponent* gunPositionTwo;
+
+	AMainGameState* _gameState = nullptr;
+
+	float _beamDamage = 0;
 	
 	UPROPERTY (EditAnywhere)
 	TSubclassOf <AProjectile> _projectileBP;

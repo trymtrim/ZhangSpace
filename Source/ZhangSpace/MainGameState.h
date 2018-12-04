@@ -23,6 +23,7 @@ public:
 	void StartGame ();
 
 	void AddPlayerKill (AMainPlayerController* playerController);
+	void AddPlayerLevel (AMainPlayerController* playerController);
 	void UpdatePlayerLives (AMainPlayerController* playerController, int lives);
 
 	UFUNCTION (BlueprintCallable)
@@ -31,6 +32,7 @@ public:
 	UPROPERTY (Replicated, BlueprintReadOnly) TArray <FString> playerNames;
 	UPROPERTY (Replicated, BlueprintReadOnly) TArray <int> playerKills;
 	UPROPERTY (Replicated, BlueprintReadOnly) TArray <int> playerLives;
+	UPROPERTY (Replicated, BlueprintReadOnly) TArray <int> playerLevels;
 
 	void UpdateFeedText (FString feedText);
 

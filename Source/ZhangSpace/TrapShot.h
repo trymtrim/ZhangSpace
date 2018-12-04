@@ -18,10 +18,15 @@ public:
 	//Called every frame
 	virtual void Tick (float DeltaTime) override;
 
+	UFUNCTION (BlueprintCallable)
+	void DestroyField ();
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay () override;
 
 private:
 	void ServerUpdate (float deltaTime);
+
+	bool _destroyed = false;
 };

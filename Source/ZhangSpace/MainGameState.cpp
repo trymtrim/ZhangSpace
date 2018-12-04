@@ -105,6 +105,7 @@ void AMainGameState::RegisterPlayer (AMainPlayerController* playerController, FS
 	playerNames.Add (playerName);
 	playerKills.Add (0);
 	playerLives.Add (3);
+	playerLevels.Add (1);
 }
 
 void AMainGameState::StartGame ()
@@ -116,6 +117,12 @@ void AMainGameState::AddPlayerKill (AMainPlayerController* playerController)
 {
 	int playerIndex = _playerIndexes [playerController];
 	playerKills [playerIndex]++;
+}
+
+void AMainGameState::AddPlayerLevel (AMainPlayerController* playerController)
+{
+	int playerIndex = _playerIndexes [playerController];
+	playerLevels [playerIndex]++;
 }
 
 void AMainGameState::UpdatePlayerLives (AMainPlayerController* playerController, int lives)
@@ -171,4 +178,5 @@ void AMainGameState::GetLifetimeReplicatedProps (TArray <FLifetimeProperty>& Out
 	DOREPLIFETIME (AMainGameState, playerNames);
 	DOREPLIFETIME (AMainGameState, playerKills);
 	DOREPLIFETIME (AMainGameState, playerLives);
+	DOREPLIFETIME (AMainGameState, playerLevels);
 }

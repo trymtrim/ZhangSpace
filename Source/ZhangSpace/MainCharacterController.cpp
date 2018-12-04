@@ -118,15 +118,15 @@ void AMainCharacterController::Tick (float DeltaTime)
 void AMainCharacterController::InitializeAbilityCooldowns ()
 {
 	_abilityMaxCooldowns.Add (0, 60.0f); //Shield
-	_abilityMaxCooldowns.Add (1, 10.0f); //Hyper Beam
-	_abilityMaxCooldowns.Add (2, 10.0f); //Heatseeker
-	_abilityMaxCooldowns.Add (3, 10.0f); //Shockwave
+	_abilityMaxCooldowns.Add (1, 30.0f); //Hyper Beam
+	_abilityMaxCooldowns.Add (2, 60.0f); //Heatseeker
+	_abilityMaxCooldowns.Add (3, 40.0f); //Shockwave
 	_abilityMaxCooldowns.Add (4, 30.0f); //Cloak
 	_abilityMaxCooldowns.Add (5, 10.0f); //Defense 2
 	_abilityMaxCooldowns.Add (6, 10.0f); //Defense 3
 	_abilityMaxCooldowns.Add (7, 15.0f); //Teleport
-	_abilityMaxCooldowns.Add (8, 10.0f); //Afterburner
-	_abilityMaxCooldowns.Add (9, 10.0f); //Immobilize Field
+	_abilityMaxCooldowns.Add (8, 20.0f); //Afterburner
+	_abilityMaxCooldowns.Add (9, 40.0f); //Immobilize Field
 
 	//Add shield ability to hotkey bar
 	_hotkeyBarAbilities.Add (0);
@@ -215,7 +215,7 @@ void AMainCharacterController::Respawn ()
 	int randomIndex = FMath::RandRange (0, playerStarts.Num () - 1);
 	SetActorLocation (playerStarts [randomIndex]->GetActorLocation ());*/
 
-	int randomIndex = FMath::RandRange (0, 4);
+	int randomIndex = FMath::RandRange (0, 3);
 	
 	switch (randomIndex)
 	{
@@ -291,6 +291,8 @@ void AMainCharacterController::AddExperience (int experience)
 		AddAvailableStats ();
 
 		systemLevel++;
+
+		_gameState->AddPlayerLevel (Cast <AMainPlayerController> (GetController ()));
 
 		UpdatePlayerHitText (-2, 0);
 
@@ -472,6 +474,7 @@ void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVec
 		{
 			_channelingBeam = false;
 			StopHyperBeamBP ();
+			Cast <AMainPlayerController> (GetController ())->SetIsBraking (false);
 		}
 		else
 		{
@@ -843,6 +846,11 @@ void AMainCharacterController::ChannelHyperBeam_Implementation (FVector cameraPo
 			AMainCharacterController* player = Cast <AMainCharacterController> (hit.GetActor ());
 			player->DealBeamDamage (damage, this);
 		}
+		else if (hit.GetActor ()->ActorHasTag ("AI"))
+		{
+			ASpaceshipAI* ai = Cast <ASpaceshipAI> (hit.GetActor ());
+			ai->DealBeamDamage (damage, this);
+		}
 	}
 }
 
@@ -890,6 +898,8 @@ void AMainCharacterController::CancelHyperBeam ()
 		return;
 
 	_channelingBeam = false;
+
+	Cast <AMainPlayerController> (GetController ())->SetIsBraking (false);
 
 	StopHyperBeamBP ();
 

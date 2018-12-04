@@ -5,6 +5,7 @@
 #include "MainPlayerController.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "Runtime/Engine/Public/DrawDebugHelpers.h"
+#include "MainGameState.h"
 
 //Sets default values
 ASpaceshipAI::ASpaceshipAI ()
@@ -30,6 +31,13 @@ void ASpaceshipAI::BeginPlay ()
 				gunPositionOne = arrowComps [i];
 			else if (arrowComps [i]->GetName () == "GunPosition2")
 				gunPositionTwo = arrowComps [i];
+		}
+
+		//Get a reference to the game state
+		while (_gameState == nullptr)
+		{
+			if (GetWorld ()->GetGameState () != nullptr)
+				_gameState = Cast <AMainGameState> (GetWorld ()->GetGameState ());
 		}
 	}
 }
@@ -206,6 +214,28 @@ void ASpaceshipAI::Shoot ()
 
 	//Reset attack cooldown
 	_currentAttackCooldown = _maxAttackCooldown;
+}
+
+void ASpaceshipAI::DealBeamDamage (int damage, AMainCharacterController* player)
+{
+	_target = player;
+
+	_state = ATTACK;
+	_shootOutOfRangeTimer = 5.0f;
+
+	_beamDamage += damage;
+
+	if (_beamDamage > 1.0f)
+	{
+		_beamDamage -= 1.0f;
+
+		_health -= 1;
+
+		player->UpdatePlayerHitText (player->playerID, 1);
+
+		if (_health <= 0)
+			Die ();
+	}
 }
 
 void ASpaceshipAI::Die ()

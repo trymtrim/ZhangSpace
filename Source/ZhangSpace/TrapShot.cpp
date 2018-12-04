@@ -28,6 +28,9 @@ void ATrapShot::Tick (float DeltaTime)
 
 void ATrapShot::ServerUpdate (float deltaTime)
 {
+	if (_destroyed)
+		return;
+
 	for (FConstPlayerControllerIterator Iterator = GetWorld ()->GetPlayerControllerIterator (); Iterator; ++Iterator)
 	{
 		AMainPlayerController* playerController = Cast <AMainPlayerController> (*Iterator);
@@ -40,4 +43,17 @@ void ATrapShot::ServerUpdate (float deltaTime)
 				playerController->_slowed = false;
 		}
 	}
+}
+
+void ATrapShot::DestroyField ()
+{
+	for (FConstPlayerControllerIterator Iterator = GetWorld ()->GetPlayerControllerIterator (); Iterator; ++Iterator)
+	{
+		AMainPlayerController* playerController = Cast <AMainPlayerController> (*Iterator);
+
+		if (playerController)
+			playerController->_slowed = false;
+	}
+
+	_destroyed = true;
 }
