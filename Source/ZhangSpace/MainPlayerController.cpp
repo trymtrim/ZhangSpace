@@ -81,7 +81,9 @@ void AMainPlayerController::Tick(float DeltaTime)
 		if (_cruiseSpeed || flyingIn)
 		{
 			//Update max speed and acceleration accordingly, current mobility determines max speed and acceleration, which again is factored
-			
+			if (flyingIn)
+				_cruiseVelocity = _maxSpeed * 3.0f;
+
 			SetCruiseValues (_cruiseVelocity);
 		}
 		else
