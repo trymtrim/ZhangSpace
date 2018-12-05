@@ -927,7 +927,7 @@ bool AMainCharacterController::GetChannelingBeam ()
 void AMainCharacterController::Teleport ()
 {
 	FTimerHandle FPSTimerHandle;
-	GetWorld ()->GetTimerManager ().SetTimer (FPSTimerHandle, this, &AMainCharacterController::DoTeleport, 0.1f, false); //Should be 0.5f
+	GetWorld ()->GetTimerManager ().SetTimer (FPSTimerHandle, this, &AMainCharacterController::DoTeleport, 0.25f, false); //Should be 0.5f
 }
 
 void AMainCharacterController::DoTeleport ()
