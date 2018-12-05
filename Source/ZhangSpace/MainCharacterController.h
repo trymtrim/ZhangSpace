@@ -76,6 +76,8 @@ public:
 
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void PlayUpgradeSoundBP ();
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void ServerPlayUpgradeSoundBP ();
 
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void AfterburnerBP ();

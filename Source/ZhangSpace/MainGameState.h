@@ -37,6 +37,7 @@ public:
 	void UpdateFeedText (FString feedText);
 
 	bool flyingIn = true;
+	bool _gameStarted = false;
 
 protected:
 	//Called when the game starts or when spawned
@@ -51,7 +52,6 @@ private:
 	float _damageInterval = 1.0f;
 	float _damageTimer = 0.0f;
 
-	bool _gameStarted = false;
 
 	UPROPERTY ()
 	AShrinkingCircle* _shrinkingCircle;

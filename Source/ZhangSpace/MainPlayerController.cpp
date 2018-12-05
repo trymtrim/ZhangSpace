@@ -92,8 +92,8 @@ void AMainPlayerController::Tick(float DeltaTime)
 		//---------- SERVER ----------//
 		if (GetWorld ()->IsServer ())
 		{
-			//---------- Control intial in flight phase ----------//
-			if (flyingIn)
+			//---------- Control initial in flight phase ----------//
+			if (flyingIn && Cast <AMainGameState> (GetWorld ()->GetGameState ())->_gameStarted)
 			{
 				if (_flyingInSpeed < 10.0f)
 					_flyingInSpeed += DeltaTime;
@@ -104,6 +104,11 @@ void AMainPlayerController::Tick(float DeltaTime)
 				{
 					_maxSpeed = FMath::Lerp (MINIMUM_SPEED, MAXIMUM_SPEED, _flyingInSpeed / 3.0f);
 					_acceleration = FMath::Lerp (MINIMUM_ACCEL, MAXIMUM_ACCEL, _flyingInSpeed / 3.0f);
+				}
+				else if (_flyingInSpeed < 0.0f)
+				{
+					_maxSpeed = 0.0f;
+					_acceleration = 0.0f;
 				}
 			}
 			//---------- UPDATE MOBILITYPOWER IF CHANGED ----------//

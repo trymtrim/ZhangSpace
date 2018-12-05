@@ -333,7 +333,8 @@ void AMainCharacterController::AddAbility (int abilityIndex)
 		}
 	}
 
-	PlayUpgradeSoundBP ();
+	if (abilityIndex != 0)
+		PlayUpgradeSoundBP ();
 
 	ServerAddAbility (abilityIndex);
 }
@@ -427,6 +428,8 @@ void AMainCharacterController::AddStat_Implementation (int statIndex)
 			_mobilityUpgradesAvailable++;
 		break;
 	}
+
+	ServerPlayUpgradeSoundBP ();
 
 	_availableStats--;
 }
