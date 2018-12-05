@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Projectile.h"
-#include "Components/ArrowComponent.h"
 #include "MainCharacterController.h"
 #include "SpaceshipAI.generated.h"
 
@@ -27,6 +26,11 @@ public:
 	void DieBP ();
 
 	void DealBeamDamage (int damage, AMainCharacterController* player);
+
+	UFUNCTION (BlueprintImplementableEvent, Category = "Ability Menu")
+	void SetRotationBP (FRotator rotation, FVector targetPosition);
+	UFUNCTION (BlueprintImplementableEvent, Category = "Ability Menu")
+	void ShootBP (bool gunPosition, int damage, ASpaceshipAI* ownerAI, AMainCharacterController* targetPlayer);
 
 protected:
 	//Called when the game starts or when spawned
@@ -56,17 +60,14 @@ private:
 
 	int _health = 200;
 
-	float _aggroRange = 12500.0f;
-	float _loseAggroRange = 15000.0f;
+	float _aggroRange = 17500.0f;
+	float _loseAggroRange = 20000.0f;
 	float _maxAttackCooldown = 0.5f;
 	float _currentAttackCooldown = 0.0f;
 
 	bool _gunPositionSwitch = true;
 
 	float _shootOutOfRangeTimer = 0.0f;
-	
-	UArrowComponent* gunPositionOne;
-	UArrowComponent* gunPositionTwo;
 
 	AMainGameState* _gameState = nullptr;
 

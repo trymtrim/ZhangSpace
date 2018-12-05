@@ -93,6 +93,16 @@ void AMainCharacterController::Tick (float DeltaTime)
 		if (resetPlayerHitTimer > 0.0f)
 			resetPlayerHitTimer -= DeltaTime;
 
+		if (_beamDamageTimer > 0.0f)
+		{
+			_beamDamageTimer -= DeltaTime;
+
+			if (_beamDamageTimer <= 0.0f && _playingBeamSound)
+			{
+				StopBeamSoundBP ();
+				_playingBeamSound = false;
+			}
+		}
 	}
 
 	//Update stats for the client's UI
@@ -322,6 +332,8 @@ void AMainCharacterController::AddAbility (int abilityIndex)
 			break;
 		}
 	}
+
+	PlayUpgradeSoundBP ();
 
 	ServerAddAbility (abilityIndex);
 }
@@ -863,6 +875,14 @@ void AMainCharacterController::DealBeamDamage (float damage, AMainCharacterContr
 {
 	_beamDamage += damage;
 
+	if (_beamDamageTimer <= 0.0f)
+	{
+		StartBeamSoundBP ();
+		_playingBeamSound = true;
+	}
+
+	_beamDamageTimer = 0.25f;
+
 	if (_beamDamage > 1.0f)
 	{
 		_beamDamage -= 1.0f;
@@ -1308,11 +1328,20 @@ void AMainCharacterController::MouseClick ()
 		FString hitName = hit.GetComponent ()->GetName ();
 
 		if (hitName == "AttackUpgradeButton")
+		{
 			AddStat (1);
+			PlayUpgradeSoundBP ();
+		}
 		else if (hitName == "DefenseUpgradeButton")
+		{
 			AddStat (2);
+			PlayUpgradeSoundBP ();
+		}
 		else if (hitName == "MobilityUpgradeButton")
+		{
 			AddStat (3);
+			PlayUpgradeSoundBP ();
+		}
 		else if (hitName == "AbilityMenuButton")
 			ToggleAbilityMenu ();
 	}

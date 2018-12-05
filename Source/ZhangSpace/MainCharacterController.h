@@ -75,6 +75,9 @@ public:
 	void AddFeedTextBP (const FString& rotateType);
 
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void PlayUpgradeSoundBP ();
+
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void AfterburnerBP ();
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void ShockwaveBP ();
@@ -196,6 +199,11 @@ public:
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void FinishGameBP (const FString& winnerName);
 
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void StartBeamSoundBP ();
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void StopBeamSoundBP ();
+
 	void FinishGame (FString winnerName);
 
 protected:
@@ -282,6 +290,8 @@ private:
 
 	UPROPERTY (Replicated) bool _channelingBeam = false;
 
+	bool _playingBeamSound = false;
+
 	//Player stats
 	UPROPERTY (Replicated) int _maxHealth = 100;
 	UPROPERTY (Replicated) int _currentHealth = 100;
@@ -308,6 +318,7 @@ private:
 	float _shootCost = 2.5f;
 
 	float _beamDamage = 0;
+	float _beamDamageTimer = 0.0f;
 
 	bool _isBoosting = false;
 	bool _isUsingTrapShot = false;

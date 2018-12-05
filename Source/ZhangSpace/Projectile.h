@@ -18,7 +18,9 @@ public:
 	//Called every frame
 	virtual void Tick (float DeltaTime) override;
 
+	UFUNCTION (blueprintCallable)
 	void SetDamage (float projectileDamage);
+
 	void SetFollowTarget (AActor* target);
 
 protected:

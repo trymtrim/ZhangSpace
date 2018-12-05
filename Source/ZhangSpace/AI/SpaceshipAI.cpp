@@ -21,18 +21,6 @@ void ASpaceshipAI::BeginPlay ()
 
 	if (GetWorld ()->IsServer ())
 	{
-		//Get references to the gun positions
-		TArray <UArrowComponent*> arrowComps;
-		GetComponents <UArrowComponent> (arrowComps);
-
-		for (int i = 0; i < arrowComps.Num (); i++)
-		{
-			if (arrowComps [i]->GetName () == "GunPosition1")
-				gunPositionOne = arrowComps [i];
-			else if (arrowComps [i]->GetName () == "GunPosition2")
-				gunPositionTwo = arrowComps [i];
-		}
-
 		//Get a reference to the game state
 		while (_gameState == nullptr)
 		{
@@ -86,8 +74,8 @@ void ASpaceshipAI::UpdateAttackState (float deltaTime)
 	}
 
 	//Rotate towards player target
-	//AddActorLocalRotation ((_target->GetActorLocation () - GetActorLocation ()).ToOrientationRotator ());
-	SetActorRotation (FMath::Lerp (GetActorRotation (), (_target->GetActorLocation () - GetActorLocation ()).ToOrientationRotator (), deltaTime * 2.5f));
+	SetRotationBP ((_target->GetActorLocation () - GetActorLocation ()).ToOrientationRotator (), _target->GetActorLocation ());
+
 	//Update attack cooldown
 	if (_currentAttackCooldown > 0.0f)
 		_currentAttackCooldown -= deltaTime;
@@ -98,11 +86,6 @@ void ASpaceshipAI::UpdateAttackState (float deltaTime)
 		//If the player target is in sight, shoot
 		//if (IsAttackableInScope ())
 			Shoot ();
-
-		/*FRotator lookAt = UKismetMathLibrary::FindLookAtRotation (GetActorLocation (), _target->GetActorLocation ());
-		
-		if (lookAt.Yaw > 170 && lookAt.Yaw < 190 && lookAt.Pitch > -15 && lookAt.Pitch < 15 && lookAt.Roll > -15 && lookAt.Roll < 15)
-			Shoot ();*/
 	}
 	
 	//If target is out of lose-aggro range, change to patrol state
@@ -168,49 +151,11 @@ bool ASpaceshipAI::IsAttackableInScope ()
 
 void ASpaceshipAI::Shoot ()
 {
-	//Line trace from camera to check if there is something in the crosshair's sight
-	FCollisionQueryParams traceParams = FCollisionQueryParams (FName (TEXT ("RV_Trace")), true, this);
-	traceParams.bTraceComplex = true;
-	traceParams.bReturnPhysicalMaterial = false;
-
-	FHitResult hit (ForceInit);
-
-	//Declare start and end position of the line trace based on camera position and rotation
-	FVector start = GetActorLocation ();
-	FVector end = GetActorLocation () + (GetActorForwardVector () * 400000.0f);
-
-	//Declare spawn parameters
-	FActorSpawnParameters spawnParams;
-	FVector spawnPosition;
-	FRotator spawnRotation = GetActorRotation ();
-
-	//Spawn projectile at assigned gun position
-	if (_gunPositionSwitch)
-		spawnPosition = gunPositionOne->GetComponentLocation ();
-	else
-		spawnPosition = gunPositionTwo->GetComponentLocation ();
+	ShootBP (_gunPositionSwitch, FMath::RandRange (5, 15), this, _target);
 
 	_gunPositionSwitch = !_gunPositionSwitch;
 
-	//Check if line trace hits anything
-	if (GetWorld ()->LineTraceSingleByChannel (hit, start, end, ECC_Visibility, traceParams))
-	{
-		//If line trace hits a projectile, spawn bullet with rotation towards the end of the line trace
-		if (hit.GetActor ()->ActorHasTag ("Projectile"))
-			spawnRotation = (end - spawnPosition).Rotation ();
-		else //Otherwise, spawn bullet with rotation towards what it hits
-			spawnRotation = (hit.ImpactPoint - spawnPosition).Rotation ();
-	}
-	else //If line trace doesn't hit anything, spawn bullet with rotation towards the end of the line trace
-		spawnRotation = (end - GetActorLocation ()).Rotation ();
-
-	//Spawn projectile
-	AProjectile* projectile = GetWorld ()->SpawnActor <AProjectile> (_projectileBP, spawnPosition, spawnRotation, spawnParams);
-	projectile->SetOwner (this);
-
-	//Set projectile damage
-	if (projectile->IsValidLowLevel () && projectile != nullptr)
-		projectile->SetDamage (FMath::RandRange (5, 15));
+	//projectile->SetOwner (this);
 
 	//Reset attack cooldown
 	_currentAttackCooldown = _maxAttackCooldown;
