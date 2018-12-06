@@ -949,26 +949,27 @@ bool AMainCharacterController::GetChannelingBeam ()
 
 void AMainCharacterController::Teleport ()
 {
-	FTimerHandle FPSTimerHandle;
-	GetWorld ()->GetTimerManager ().SetTimer (FPSTimerHandle, this, &AMainCharacterController::DoTeleport, 0.1f, false); //Should be 0.5f
-}
-
-void AMainCharacterController::DoTeleport ()
-{
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
 	spawnParams.Owner = this;
 
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 1000.0f;
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 5000.0f;
 	FRotator spawnRotation = GetActorRotation ();
 
-	//Spawn teleporter
-	ATeleporter* teleporter = GetWorld ()->SpawnActor <ATeleporter> (_teleporterBP, spawnPosition, spawnRotation, spawnParams);
-
-	//Teleport player
-	teleporter->TeleportPlayer (this);
+	_teleporter = GetWorld ()->SpawnActor <ATeleporter> (_teleporterBP, spawnPosition, spawnRotation, spawnParams);
 
 	TeleportBP ();
+
+	FTimerHandle FPSTimerHandle;
+	GetWorld ()->GetTimerManager ().SetTimer (FPSTimerHandle, this, &AMainCharacterController::DoTeleport, 0.6f, false); //Should be 0.5f
+}
+
+void AMainCharacterController::DoTeleport ()
+{
+	//Teleport player
+	_teleporter->TeleportPlayer (this);
+
+	_teleporter = nullptr;
 }
 
 bool AMainCharacterController::GetShieldReflect ()

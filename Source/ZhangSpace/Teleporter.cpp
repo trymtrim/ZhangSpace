@@ -14,9 +14,6 @@ ATeleporter::ATeleporter ()
 void ATeleporter::BeginPlay ()
 {
 	Super::BeginPlay ();
-
-	if (GetWorld ()->IsServer () && Role == ROLE_Authority)
-		SpawnSecondTeleporter ();
 }
 
 //Called every frame
@@ -34,10 +31,7 @@ void ATeleporter::ServerUpdate (float deltaTime)
 	_destroyTimer += deltaTime;
 
 	if (_destroyTimer >= _duration)
-	{
-		secondTeleporter->Destroy ();
 		Destroy ();
-	}
 }
 
 void ATeleporter::SpawnSecondTeleporter ()
@@ -48,10 +42,10 @@ void ATeleporter::SpawnSecondTeleporter ()
 	FRotator spawnRotation = GetActorRotation ();
 
 	//Spawn teleporter to land in
-	secondTeleporter = GetWorld ()->SpawnActor <AActor> (_secondTeleporterBP, spawnPosition, spawnRotation, spawnParams);
+	//secondTeleporter = GetWorld ()->SpawnActor <AActor> (_secondTeleporterBP, spawnPosition, spawnRotation, spawnParams);
 }
 
 void ATeleporter::TeleportPlayer (AActor* player)
 {
-	player->SetActorLocation (secondTeleporter->GetActorLocation () + secondTeleporter->GetActorForwardVector () * 3000.0f);
+	player->SetActorLocation (player->GetActorLocation () + player->GetActorForwardVector () * 30000 + player->GetActorForwardVector () * 3000.0f);
 }

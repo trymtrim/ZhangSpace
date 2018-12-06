@@ -14,6 +14,7 @@
 #include "MainCharacterController.generated.h"
 
 class AMainGameState;
+class ATeleporter;
 
 UCLASS()
 class ZHANGSPACE_API AMainCharacterController : public ACharacter
@@ -274,8 +275,10 @@ private:
 
 	UFUNCTION (Server, Reliable, WithValidation)
 	void SetShowCursor (bool show);
-
+	
+	UFUNCTION (BlueprintCallable)
 	void Die ();
+
 	void UpdateDeadState (float deltaTime);
 	void Respawn ();
 	void GameOver ();
@@ -361,6 +364,8 @@ private:
 	UArrowComponent* gunPositionTwo;
 
 	AMainGameState* _gameState = nullptr;
+
+	ATeleporter* _teleporter = nullptr;
 
 	UPROPERTY (EditAnywhere)
 	UStaticMesh* _cockpitMesh;
