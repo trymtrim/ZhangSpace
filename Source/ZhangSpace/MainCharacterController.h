@@ -87,6 +87,9 @@ public:
 	void TrapShotBP (FVector hitPosition);
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void DetonateTrapShotBP ();
+
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void FinishFlyingInBP ();
 	
 	UFUNCTION (Client, Reliable)
 	void UpdateFeedText (const FString& feedText);
@@ -120,7 +123,7 @@ public:
 	UFUNCTION (BlueprintCallable) 
 	bool GetShieldReflect ();
 
-	UPROPERTY (BlueprintReadOnly) bool shieldRam;
+	UPROPERTY (Replicated, BlueprintReadOnly) bool shieldRam;
 
 	void Disarm ();
 
@@ -166,12 +169,16 @@ public:
 	int lastPlayerHitID = 0;
 	int lastDamage = 0;
 
+	UPROPERTY (Replicated, BlueprintReadOnly)
 	float resetPlayerHitTimer = 0.0f;
 
 	void UpdatePlayerHitText (int id, int damage);
 
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void ResetPlayerHitTextBP ();
+
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void TeleportBP ();
 
 	UFUNCTION (BlueprintCallable)
 	void UpdatePlayerHitTextFromBP (int id, int damage);
@@ -251,7 +258,7 @@ private:
 	void CancelBoost ();
 
 	//Passive abilities
-	bool _shieldReflect = false;
+	UPROPERTY (Replicated) bool _shieldReflect = false;
 
 	void DoTeleport ();
 

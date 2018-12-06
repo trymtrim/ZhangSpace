@@ -950,7 +950,7 @@ bool AMainCharacterController::GetChannelingBeam ()
 void AMainCharacterController::Teleport ()
 {
 	FTimerHandle FPSTimerHandle;
-	GetWorld ()->GetTimerManager ().SetTimer (FPSTimerHandle, this, &AMainCharacterController::DoTeleport, 0.25f, false); //Should be 0.5f
+	GetWorld ()->GetTimerManager ().SetTimer (FPSTimerHandle, this, &AMainCharacterController::DoTeleport, 0.1f, false); //Should be 0.5f
 }
 
 void AMainCharacterController::DoTeleport ()
@@ -959,7 +959,7 @@ void AMainCharacterController::DoTeleport ()
 	FActorSpawnParameters spawnParams;
 	spawnParams.Owner = this;
 
-	FVector spawnPosition = GetActorLocation () + GetActorForwardVector ();
+	FVector spawnPosition = GetActorLocation () + GetActorForwardVector () * 1000.0f;
 	FRotator spawnRotation = GetActorRotation ();
 
 	//Spawn teleporter
@@ -967,6 +967,8 @@ void AMainCharacterController::DoTeleport ()
 
 	//Teleport player
 	teleporter->TeleportPlayer (this);
+
+	TeleportBP ();
 }
 
 bool AMainCharacterController::GetShieldReflect ()
@@ -1479,12 +1481,17 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 	DOREPLIFETIME (AMainCharacterController, systemLevel);
 
 	DOREPLIFETIME (AMainCharacterController, _channelingBeam);
-	DOREPLIFETIME (AMainCharacterController, beamTargetPosition);	
+	DOREPLIFETIME (AMainCharacterController, beamTargetPosition);
 
 	DOREPLIFETIME (AMainCharacterController, disarmed);
 
 	DOREPLIFETIME (AMainCharacterController, flyingIn);
 	DOREPLIFETIME (AMainCharacterController, _gameFinished);
+
+	DOREPLIFETIME (AMainCharacterController, resetPlayerHitTimer);
+
+	DOREPLIFETIME (AMainCharacterController, shieldRam);
+	DOREPLIFETIME (AMainCharacterController, _shieldReflect);
 }
 
 //Called to bind functionality to input

@@ -39,6 +39,8 @@ void AShield::BeginPlay ()
 
 		if (parentPlayer->GetShieldReflect ())
 			shieldReflect = true;
+		if (parentPlayer->shieldRam)
+			shieldRam = true;
 
 		//Tell character controller that shield is active
 		parentPlayer->shieldActive = true;

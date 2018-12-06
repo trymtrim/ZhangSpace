@@ -24,6 +24,7 @@ public:
 	void OnHitByProjectile (AActor* targetToFollow, int damage);
 
 	UPROPERTY (BlueprintReadOnly) bool shieldReflect;
+	UPROPERTY (BlueprintReadOnly) bool shieldRam;
 
 	void ApplyDamage (int damage);
 

@@ -122,5 +122,5 @@ private:
 	void SetCruiseValues(float speed);
 	void SetDefaultSpeedAndAcceleration();
 
-	float _flyingInSpeed = -3.0f;
+	float _flyingInSpeed = -1.5f;
 };

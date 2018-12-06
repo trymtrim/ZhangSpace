@@ -79,6 +79,8 @@ void AMainGameState::DamagePlayersOutsideOfCircle ()
 
 				AMainCharacterController* characterController = Cast <AMainCharacterController> (playerController->GetCharacter ());
 				characterController->flyingIn = false;
+
+				characterController->FinishFlyingInBP ();
 			}
 		}
 	}

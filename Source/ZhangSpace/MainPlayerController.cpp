@@ -112,7 +112,7 @@ void AMainPlayerController::Tick(float DeltaTime)
 				}
 			}
 			//---------- UPDATE MOBILITYPOWER IF CHANGED ----------//
-			else if (_currentMobilityStat != _character->GetMobilityPower()) 
+			else if (_currentMobilityStat != _character->GetMobilityPower() && Cast <AMainGameState> (GetWorld ()->GetGameState ())->_gameStarted)
 			{
 				//To update mobility power (values = 1-10):
 				_currentMobilityStat = _character->GetMobilityPower();
