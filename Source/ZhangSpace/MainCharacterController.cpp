@@ -103,6 +103,26 @@ void AMainCharacterController::Tick (float DeltaTime)
 				_playingBeamSound = false;
 			}
 		}
+
+		float gameTimer = _gameState->gameTimer;
+
+		int minutes = FMath::FloorToInt (gameTimer / 60);
+		int seconds = FMath::RoundToInt ((int) gameTimer % 60);
+
+		FString minutesString = "";
+		FString secondsString = "";
+
+		if (minutes < 10)
+			minutesString = "0" + FString::FromInt (minutes);
+		else
+			minutesString = FString::FromInt (minutes);
+
+		if (seconds < 10)
+			secondsString = "0" + FString::FromInt (seconds);
+		else
+			secondsString = FString::FromInt (seconds);
+
+		gameTimerText = minutesString + ":" + secondsString;
 	}
 
 	//Update stats for the client's UI
@@ -643,6 +663,9 @@ bool AMainCharacterController::Shoot_Validate (FVector cameraPosition, FVector c
 
 bool AMainCharacterController::IsAttackableInScope ()
 {
+	if (_cameraComponent == nullptr)
+		return false;
+
 	//Line trace from camera to check if there is something in the crosshair's sight
 	FCollisionQueryParams traceParams = FCollisionQueryParams (FName (TEXT ("RV_Trace")), true, this);
 	traceParams.bTraceComplex = true;
@@ -684,7 +707,7 @@ void AMainCharacterController::Heatseeker ()
 {
 	AMainCharacterController* playerTarget = nullptr;
 
-	float distance = 0.0f;
+	float distance = 1000000000.0f;
 
 	for (FConstPlayerControllerIterator Iterator = GetWorld ()->GetPlayerControllerIterator (); Iterator; ++Iterator)
 	{
@@ -694,8 +717,13 @@ void AMainCharacterController::Heatseeker ()
 		{
 			AMainCharacterController* character = Cast <AMainCharacterController> (playerController->GetCharacter ());
 			
-			if (character->playerID != playerID && FVector::Distance (GetActorLocation (), character->GetActorLocation ()) > distance)
+			float newDistance = FVector::Distance (GetActorLocation (), character->GetActorLocation ());
+
+			if (character->playerID != playerID && newDistance < distance)
+			{
+				distance = newDistance;
 				playerTarget = character;
+			}
 		}
 	}
 	
@@ -720,11 +748,24 @@ void AMainCharacterController::Shockwave ()
 				character->Disarm ();
 		}
 	}
+
+	for (TActorIterator <ASpaceshipAI> ActorItr (GetWorld ()); ActorItr; ++ActorItr)
+	{
+		ASpaceshipAI* ai = *ActorItr;
+
+		if (ai)
+		{
+			if (FVector::Distance (GetActorLocation (), ai->GetActorLocation ()) <= hitDistance * 100.0f)
+				ai->Disarm ();
+		}
+	}
 }
 
 void AMainCharacterController::Disarm ()
 {
 	disarmed = true;
+
+	DisarmBP ();
 
 	FTimerHandle disarmTimerHandle;
 	GetWorld ()->GetTimerManager ().SetTimer (disarmTimerHandle, this, &AMainCharacterController::CancelDisarm, 3.0f, false);
@@ -867,6 +908,8 @@ void AMainCharacterController::ChannelHyperBeam_Implementation (FVector cameraPo
 			ai->DealBeamDamage (damage, this);
 		}
 	}
+	else
+		beamTargetPosition = end;
 }
 
 bool AMainCharacterController::ChannelHyperBeam_Validate (FVector cameraPosition, FVector forwardVector)
@@ -893,13 +936,13 @@ void AMainCharacterController::DealBeamDamage (float damage, AMainCharacterContr
 		if (shieldActive)
 		{
 			shield->ApplyDamage (1);
-			player->UpdatePlayerHitText (player->playerID, 1);
+			player->UpdatePlayerHitText (playerID, 1);
 		}
 		else
 		{
 			_currentHealth -= 1;
 
-			player->UpdatePlayerHitText (player->playerID, 1);
+			player->UpdatePlayerHitText (playerID, 1);
 
 			//Register kill in game state
 			if (_currentHealth <= 0 && !_dead)
@@ -1033,7 +1076,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 				//Register kill in game state
 				AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser->GetOwner ());
 
-				killCharacter->UpdatePlayerHitText (killCharacter->playerID, (int) finalDamage);
+				killCharacter->UpdatePlayerHitText (playerID, (int) finalDamage);
 			}
 		}
 		else if (DamageCauser->IsA (AMainCharacterController::StaticClass ()))
@@ -1042,9 +1085,9 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 			AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser);
 
 			if (finalDamage > 500)
-				killCharacter->UpdatePlayerHitText (killCharacter->playerID, 150);
+				killCharacter->UpdatePlayerHitText (playerID, 150);
 			else
-				killCharacter->UpdatePlayerHitText (killCharacter->playerID, (int) finalDamage);
+				killCharacter->UpdatePlayerHitText (playerID, (int) finalDamage);
 		}
 
 		return 0.0f;
@@ -1069,7 +1112,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 					//Register kill in game state
 					AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser->GetOwner ());
 
-					killCharacter->UpdatePlayerHitText (killCharacter->playerID, (int) finalDamage);
+					killCharacter->UpdatePlayerHitText (playerID, (int) finalDamage);
 
 					if (_currentHealth <= 0)
 					{
@@ -1088,9 +1131,9 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 				AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser);
 
 				if (finalDamage > 500)
-					killCharacter->UpdatePlayerHitText (killCharacter->playerID, 150);
+					killCharacter->UpdatePlayerHitText (playerID, 150);
 				else
-					killCharacter->UpdatePlayerHitText (killCharacter->playerID, (int) finalDamage);
+					killCharacter->UpdatePlayerHitText (playerID, (int) finalDamage);
 
 				if (_currentHealth <= 0)
 				{
@@ -1334,20 +1377,11 @@ void AMainCharacterController::MouseClick ()
 		FString hitName = hit.GetComponent ()->GetName ();
 
 		if (hitName == "AttackUpgradeButton")
-		{
 			AddStat (1);
-			PlayUpgradeSoundBP ();
-		}
 		else if (hitName == "DefenseUpgradeButton")
-		{
 			AddStat (2);
-			PlayUpgradeSoundBP ();
-		}
 		else if (hitName == "MobilityUpgradeButton")
-		{
 			AddStat (3);
-			PlayUpgradeSoundBP ();
-		}
 		else if (hitName == "AbilityMenuButton")
 			ToggleAbilityMenu ();
 	}
@@ -1440,6 +1474,8 @@ FVector2D AMainCharacterController::GetViewportSize()
 void AMainCharacterController::StartGame ()
 {
 	gameStarted = true;
+
+	//UpdateFeedText ("Move sideways, up or down to choose your\ndestination in the play area. Full control of your\nship will be granted when you enter the force field.");
 }
 
 void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProperty>& OutLifetimeProps) const
@@ -1493,6 +1529,8 @@ void AMainCharacterController::GetLifetimeReplicatedProps (TArray <FLifetimeProp
 
 	DOREPLIFETIME (AMainCharacterController, shieldRam);
 	DOREPLIFETIME (AMainCharacterController, _shieldReflect);
+
+	DOREPLIFETIME (AMainCharacterController, gameTimerText);
 }
 
 //Called to bind functionality to input

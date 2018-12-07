@@ -18,8 +18,8 @@ public:
 	//Called every frame
 	virtual void Tick (float DeltaTime) override;
 
-	UFUNCTION (BlueprintImplementableEvent, Category = "Ability Menu")
-		void OpenAbilityMenu ();
+	UPROPERTY (Replicated, BlueprintReadOnly)
+	bool gameStarted = false;
 
 protected:
 	//Called when the game starts or when spawned

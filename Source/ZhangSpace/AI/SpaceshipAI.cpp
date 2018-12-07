@@ -85,7 +85,16 @@ void ASpaceshipAI::UpdateAttackState (float deltaTime)
 	{
 		//If the player target is in sight, shoot
 		//if (IsAttackableInScope ())
+
+		if (!_target->GetIsDead ())
 			Shoot ();
+		else
+		{
+			_target = nullptr;
+			_state = PATROL;
+
+			return;
+		}
 	}
 	
 	//If target is out of lose-aggro range, change to patrol state
@@ -112,8 +121,6 @@ bool ASpaceshipAI::CheckForAggro ()
 	//If a player is within aggro range, set that player as target
 	for (int i = 0; i < players.Num (); i++)
 	{
-		//GAME MIGHT CRASH HERE!
-
 		AMainCharacterController* player = players [i];
 
 		if (FVector::Distance (GetActorLocation (), player->GetActorLocation ()) <= _aggroRange && !player->GetIsDead ())
@@ -151,6 +158,9 @@ bool ASpaceshipAI::IsAttackableInScope ()
 
 void ASpaceshipAI::Shoot ()
 {
+	if (_disarmed)
+		return;
+
 	ShootBP (_gunPositionSwitch, FMath::RandRange (5, 15), this, _target);
 
 	_gunPositionSwitch = !_gunPositionSwitch;
@@ -188,6 +198,29 @@ void ASpaceshipAI::Die ()
 	DieBP ();
 
 	Destroy ();
+}
+
+void ASpaceshipAI::ProtectResource (AMainCharacterController* playerTarget)
+{
+	if (_state != PATROL)
+		return;
+
+	_target = playerTarget;
+	_state = ATTACK;
+	_shootOutOfRangeTimer = 5.0f;
+}
+
+void ASpaceshipAI::Disarm ()
+{
+	_disarmed = true;
+
+	FTimerHandle disarmTimerHandle;
+	GetWorld ()->GetTimerManager ().SetTimer (disarmTimerHandle, this, &ASpaceshipAI::CancelDisarm, 3.0f, false);
+}
+
+void ASpaceshipAI::CancelDisarm ()
+{
+	_disarmed = false;
 }
 
 float ASpaceshipAI::TakeDamage (float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)

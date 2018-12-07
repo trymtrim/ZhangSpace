@@ -51,11 +51,14 @@ void AMainGameState::ServerUpdate (float deltaTime)
 		DamagePlayersOutsideOfCircle ();
 		_damageTimer = 0.0f;
 	}
+
+	if (_gameStarted && !_gameFinished)
+		gameTimer += deltaTime;
 }
 
 void AMainGameState::DamagePlayersOutsideOfCircle ()
 {
-	if (!_gameStarted || flyingIn)
+	if (!_gameStarted || flyingIn || _gameFinished)
 		return;
 
 	for (FConstPlayerControllerIterator Iterator = GetWorld ()->GetPlayerControllerIterator (); Iterator; ++Iterator)
@@ -113,6 +116,21 @@ void AMainGameState::RegisterPlayer (AMainPlayerController* playerController, FS
 void AMainGameState::StartGame ()
 {
 	_gameStarted = true;
+
+	if (!_hasShownStartFeedText)
+	{
+		FTimerHandle startFeedTextTimerHandle;
+		GetWorld ()->GetTimerManager ().SetTimer (startFeedTextTimerHandle, this, &AMainGameState::ShowStartFeedText, 2.0f, false);
+
+		_hasShownStartFeedText = true;
+	}
+
+	_shrinkingCircle->gameStarted = true;
+}
+
+void AMainGameState::ShowStartFeedText ()
+{
+	UpdateFeedText ("Move sideways, up or down to choose your\ndestination in the play area. Full control of your\nship will be granted when you enter the force field.");
 }
 
 void AMainGameState::AddPlayerKill (AMainPlayerController* playerController)
@@ -160,6 +178,8 @@ void AMainGameState::FinishGame (FString winnerName)
 				Cast <AMainCharacterController> (playerController->GetCharacter ())->FinishGame (winnerName);
 		}
 	}
+
+	_gameFinished = true;
 }
 
 void AMainGameState::SpawnFracturedSpaceship (TSubclassOf <AActor> fracturedSpaceshipBP, FTransform transform)

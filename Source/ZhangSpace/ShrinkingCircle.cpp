@@ -2,6 +2,7 @@
 
 #include "ShrinkingCircle.h"
 #include "Engine/World.h"
+#include "UnrealNetwork.h"
 
 AShrinkingCircle::AShrinkingCircle ()
 {
@@ -22,6 +23,9 @@ void AShrinkingCircle::Tick (float DeltaTime)
 
 	if (GetWorld ()->IsServer () && Role == ROLE_Authority)
 	{
+		if (!gameStarted)
+			return;
+
 		//Shrink circle after the delay time is over (_shrinkSpeed = m/s)
 		if (_delayTimer < _delayTime)
 			_delayTimer += DeltaTime;
@@ -37,3 +41,11 @@ void AShrinkingCircle::Tick (float DeltaTime)
 			SetActorScale3D (FVector (_endRadius, _endRadius, _endRadius));
 	}
 }
+
+void AShrinkingCircle::GetLifetimeReplicatedProps (TArray <FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps (OutLifetimeProps);
+
+	DOREPLIFETIME (AShrinkingCircle, gameStarted);
+}
+

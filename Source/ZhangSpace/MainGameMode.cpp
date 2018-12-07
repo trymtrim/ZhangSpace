@@ -54,6 +54,14 @@ void AMainGameMode::Tick (float DeltaTime)
 		}
 	}
 
+	if (_startGameLateTimer < 60.0f)
+	{
+		_startGameLateTimer += DeltaTime;
+
+		if (_startGameLateTimer >= 60.0f && !_gameStarted)
+			StartGame ();
+	}
+
 	//GEngine->AddOnScreenDebugMessage (-1, 15.0f, FColor::Yellow, FString::FromInt (_connectedPlayers.Num ()));
 
 	/*
@@ -115,8 +123,6 @@ void AMainGameMode::RegisterPlayer (AMainPlayerController* playerController, int
 
 void AMainGameMode::StartGame ()
 {
-	//TODO: If all players haven't joined within a certain time, start game anyway
-
 	for (int i = 0; i < _connectedPlayers.Num (); i++)
 	{
 		AMainPlayerController* playerController = _connectedPlayers [i];
@@ -129,7 +135,7 @@ void AMainGameMode::StartGame ()
 	_gameStarted = true;
 
 	FTimerHandle flyingInTimerHandle;
-	GetWorld ()->GetTimerManager ().SetTimer (flyingInTimerHandle, this, &AMainGameMode::FinishFlyingIn, 10.5f, false);
+	GetWorld ()->GetTimerManager ().SetTimer (flyingInTimerHandle, this, &AMainGameMode::FinishFlyingIn, 11.0f, false);
 }
 
 void AMainGameMode::FinishFlyingIn ()

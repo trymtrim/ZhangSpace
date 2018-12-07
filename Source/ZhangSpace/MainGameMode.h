@@ -38,4 +38,6 @@ private:
 
 	float _canStopServerTimer = 0.0f;
 	bool _canStopServer = false;
+
+	float _startGameLateTimer = 0.0;
 };

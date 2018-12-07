@@ -32,6 +32,12 @@ public:
 	UFUNCTION (BlueprintImplementableEvent, Category = "Ability Menu")
 	void ShootBP (bool gunPosition, int damage, ASpaceshipAI* ownerAI, AMainCharacterController* targetPlayer);
 
+	UFUNCTION (BlueprintCallable)
+	void ProtectResource (AMainCharacterController* playerTarget);
+
+	void Disarm ();
+	void CancelDisarm ();
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay () override;
@@ -72,6 +78,8 @@ private:
 	AMainGameState* _gameState = nullptr;
 
 	float _beamDamage = 0;
+
+	bool _disarmed = false;
 	
 	UPROPERTY (EditAnywhere)
 	TSubclassOf <AProjectile> _projectileBP;

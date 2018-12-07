@@ -141,6 +141,8 @@ public:
 
 	UPROPERTY (Replicated, BlueprintReadOnly) bool gameStarted = false;
 
+	UPROPERTY (Replicated, BlueprintReadOnly) FString gameTimerText;
+
 	//Variables for the spaceship UI
 	UPROPERTY (BlueprintReadOnly) float healthPercentage;
 	UPROPERTY (BlueprintReadOnly) float powerPercentage;
@@ -215,6 +217,9 @@ public:
 	void StopBeamSoundBP ();
 
 	void FinishGame (FString winnerName);
+
+	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
+	void DisarmBP ();
 
 protected:
 	//Called when the game starts or when spawned

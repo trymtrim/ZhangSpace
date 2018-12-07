@@ -39,6 +39,8 @@ public:
 	bool flyingIn = true;
 	bool _gameStarted = false;
 
+	float gameTimer = 0.0f;
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay () override;
@@ -49,9 +51,14 @@ private:
 
 	void FinishGame (FString winnerName);
 
+	bool _gameFinished = false;
+
+	void ShowStartFeedText ();
+
 	float _damageInterval = 1.0f;
 	float _damageTimer = 0.0f;
 
+	bool _hasShownStartFeedText = false;
 
 	UPROPERTY ()
 	AShrinkingCircle* _shrinkingCircle;
