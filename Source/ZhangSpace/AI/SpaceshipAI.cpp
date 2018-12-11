@@ -186,7 +186,7 @@ void ASpaceshipAI::DealBeamDamage (int damage, AMainCharacterController* player)
 
 		_health -= 1;
 
-		player->UpdatePlayerHitText (player->playerID, 1);
+		player->UpdatePlayerHitText (0, 1);
 
 		if (_health <= 0)
 			Die ();

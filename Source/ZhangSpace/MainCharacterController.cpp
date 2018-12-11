@@ -992,6 +992,14 @@ bool AMainCharacterController::GetChannelingBeam ()
 
 void AMainCharacterController::Teleport ()
 {
+	TeleportBP ();
+
+	FTimerHandle FPSTimerHandle;
+	GetWorld ()->GetTimerManager ().SetTimer (FPSTimerHandle, this, &AMainCharacterController::DoTeleport, 0.6f, false); //Should be 0.5f
+}
+
+void AMainCharacterController::DoTeleport ()
+{
 	//Declare spawn parameters
 	FActorSpawnParameters spawnParams;
 	spawnParams.Owner = this;
@@ -1001,14 +1009,6 @@ void AMainCharacterController::Teleport ()
 
 	_teleporter = GetWorld ()->SpawnActor <ATeleporter> (_teleporterBP, spawnPosition, spawnRotation, spawnParams);
 
-	TeleportBP ();
-
-	FTimerHandle FPSTimerHandle;
-	GetWorld ()->GetTimerManager ().SetTimer (FPSTimerHandle, this, &AMainCharacterController::DoTeleport, 0.6f, false); //Should be 0.5f
-}
-
-void AMainCharacterController::DoTeleport ()
-{
 	//Teleport player
 	_teleporter->TeleportPlayer (this);
 
