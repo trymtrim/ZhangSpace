@@ -741,7 +741,7 @@ void AMainCharacterController::Heatseeker ()
 			
 			float newDistance = FVector::Distance (GetActorLocation (), character->GetActorLocation ());
 
-			if (character->playerID != playerID && newDistance < distance)
+			if (character->playerID != playerID && newDistance < distance && !character->GetIsDead ())
 			{
 				distance = newDistance;
 				playerTarget = character;
