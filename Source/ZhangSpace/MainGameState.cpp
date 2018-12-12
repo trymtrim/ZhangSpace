@@ -154,16 +154,24 @@ void AMainGameState::UpdatePlayerLives (AMainPlayerController* playerController,
 	int deadPlayers = 0;
 	FString winnerName = "";
 
-	for (int i = 0; i < playerLives.Num (); i++)
+	if (playerLives.Num () == 1)
 	{
-		if (playerLives [i] == 0)
-			deadPlayers++;
-		else
-			winnerName = playerNames [i];
+		if (playerLives [0] == 0)
+			FinishGame ("Nobody");
 	}
+	else
+	{
+		for (int i = 0; i < playerLives.Num (); i++)
+		{
+			if (playerLives [i] == 0)
+				deadPlayers++;
+			else
+				winnerName = playerNames [i];
+		}
 
-	if (deadPlayers == playerLives.Num () - 1)
-		FinishGame (winnerName);
+		if (deadPlayers == playerLives.Num () - 1)
+			FinishGame (winnerName);
+	}
 }
 
 void AMainGameState::FinishGame (FString winnerName)
