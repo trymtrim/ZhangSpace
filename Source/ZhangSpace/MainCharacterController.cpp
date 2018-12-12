@@ -212,6 +212,9 @@ void AMainCharacterController::Die ()
 
 	_isUsingTrapShot = false;
 
+	Cast <AMainPlayerController> (GetController ())->_cruiseSpeed = false;
+	Cast <AMainPlayerController> (GetController ())->StopChargeCruiseSpeed ();
+
 	DieBP ();
 
 	//Stop movement

@@ -61,8 +61,11 @@ void AMainPlayerController::Tick(float DeltaTime)
 		return;
 	}
 
-	if (!GetWorld ()->IsServer ())
-		UpdatePlayerRotation (pitchDelta, yawDelta, rollDelta);
+	if (_character != nullptr)
+	{
+		if (!GetWorld ()->IsServer () && !_character->GetIsDead ())
+			UpdatePlayerRotation (pitchDelta, yawDelta, rollDelta);
+	}
 
 	if (_character != nullptr && _UCharMoveComp != nullptr)
 	{
@@ -162,9 +165,11 @@ void AMainPlayerController::Tick(float DeltaTime)
 			_CSCooldown = .0f; //Reset cooldown
 		}
 
+		if (_character->GetChannelingBeam ())
+			_cruiseSpeed = false;
 
 		//Apply braking if we're not in cruise speed and brake button is pressed
-		if (_braking && !_cruiseSpeed) 
+		if (_braking && !_cruiseSpeed || _character->GetChannelingBeam ())
 		{	
 			
 			//_UCharMoveComp->ApplyVelocityBraking(GetWorld()->DeltaTimeSeconds, 5.0f, _acceleration); //It is protected....
@@ -173,8 +178,8 @@ void AMainPlayerController::Tick(float DeltaTime)
 		}
 		if (_character->GetChannelingBeam ()) //When charging up hyper beam, restrict movement, is set to false in CharacterController when player is not using ability anymore
 		{
-			_braking = true;
-			_cruiseSpeed = false;
+			//_braking = true;
+			//_cruiseSpeed = false;
 		}
 		
 		//else GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Yellow, "Braking: false");
@@ -208,9 +213,10 @@ void AMainPlayerController::MoveForward (float value)
 	{
 		if (_character->GetIsDead ())	//And the player is dead, don't do anything
 			return;
+
+		if (_braking || _character->GetChannelingBeam ()) return;		//If in cruise speed or braking, do not update movement based on input
 	}
 
-	if (_braking) return;		//If in cruise speed or braking, do not update movement based on input
 
 	if (_cruiseSpeed) //If we are in cruise speed, we can change the speed based on S key
 	{
@@ -237,9 +243,10 @@ void AMainPlayerController::Strafe (float value)
 	{
 		if (_character->GetIsDead())	//And the player is dead, don't do anything
 			return;
+
+		if (_cruiseSpeed || _braking || _character->GetChannelingBeam ()) return;		//If in cruise speed or braking, do not update movement based on input
 	}
 	
-	if (_cruiseSpeed || _braking) return;		//If in cruise speed or braking, do not update movement based on input
 
 	if (value != .0f)
 	{
@@ -254,8 +261,9 @@ void AMainPlayerController::VerticalStrafe (float value)
 	{
 		if (_character->GetIsDead())	//And the player is dead, don't do anything
 			return;
+	
+		if (_cruiseSpeed || _braking || _character->GetChannelingBeam ()) return; //If in cruise speed or braking, dont strafe up or down
 	}
-	if (_cruiseSpeed || _braking) return; //If in cruise speed or braking, dont strafe up or down
 
 	if (value != .0f)
 	{
@@ -493,7 +501,7 @@ void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float r
 			 _CSCooldown = CS_CD;
 	 
 	 }
-	 else if (!_slowed) _charge = true;						//Continue charging if not slowed
+	 else if (!_slowed && _CSCooldown <= .0f) _charge = true;					//Continue charging if not slowed
  }
 
  bool AMainPlayerController::ChargeCruiseSpeed_Validate ()
@@ -505,12 +513,6 @@ void AMainPlayerController::UpdatePlayerRotation(float pitch, float yaw, float r
  {
 	 if (flyingIn)
 		 return;
-
-	 if (_character != nullptr)			//If we have a reference to the character pointer
-	 {
-		 if (_character->GetIsDead ())	//And the player is dead, don't do anything
-			 return;
-	 }
 
 	 if (_charge) _charge = false;	//Stop charging if we release the button too early
  }
@@ -627,7 +629,7 @@ void AMainPlayerController::SetDefaultSpeedAndAcceleration ()
 
 
 		//_UCharMoveComp->MaxFlySpeed = (_maxSpeed / 3.0f) + (diffStep * (_currentMobilityStat / 2.0f)); // + diffStep * (_currentMobilityStat / 2.0f);
-		GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Magenta, "Slowed Speed: " + FString::SanitizeFloat (_UCharMoveComp->MaxFlySpeed));
+		//GEngine->AddOnScreenDebugMessage (-1, .005f, FColor::Magenta, "Slowed Speed: " + FString::SanitizeFloat (_UCharMoveComp->MaxFlySpeed));
 	}
 
 	if (_boost)
