@@ -84,8 +84,8 @@ private:
 	float _rollSpeed = 80.0f;					//Used to determine roll speed
 	float const MINIMUM_SPEED = 5000.0f;		//Used as the lowest possible speed when flying
 	float const MAXIMUM_SPEED = 14000.0f;
-	float const MINIMUM_ACCEL = 4000.0f;
-	float const MAXIMUM_ACCEL = 16000.0f;
+	float const MINIMUM_ACCEL = 6000.0f;
+	float const MAXIMUM_ACCEL = 24000.0f;
 	UPROPERTY (Replicated) float _maxSpeed = 5000.0f;			//Used as the default max speed
 	UPROPERTY (Replicated) float _acceleration = 4000.0f;		//The rate at which the speed increases when scrolling, is multiplied with scroll axis value (Not in cruise speed)
 	UPROPERTY (Replicated) bool _braking = false;				//Used to braking the spaceship manually

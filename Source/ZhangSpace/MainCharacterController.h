@@ -357,6 +357,8 @@ private:
 	int FPS = 0;
 	void UpdateFPS ();
 
+	float _healthRegen = 0.0f;
+
 	UPROPERTY (Replicated) bool _gameFinished = false;
 
 	UPROPERTY (Replicated) bool _gameOver = false;

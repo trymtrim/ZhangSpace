@@ -123,6 +123,17 @@ void AMainCharacterController::Tick (float DeltaTime)
 			secondsString = FString::FromInt (seconds);
 
 		gameTimerText = minutesString + ":" + secondsString;
+
+		if (_currentHealth < 100.0f)
+		{
+			_healthRegen += DeltaTime / 4.0f;
+
+			if (_healthRegen >= 1.0f)
+			{
+				_currentHealth++;
+				_healthRegen = 0.0f;
+			}
+		}
 	}
 
 	//Update stats for the client's UI
@@ -189,6 +200,9 @@ void AMainCharacterController::Die ()
 	_dead = true;
 
 	cloakActive = false;
+
+	if (shieldActive)
+		shield->ApplyDamage (50);
 
 	if (_channelingBeam)
 		CancelHyperBeam ();
@@ -266,6 +280,8 @@ void AMainCharacterController::Respawn ()
 	RespawnBP ();
 
 	_dead = false;
+
+	Shield ();
 }
 
 void AMainCharacterController::FinishGame (FString winnerName)
@@ -530,6 +546,9 @@ void AMainCharacterController::UseAbility_Implementation (int abilityIndex, FVec
 		Teleport ();
 		break;
 	case 8:
+		if (Cast <AMainPlayerController> (GetController ())->_cruiseSpeed)
+			return;
+
 		Afterburner ();
 		break;
 	case 9:
@@ -1055,7 +1074,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 		if (shield != nullptr)
 			shield->ApplyDamage ((int) finalDamage);
 	}
-	if (shieldActive && !DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
+	if (shieldActive && DamageCauser != nullptr && !DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
 	{
 		finalDamage = Damage - Damage * (_defensePower * 8.0f / 100.0f);
 
@@ -1094,10 +1113,13 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 	}
 	else
 	{
-		if (!DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
-			finalDamage = Damage - Damage * (_defensePower * 8.0f / 100.0f);
+		if (DamageCauser != nullptr)
+		{
+			if (!DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
+				finalDamage = Damage - Damage * (_defensePower * 8.0f / 100.0f);
+		}
 
-			_currentHealth -= (int) finalDamage;
+		_currentHealth -= (int) finalDamage;
 
 		if (DamageCauser != nullptr)
 		{

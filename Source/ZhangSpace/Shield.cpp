@@ -45,6 +45,8 @@ void AShield::BeginPlay ()
 		//Tell character controller that shield is active
 		parentPlayer->shieldActive = true;
 		parentPlayer->shield = this;
+
+		parentPlayer->SetShieldHealth (_health);
 	}
 }
 
