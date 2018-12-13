@@ -1153,7 +1153,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 	{
 		finalDamage = Damage - Damage * (_defensePower * 8.0f / 100.0f);
 
-		if (_shieldReflect && DamageCauser->GetName ().Contains ("Projectile"))
+		if (_shieldReflect && DamageCauser->GetName ().Contains ("Projectile") && !DamageCauser->GetName ().Contains ("Heatseeker"))
 			shield->OnHitByProjectile (DamageCauser->GetOwner (), Damage);
 
 		shield->ApplyDamage ((int) finalDamage);
