@@ -171,7 +171,7 @@ void AMainCharacterController::InitializeAbilityCooldowns ()
 {
 	_abilityMaxCooldowns.Add (0, 60.0f); //Shield
 	_abilityMaxCooldowns.Add (1, 30.0f); //Hyper Beam
-	_abilityMaxCooldowns.Add (2, 60.0f); //Heatseeker
+	_abilityMaxCooldowns.Add (2, 90.0f); //Heatseeker
 	_abilityMaxCooldowns.Add (3, 40.0f); //Shockwave
 	_abilityMaxCooldowns.Add (4, 30.0f); //Cloak
 	_abilityMaxCooldowns.Add (5, 10.0f); //Defense 2
@@ -1129,6 +1129,16 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 
 	float finalDamage = Damage;
 
+	if (DamageCauser == nullptr)
+	{
+		_currentHealth -= (int) finalDamage;
+
+		if (_currentHealth <= 0)
+			Die ();
+
+		return 0.0f;
+	}
+
 	if (finalDamage > 800)
 	{
 		_currentHealth -= (int) finalDamage;
@@ -1138,6 +1148,7 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 		if (shield != nullptr)
 			shield->ApplyDamage ((int) finalDamage);
 	}
+	
 	if (shieldActive && DamageCauser != nullptr && !DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
 	{
 		finalDamage = Damage - Damage * (_defensePower * 8.0f / 100.0f);

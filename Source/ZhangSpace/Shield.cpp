@@ -82,7 +82,8 @@ void AShield::ApplyDamage (int damage)
 {
 	_health -= damage;
 
-	parentPlayer->SetShieldHealth (_health);
+	if (parentPlayer != nullptr)
+		parentPlayer->SetShieldHealth (_health);
 
 	//If health is below zero, die
 	if (_health <= 0)
