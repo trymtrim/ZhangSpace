@@ -221,6 +221,10 @@ public:
 	UFUNCTION (BlueprintImplementableEvent, Category = "Character Controller")
 	void DisarmBP ();
 
+	UFUNCTION (BlueprintCallable)
+	void UpdateAbilityPositions (TArray <int> positions);
+	UFUNCTION (BlueprintCallable) TArray <int> GetAbilityPositions ();
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay () override;

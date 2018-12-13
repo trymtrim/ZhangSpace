@@ -24,10 +24,20 @@ void ConfigManager::InitializeConfigFile (EWorldType::Type gameType)
 		return;
 
 	FJsonObject* jsonObject = new FJsonObject ();
+
 	jsonObject->SetStringField ("IP_Address", "127.0.0.1");
 	jsonObject->SetStringField ("Player_Name", "Default Name");
 	jsonObject->SetStringField ("Show_FPS", "false");
 	jsonObject->SetStringField ("Show_Ping", "false");
+
+	jsonObject->SetStringField ("Shield", "0");
+	jsonObject->SetStringField ("Hyper_Beam", "0");
+	jsonObject->SetStringField ("Heatseeker", "0");
+	jsonObject->SetStringField ("Shockwave", "0");
+	jsonObject->SetStringField ("Cloak", "0");
+	jsonObject->SetStringField ("Teleport", "0");
+	jsonObject->SetStringField ("Afterburner", "0");
+	jsonObject->SetStringField ("Slow_Field", "0");
 
 	FString outputString;
 	TSharedRef <TJsonWriter <>> writer = TJsonWriterFactory <>::Create (&outputString);

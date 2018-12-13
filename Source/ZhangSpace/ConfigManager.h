@@ -14,6 +14,7 @@ public:
 	static void InitializeConfigFile (EWorldType::Type gameType);
 
 	static void ChangeConfig (FString configType, FString newConfig);
+
 	static FString GetConfig (FString configType);
 
 private:

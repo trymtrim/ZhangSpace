@@ -9,6 +9,7 @@
 #include "MainGameState.h"
 #include "Teleporter.h"
 #include "AI/SpaceshipAI.h"
+#include "ConfigManager.h"
 
 #include "Runtime/Engine/Public/DrawDebugHelpers.h"
 #include "Engine.h"
@@ -45,6 +46,13 @@ void AMainCharacterController::BeginPlay ()
 
 		//Add shield ability
 		AddAbility (0);
+
+		TArray <int> hotkeyBarStart;
+		for (int i = 0; i < 8; i++)
+			hotkeyBarStart.Add (-1);
+
+		hotkeyBarStart [FCString::Atoi (*ConfigManager::GetConfig ("Shield"))] = 0;
+		UpdateHotkeyBar (hotkeyBarStart);
 	}
 
 	if (GetWorld ()->IsServer ())
@@ -153,6 +161,9 @@ void AMainCharacterController::Tick (float DeltaTime)
 		}
 
 		FPS++;
+
+		if (FPS > 60)
+			FPS = 60;
 	}
 }
 
@@ -190,6 +201,56 @@ void AMainCharacterController::ChangeMesh (UStaticMesh* mesh)
 void AMainCharacterController::UpdateFeedText_Implementation (const FString& feedText)
 {
 	AddFeedTextBP (feedText);
+}
+
+void AMainCharacterController::UpdateAbilityPositions (TArray <int> positions)
+{
+	for (int i = 0; i < positions.Num (); i++)
+	{
+		switch (positions [i])
+		{
+		case 0:
+			ConfigManager::ChangeConfig ("Shield", FString::FromInt (i));
+			break;
+		case 1:
+			ConfigManager::ChangeConfig ("Hyper_Beam", FString::FromInt (i));
+			break;
+		case 2:
+			ConfigManager::ChangeConfig ("Heatseeker", FString::FromInt (i));
+			break;
+		case 3:
+			ConfigManager::ChangeConfig ("Shockwave", FString::FromInt (i));
+			break;
+		case 6:
+			ConfigManager::ChangeConfig ("Cloak", FString::FromInt (i));
+			break;
+		case 7:
+			ConfigManager::ChangeConfig ("Teleport", FString::FromInt (i));
+			break;
+		case 8:
+			ConfigManager::ChangeConfig ("Afterburner", FString::FromInt (i));
+			break;
+		case 9:
+			ConfigManager::ChangeConfig ("Slow_Field", FString::FromInt (i));
+			break;
+		}
+	}
+}
+
+TArray <int> AMainCharacterController::GetAbilityPositions ()
+{
+	TArray <int> positions;
+
+	positions.Add (FCString::Atoi (*ConfigManager::GetConfig ("Shield")));
+	positions.Add (FCString::Atoi (*ConfigManager::GetConfig ("Hyper_Beam")));
+	positions.Add (FCString::Atoi (*ConfigManager::GetConfig ("Heatseeker")));
+	positions.Add (FCString::Atoi (*ConfigManager::GetConfig ("Shockwave")));
+	positions.Add (FCString::Atoi (*ConfigManager::GetConfig ("Cloak")));
+	positions.Add (FCString::Atoi (*ConfigManager::GetConfig ("Teleport")));
+	positions.Add (FCString::Atoi (*ConfigManager::GetConfig ("Afterburner")));
+	positions.Add (FCString::Atoi (*ConfigManager::GetConfig ("Slow_Field")));
+
+	return positions;
 }
 
 void AMainCharacterController::Die ()
@@ -766,7 +827,7 @@ void AMainCharacterController::Shockwave ()
 		{
 			AMainCharacterController* character = Cast <AMainCharacterController> (playerController->GetCharacter ());
 
-			if (character->playerID != playerID && FVector::Distance (GetActorLocation (), character->GetActorLocation ()) <= hitDistance * 100.0f)
+			if (character->playerID != playerID && FVector::Distance (GetActorLocation (), character->GetActorLocation ()) <= hitDistance * 100.0f && !character->GetIsDead ())
 				character->Disarm ();
 		}
 	}

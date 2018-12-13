@@ -1,6 +1,14 @@
 {
 	"IP_Address": "51.144.182.244",
-	"Player_Name": "Trym",
-	"Show_FPS": "true",
-	"Show_Ping": "true"
+	"Player_Name": "Default Name",
+	"Show_FPS": "false",
+	"Show_Ping": "false",
+	"Shield": "0",
+	"Hyper_Beam": "0",
+	"Heatseeker": "0",
+	"Shockwave": "0",
+	"Cloak": "0",
+	"Teleport": "0",
+	"Afterburner": "0",
+	"Slow_Field": "0"
 }
