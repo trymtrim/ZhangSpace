@@ -177,7 +177,7 @@ void AMainCharacterController::InitializeAbilityCooldowns ()
 	_abilityMaxCooldowns.Add (5, 10.0f); //Defense 2
 	_abilityMaxCooldowns.Add (6, 10.0f); //Defense 3
 	_abilityMaxCooldowns.Add (7, 15.0f); //Teleport
-	_abilityMaxCooldowns.Add (8, 20.0f); //Afterburner
+	_abilityMaxCooldowns.Add (8, 25.0f); //Afterburner
 	_abilityMaxCooldowns.Add (9, 40.0f); //Immobilize Field
 
 	//Add shield ability to hotkey bar
@@ -1122,6 +1122,40 @@ void AMainCharacterController::UpdateStats (float deltaTime)
 	}
 }
 
+void AMainCharacterController::DamageWithShieldRam (AActor* DamageCauser)
+{
+	if (shieldActive)
+	{
+		shieldActive = false;
+
+		if (shield != nullptr)
+			shield->Destroy ();
+	}
+
+	if (!_dead)
+		Die ();
+
+	//Register kill in game state
+	AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser);
+	killCharacter->UpdatePlayerHitText (playerID, 150);
+
+	if (shieldRam)
+	{
+		killCharacter->Die ();
+
+		_gameState->AddPlayerKill (Cast <AMainPlayerController> (GetController ()));
+
+		UpdatePlayerHitText (killCharacter->playerID, 150);
+
+		_gameState->UpdateFeedText (_gameState->playerNames [playerID - 1] + " killed " + _gameState->playerNames [killCharacter->playerID - 1] + ".");
+	}
+
+	AMainPlayerController* killPlayerController = Cast <AMainPlayerController> (killCharacter->GetController ());
+
+	_gameState->AddPlayerKill (killPlayerController);
+	_gameState->UpdateFeedText (_gameState->playerNames [killCharacter->playerID - 1] + " killed " + _gameState->playerNames [playerID - 1] + ".");
+}
+
 float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	if (_dead || _gameFinished)
@@ -1139,15 +1173,41 @@ float AMainCharacterController::TakeDamage (float Damage, FDamageEvent const& Da
 		return 0.0f;
 	}
 
-	if (finalDamage > 800)
+	/*if (finalDamage > 800)
 	{
-		_currentHealth -= (int) finalDamage;
-
 		shieldActive = false;
 
 		if (shield != nullptr)
 			shield->ApplyDamage ((int) finalDamage);
-	}
+
+		_currentHealth -= (int) finalDamage;
+
+		//If health is below zero, die
+		if (_currentHealth <= 0 && !_dead)
+			Die ();
+
+		//Register kill in game state
+		AMainCharacterController* killCharacter = Cast <AMainCharacterController> (DamageCauser);
+		killCharacter->UpdatePlayerHitText (playerID, 150);
+
+		if (killCharacter->shieldRam)
+		{
+			killCharacter->Die ();
+
+			_gameState->AddPlayerKill (Cast <AMainPlayerController> (GetController ()));
+
+			UpdatePlayerHitText (killCharacter->playerID, 150);
+
+			_gameState->UpdateFeedText (_gameState->playerNames [playerID - 1] + " killed " + _gameState->playerNames [killCharacter->playerID - 1] + ".");
+		}
+
+		AMainPlayerController* killPlayerController = Cast <AMainPlayerController> (killCharacter->GetController ());
+
+		_gameState->AddPlayerKill (killPlayerController);
+		_gameState->UpdateFeedText (_gameState->playerNames [killCharacter->playerID - 1] + " killed " + _gameState->playerNames [playerID - 1] + ".");
+
+		return 0.0f;
+	}*/
 	
 	if (shieldActive && DamageCauser != nullptr && !DamageCauser->GetClass ()->IsChildOf (AShrinkingCircle::StaticClass ()))
 	{

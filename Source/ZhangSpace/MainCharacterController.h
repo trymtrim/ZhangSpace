@@ -225,6 +225,9 @@ public:
 	void UpdateAbilityPositions (TArray <int> positions);
 	UFUNCTION (BlueprintCallable) TArray <int> GetAbilityPositions ();
 
+	UFUNCTION (BlueprintCallable)
+	void DamageWithShieldRam (AActor* DamageCauser);
+
 protected:
 	//Called when the game starts or when spawned
 	virtual void BeginPlay () override;
